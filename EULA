@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+<title>Sublime Text 2 - EULA</title>
+
+	<meta charset="utf-8">
+
+	<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans:400,600">
+	<link rel="stylesheet" type="text/css" href="sublime_v2.css">
+</head>
+<body>
+<div style="position: relative; width: 100%">
+<center>
+<div class="navbar">
+<a class="barlink" href="http://www.sublimetext.com/">Home</a>
+<a class="barlink" href="http://www.sublimetext.com/2">Download</a>
+<a class="barlink" href="https://www.sublimetext.com/buy">Buy</a>
+<a class="barlink" href="http://www.sublimetext.com/blog/">Blog</a>
+<a class="barlink" href="http://www.sublimetext.com/forum/">Forum</a>
+<a class="barlink" href="http://www.sublimetext.com/support">Support</a>
+</div>
+
+<h1>EULA</h1>
+
+<div class="post">
+
+<p>The SOFTWARE PRODUCT (SUBLIME TEXT) is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties. The SOFTWARE PRODUCT is licensed, not sold.
+
+<ol>
+
+<li>LICENSES<br>
+SUBLIME TEXT is licensed as follows:
+
+	<ol type="a">
+	<li>Installation and Usage.<br>
+	Licenses are per user and valid for use on all supported operating systems. License keys may be used on multiple computers and operating systems, provided the license key holder is the primary user. Businesses must purchase at least as many licenses as the number of people using SUBLIME TEXT.
+
+	<li>Backup Copies.<br>
+	You may make copies of the license key and or SUBLIME TEXT for backup and archival purposes.
+	</ol>
+
+<li>DESCRIPTION OF OTHER RIGHTS AND LIMITATIONS
+
+	<ol type="a">
+	<li>Maintenance of Copyright Notices.<br>
+	You must not remove or alter any copyright notices on any copy of SUBLIME TEXT.
+	<li>Distribution.<br>
+	You may not distribute or sell license keys or SUBLIME TEXT to third parties. Licenses will be revoked if distributed or sold to third parties.
+	<li>Rental.<br>
+	You may not rent, lease, or lend the license key or SUBLIME TEXT.
+	</ol>
+
+<li>COPYRIGHT<br>
+All title, including but not limited to copyrights, in and to SUBLIME TEXT and any copies thereof are owned by SUBLIME HQ PTY LTD.
+
+<li>NO WARRANTIES<br>
+SUBLIME HQ PTY LTD expressly disclaims any warranty for SUBLIME TEXT, which is provided 'as is' without any express or implied warranty of any kind, including but not limited to any warranties of merchantability, non-infringement, or fitness of a particular purpose.
+
+<li>LIMITATION OF LIABILITY<br>
+In no event shall SUBLIME HQ PTY LTD be liable for any damages due to use of SUBLIME TEXT, to the maximum extent permitted by law. This includes without limitation, lost profits, business interruption, or lost information. In no event will SUBLIME HQ PTY LTD be liable for loss of data or for indirect, special, incidental, consequential (including lost profit), or other damages. SUBLIME HQ PTY LTD shall have no liability with respect to the content of SUBLIME TEXT or any part thereof, including but not limited to errors or omissions contained therein, libel, trademark rights, business interruption, loss of privacy or the disclosure of confidential information.
+
+</ol>
+
+</div>
+
+</center>
+</div>
+
+</body>
+</html>
