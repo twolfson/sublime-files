@@ -8,6 +8,19 @@ This was initially inspired by [sublime-default][] but that fell short of having
 ## Why?
 When writing plugins and researching Sublime Text's API, it's very useful to have a hosted and sharable reference for code comments and forum posts.
 
+## You are out of date
+Whoops! Please either create an issue or a pull request about that. If you would like to run the script, it can be run via:
+
+```bash
+./extract-sublime.sh <url>
+# For example:
+# ./extract-sublime.sh http://c758482.r82.cf2.rackcdn.com/sublime_text_3_build_3083_x64.tar.bz2
+```
+
+URLs should be the portable tarballs provided for Sublime Text 3 from:
+
+http://www.sublimetext.com/3
+
 ## Is this legal?
 I am not a lawyer but yes, it should be legal. Under Sublime Text's EULA, we can host "backups and archival [copies]" of Sublime Text.
 
