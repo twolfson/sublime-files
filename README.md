@@ -19,7 +19,7 @@ Internally hosted EULA can be found here:
 
 The specific lines regarding "backups and archival [copies]" can be found here:
 
-// TODO: Need to link to specific lines
+[Backups and archival lines](EULA#L38-L39)
 
 [EULA]: EULA
 
@@ -28,7 +28,7 @@ In accordance with Sublime Text's EULA, all files except for `README.md` and `do
 
 Here are the specific lines regarding that ownership:
 
-// TODO: Need to link to specific lines
+[Copyright lines](EULA#L53-L54)
 
 With respect to the excepted files (`README.md`, `download-eula.sh`), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
 
