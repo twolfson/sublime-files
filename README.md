@@ -44,12 +44,12 @@ The specific lines regarding "backups and archival [copies]" can be found here:
 [EULA]: EULA
 
 ## License
-In accordance with Sublime Text's EULA, all files except for `.gitignore,` `CHANGELOG.md`, `README.md`, `delete-sublime.sh`, `download-eula.sh`, and `extract-sublime.sh` in this repository are owned by SUBLIME HQ PTY LTD.
+In accordance with Sublime Text's EULA, all files except for `.gitignore,` `CHANGELOG.md`, `README.md`, `UNLICENSE`, `delete-sublime.sh`, `download-eula.sh`, and `extract-sublime.sh` in this repository are owned by SUBLIME HQ PTY LTD.
 
 Here are the specific lines regarding that ownership:
 
 [Copyright lines](EULA#L53-L54)
 
-With respect to the excepted files (`.gitignore`, `CHANGELOG.md`, `README.md`,  `delete-sublime.sh`, `download-eula.sh`, `extract-sublime.sh` ), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
+With respect to the excepted files (`.gitignore`, `CHANGELOG.md`, `README.md`, `UNLICENSE`, `delete-sublime.sh`, `download-eula.sh`, `extract-sublime.sh` ), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
 
 [UNLICENSE]: UNLICENSE
