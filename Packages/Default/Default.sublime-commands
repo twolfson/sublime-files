@@ -126,6 +126,8 @@
     { "caption": "Code Folding: Unfold All", "command": "unfold_all" },
     { "caption": "Code Folding: Fold Tag Attributes", "command": "fold_tag_attributes" },
 
+    { "caption": "Plugin Development: Profile Events", "command": "profile_plugins" },
+
     { "caption": "About", "command": "show_about_window" },
     { "caption": "Changelog", "command": "show_changelog" },
 ]

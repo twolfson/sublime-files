@@ -54,21 +54,25 @@ class AsyncProcess(object):
         if shell_cmd and sys.platform == "win32":
             # Use shell=True on Windows, so shell_cmd is passed through with the correct escaping
             self.proc = subprocess.Popen(shell_cmd, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, startupinfo=startupinfo, env=proc_env, shell=True)
+                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                startupinfo=startupinfo, env=proc_env, shell=True)
         elif shell_cmd and sys.platform == "darwin":
             # Use a login shell on OSX, otherwise the users expected env vars won't be setup
             self.proc = subprocess.Popen(["/bin/bash", "-l", "-c", shell_cmd], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, startupinfo=startupinfo, env=proc_env, shell=False)
+                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                startupinfo=startupinfo, env=proc_env, shell=False)
         elif shell_cmd and sys.platform == "linux":
             # Explicitly use /bin/bash on Linux, to keep Linux and OSX as
             # similar as possible. A login shell is explicitly not used for
             # linux, as it's not required
             self.proc = subprocess.Popen(["/bin/bash", "-c", shell_cmd], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, startupinfo=startupinfo, env=proc_env, shell=False)
+                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                startupinfo=startupinfo, env=proc_env, shell=False)
         else:
             # Old style build system, just do what it asks
             self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, startupinfo=startupinfo, env=proc_env, shell=shell)
+                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
+                startupinfo=startupinfo, env=proc_env, shell=shell)
 
         if path:
             os.environ["PATH"] = old_path

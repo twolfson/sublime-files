@@ -6,10 +6,45 @@ h2 { color: #333; font-size: 2.0em; margin: 0; }
 .release-date, .forum-link { font-size: 10pt }
 </style>
 
+<h2>Build 3103</h2>
+<div class="release-date">Release Date: 9 February 2016</div>
+<div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-build-3103">Blog Post</a></div>
+<ul>
+    <li>Added new Syntax Definition file format, <a href="https://www.sublimetext.com/docs/3/syntax.html">.sublime-syntax</a></li>
+    <li>Added a custom regex engine that matches multiple regexps in parallel, for faster file loading and indexing</li>
+    <li>Improved Unicode support, including combining character rendering, character classification in regex searches, and case insensitivity in Goto Anything matching</li>
+    <li>Packages are now on <a href="https://github.com/sublimehq/Packages">GitHub</a></li>
+    <li>Incorporates many community provided improvements to the above packages, with significant improvements to HTML, CSS, JavaScript, Go, D and SQL</li>
+    <li>Added Panel Switcher to status bar</li>
+    <li>Better handling of troublesome files during indexing</li>
+    <li>Improved file change detection</li>
+    <li>Added "Profile Events" to the Command Palette, to help identify slow plugins</li>
+    <li>Build Systems may now define a list of file name wildcard patterns to trigger on, via the <tt>file_patterns</tt> key</li>
+    <li><tt>prompt_open_file</tt> and related commands now accept an <tt>initial_directory</tt> argument</li>
+    <li>Improved indenting behavior when <tt>indent_to_bracket</tt> is enabled</li>
+    <li>Spell Checker now reads from manually edited user preferences on the fly</li>
+    <li>Stability improvements for Find in Files when using regular expressions that result in significant backtracking</li>
+    <li>Fixed file truncation when using hexadecimal encoding</li>
+    <li>Fixed brackets in strings influencing auto indent</li>
+    <li>Fixed inconsistencies in Goto Anything when selecting symbols</li>
+    <li>Fixed tab completion regression in 3081, where h1..h6 HTML completions were not triggering</li>
+    <li>Fixed Goto Definition command not working when placed in a submenu</li>
+    <li>OSX: Fixed Emoji &amp; Symbols popup failing to insert text in some cases</li>
+    <li>Windows: Added support for inserting characters from outside of the BMP</li>
+    <li>Windows: <tt>ctrl+alt+p</tt> is no longer bound by default, due to compatibility issues with some keyboard layouts</li>
+    <li>Windows: Updated code signing certificate to no longer use SHA1</li>
+    <li>Linux: Fixed a file permission issue when running without --wait</li>
+    <li>Linux: crash_reporter is statically linked, improving system compatibility</li>
+    <li>API: Added Window.is_sidebar_visible() and Window.set_sidebar_visible()</li>
+    <li>API: Added View.is_auto_complete_visible()</li>
+    <li>API: Added find_output_panel(), destroy_output_panel(), active_panel() and panels()</li>
+    <li>API: Added create_output_panel() now accepts an optional parameter, <tt>"unlisted"</tt></li>
+</ul>
+
 <h2>Build 3083</h2>
 <div class="release-date">Release Date: 26 March 2015</div>
 <ul>
-    <li>Fixed high CPU usage caused by a corrupt index. This was was occuring for some users upgrading from 3065</li>
+    <li>Fixed high CPU usage caused by a corrupt index. This was occuring for some users upgrading from 3065</li>
     <li>Added setting <tt>index_workers</tt> to control the number of threads used for file indexing. By default the number of threads is based on the number of CPU cores. By setting <tt>index_workers</tt> to 1 or 2, indexing will be slower, but less intrusive</li>
     <li>Fixed a crash when showing the Command Palette with an empty .sublime-build file</li>
     <li>Tab completion no longer completes numbers. <i>Edit/Show Completions</i> can still be used for this</li>

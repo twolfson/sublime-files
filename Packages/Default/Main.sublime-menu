@@ -761,6 +761,8 @@
             { "caption": "-" },
             { "command": "new_plugin", "caption": "New Plugin…" },
             { "command": "new_snippet", "caption": "New Snippet…" },
+            { "command": "new_syntax", "caption": "New Syntax…" },
+            { "command": "convert_syntax" },
             { "caption": "-", "id": "end" }
         ]
     },

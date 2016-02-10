@@ -243,6 +243,12 @@
         "color": [0, 0, 0, 255]
     },
     {
+        "class": "panel_button_control",
+        "layer0.texture": "Theme - Default/panels.png",
+        "layer0.opacity": 0.7,
+        "content_margin": [12, 8]
+    },
+    {
         "class": "disclosure_button_control",
         "layer0.texture": "Theme - Default/arrow_right.png",
         "layer0.opacity": 1.0,
@@ -423,11 +429,11 @@
         "layer0.texture": "Theme - Default/status_bar.png",
         "layer0.opacity": 1.0,
         "layer0.inner_margin": [2, 2],
-        "content_margin": [4, 2, 4, 0]
+        "content_margin": [6, 2, 4, 0]
     },
     {
         "class": "status_container",
-        "content_margin": [0, 2, 0, 3],
+        "content_margin": [1, 2, 0, 3],
     },
     {
         "class": "status_button",

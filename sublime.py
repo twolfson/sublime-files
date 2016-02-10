@@ -336,8 +336,22 @@ class Window(object):
     def set_layout(self, layout):
         sublime_api.window_set_layout(self.window_id, layout)
 
-    def create_output_panel(self, name):
-        return View(sublime_api.window_create_output_panel(self.window_id, name))
+    def create_output_panel(self, name, unlisted=False):
+        return View(sublime_api.window_create_output_panel(self.window_id, name, unlisted))
+
+    def find_output_panel(self, name):
+        view_id = sublime_api.window_find_output_panel(self.window_id, name)
+        return View(view_id) if view_id else None
+
+    def destroy_output_panel(self, name):
+        sublime_api.window_destroy_output_panel(self.window_id, name)
+
+    def active_panel(self):
+        name = sublime_api.window_active_panel(self.window_id)
+        return name or None
+
+    def panels(self):
+        return sublime_api.window_panels(self.window_id)
 
     def get_output_panel(self, name):
         """ deprecated, use create_output_panel """
@@ -371,6 +385,12 @@ class Window(object):
 
         sublime_api.window_show_quick_panel(self.window_id, flat_items,
             items_per_row, on_select, on_highlight, flags, selected_index)
+
+    def is_sidebar_visible(self):
+        return sublime_api.window_is_sidebar_visible(self.window_id)
+
+    def set_sidebar_visible(self, flag):
+        sublime_api.window_set_sidebar_visible(self.window_id, flag)
 
     def folders(self):
         return sublime_api.window_folders(self.window_id)
@@ -421,6 +441,8 @@ class Edit(object):
         self.edit_token = token
 
 class Region(object):
+    __slots__ = ['a', 'b', 'xpos']
+
     def __init__(self, a, b = None, xpos = -1):
         if b == None:
             b = a
@@ -963,6 +985,9 @@ class View(object):
 
     def hide_popup(self):
         sublime_api.view_hide_popup(self.view_id)
+
+    def is_auto_complete_visible(self):
+        return sublime_api.view_is_auto_complete_visible(self.view_id)
 
 class Settings(object):
     def __init__(self, id):

@@ -7,6 +7,8 @@ import sys
 import zipfile
 import sublime_api
 import traceback
+import time
+import math
 
 api_ready = False
 
@@ -32,6 +34,8 @@ all_callbacks = {'on_new': [], 'on_clone': [], 'on_load': [], 'on_pre_close': []
     'on_new_async': [],
     'on_load_async': [],
     'on_clone_async': []}
+
+profile = {}
 
 def unload_module(module):
     if "plugin_unloaded" in module.__dict__:
@@ -201,13 +205,51 @@ def on_clone_async(view_id):
         except:
             traceback.print_exc()
 
+class Summary(object):
+    def __init__(self):
+        self.max = 0.0
+        self.sum = 0.0
+        self.count = 0
+
+    def record(self, x):
+        self.count += 1
+        self.sum += x
+        self.max = max(self.max, x)
+
+    def __str__(self):
+        if self.count > 1:
+            return "{0:.3f}s total, mean: {1:.3f}s, max: {2:.3f}s".format(self.sum, self.sum / self.count, self.max)
+        elif self.count == 1:
+            return "{0:.3f}s total".format(self.sum)
+        else:
+            return "0s total"
+
+def run_callback(event, callback, expr):
+    t0 = time.time()
+
+    try:
+        expr()
+    except:
+        traceback.print_exc()
+
+    elapsed = time.time() - t0
+
+    if event not in profile:
+        profile[event] = {}
+
+    p = profile[event]
+
+    name = callback.__module__
+    if name not in p:
+        p[name] = Summary()
+
+    p[name].record(elapsed)
+
 def on_load(view_id):
     v = sublime.View(view_id)
+
     for callback in all_callbacks['on_load']:
-        try:
-            callback.on_load(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_load', callback, lambda: callback.on_load(v))
 
 def on_load_async(view_id):
     v = sublime.View(view_id)
@@ -220,26 +262,17 @@ def on_load_async(view_id):
 def on_pre_close(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_pre_close']:
-        try:
-            callback.on_pre_close(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_pre_close', callback, lambda: callback.on_pre_close(v))
 
 def on_close(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_close']:
-        try:
-            callback.on_close(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_close', callback, lambda: callback.on_close(v))
 
 def on_pre_save(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_pre_save']:
-        try:
-            callback.on_pre_save(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_pre_save', callback, lambda: callback.on_pre_save(v))
 
 def on_pre_save_async(view_id):
     v = sublime.View(view_id)
@@ -252,10 +285,7 @@ def on_pre_save_async(view_id):
 def on_post_save(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_post_save']:
-        try:
-            callback.on_post_save(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_post_save', callback, lambda: callback.on_post_save(v))
 
 def on_post_save_async(view_id):
     v = sublime.View(view_id)
@@ -268,10 +298,7 @@ def on_post_save_async(view_id):
 def on_modified(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_modified']:
-        try:
-            callback.on_modified(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_modified', callback, lambda: callback.on_modified(v))
 
 def on_modified_async(view_id):
     v = sublime.View(view_id)
@@ -284,10 +311,7 @@ def on_modified_async(view_id):
 def on_selection_modified(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_selection_modified']:
-        try:
-            callback.on_selection_modified(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_selection_modified', callback, lambda: callback.on_selection_modified(v))
 
 def on_selection_modified_async(view_id):
     v = sublime.View(view_id)
@@ -300,10 +324,7 @@ def on_selection_modified_async(view_id):
 def on_activated(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_activated']:
-        try:
-            callback.on_activated(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_activated', callback, lambda: callback.on_activated(v))
 
 def on_activated_async(view_id):
     v = sublime.View(view_id)
@@ -316,10 +337,7 @@ def on_activated_async(view_id):
 def on_deactivated(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_deactivated']:
-        try:
-            callback.on_deactivated(v)
-        except:
-            traceback.print_exc()
+        run_callback('on_deactivated', callback, lambda: callback.on_deactivated(v))
 
 def on_deactivated_async(view_id):
     v = sublime.View(view_id)

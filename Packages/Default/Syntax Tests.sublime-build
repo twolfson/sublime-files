@@ -1,0 +1,17 @@
+{
+    "target": "run_syntax_tests",
+    "file_regex": "^Packages/(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+    "working_dir": "${packages}",
+    "file_patterns": ["syntax_test*", "*.sublime-syntax", "*.tmLanguage"],
+
+    "variants": [
+        {
+            "name": "All Syntaxes",
+            "find_all": true
+        },
+        {
+            "name": "Performance",
+            "target": "profile_syntax_definition"
+        }
+    ]
+}

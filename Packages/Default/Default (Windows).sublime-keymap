@@ -126,7 +126,7 @@
 		"context":
 		[
 			{ "key": "setting.tab_completion", "operator": "equal", "operand": true },
-			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*[^0-9]$", "match_all": true },
+			{ "key": "preceding_text", "operator": "not_regex_match", "operand": ".*\\b[0-9]+$", "match_all": true },
 		]
 	},
 	{ "keys": ["tab"], "command": "replace_completion_with_next_completion", "context":
@@ -212,7 +212,6 @@
 
 	{ "keys": ["ctrl+p"], "command": "show_overlay", "args": {"overlay": "goto", "show_files": true} },
 	{ "keys": ["ctrl+shift+p"], "command": "show_overlay", "args": {"overlay": "command_palette"} },
-	{ "keys": ["ctrl+alt+p"], "command": "prompt_select_workspace" },
 	{ "keys": ["ctrl+r"], "command": "show_overlay", "args": {"overlay": "goto", "text": "@"} },
 	{ "keys": ["ctrl+g"], "command": "show_overlay", "args": {"overlay": "goto", "text": ":"} },
 	{ "keys": ["ctrl+;"], "command": "show_overlay", "args": {"overlay": "goto", "text": "#"} },

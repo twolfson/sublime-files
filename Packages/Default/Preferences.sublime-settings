@@ -223,7 +223,7 @@
     "auto_complete_delay": 50,
 
     // Controls what scopes auto complete will be triggered in
-    "auto_complete_selector": "source - comment, meta.tag - punctuation.definition.tag.begin",
+    "auto_complete_selector": "meta.tag - punctuation.definition.tag.begin, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
 
     // Additional situations to trigger auto complete
     "auto_complete_triggers": [ {"selector": "text.html", "characters": "<"} ],
@@ -390,15 +390,6 @@
 
     // index_exclude_patterns indicate which files won't be indexed.
     "index_exclude_patterns": ["*.log"],
-
-    // When enabled, anonymised usage data is sent back, assisting Sublime HQ
-    // in making informed decisions about improving Sublime Text. File names
-    // and file contents are never included, but data such as computer
-    // specifications, startup time, installed packages, and edited file types
-    // are. When disabled, telemetry is neither recorded or sent.
-    // A setting of auto will enable telemetry in dev builds, and disable
-    // telemetry in regular builds.
-    "enable_telemetry": "auto",
 
     // List any packages to ignore here. When removing entries from this list,
     // a restart may be required if the package contains plugins.

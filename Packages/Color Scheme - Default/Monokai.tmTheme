@@ -315,6 +315,17 @@
 				<string>#CFCFC2</string>
 			</dict>
 		</dict>
+		<dict>
+			<key>name</key>
+			<string>YAML String</string>
+			<key>scope</key>
+			<string>string.unquoted.yaml</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#F8F8F2</string>
+			</dict>
+		</dict>
 
 		<dict>
 			<key>name</key>

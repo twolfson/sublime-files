@@ -6,7 +6,7 @@ class NewBuildSystemCommand(sublime_plugin.WindowCommand):
         v = self.window.new_file()
         v.settings().set('default_dir',
             os.path.join(sublime.packages_path(), 'User'))
-        v.set_syntax_file('Packages/JavaScript/JSON.tmLanguage')
+        v.assign_syntax('Packages/JavaScript/JSON.sublime-syntax')
         v.set_name('untitled.sublime-build')
 
         template = """{
@@ -21,7 +21,7 @@ class NewPluginCommand(sublime_plugin.WindowCommand):
         v = self.window.new_file()
         v.settings().set('default_dir',
             os.path.join(sublime.packages_path(), 'User'))
-        v.set_syntax_file('Packages/Python/Python.tmLanguage')
+        v.assign_syntax('Packages/Python/Python.sublime-syntax')
 
         template = """import sublime, sublime_plugin
 
@@ -38,7 +38,7 @@ class NewSnippetCommand(sublime_plugin.WindowCommand):
         v.settings().set('default_dir',
             os.path.join(sublime.packages_path(), 'User'))
         v.settings().set('default_extension', 'sublime-snippet')
-        v.set_syntax_file('Packages/XML/XML.tmLanguage')
+        v.assign_syntax('Packages/XML/XML.sublime-syntax')
 
         template = """<snippet>
 	<content><![CDATA[
@@ -51,3 +51,59 @@ Hello, \${1:this} is a \${2:snippet}.
 </snippet>
 """
         v.run_command("insert_snippet", {"contents": template})
+
+
+class NewSyntaxCommand(sublime_plugin.WindowCommand):
+    def run(self):
+        v = self.window.new_file()
+        v.settings().set('default_dir',
+            os.path.join(sublime.packages_path(), 'User'))
+        v.settings().set('default_extension', 'sublime-syntax')
+        v.assign_syntax("Packages/YAML/YAML.sublime-syntax")
+
+        template = r"""%YAML1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions:
+  - ec
+scope: source.example-c
+contexts:
+  main:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character
+    - match: '"'
+      scope: punctuation.definition.string.begin.example-c
+      push: double_quoted_string
+
+    # Comments begin with a '//' and finish at the end of the line
+    - match: '//'
+      scope: punctuation.definition.comment.example-c
+      push: line_comment
+
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '\b(if|else|for|while)\b'
+      scope: keyword.control.example-c
+
+    # Numbers
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.example-c
+
+  double_quoted_string:
+    - meta_scope: string.quoted.double.example-c
+    - match: '\\.'
+      scope: constant.character.escape.example-c
+    - match: '"'
+      scope: punctuation.definition.string.end.example-c
+      pop: true
+
+  line_comment:
+    - meta_scope: comment.line.example-c
+    - match: $
+      pop: true
+"""
+
+        v.run_command('append', {'characters': template})

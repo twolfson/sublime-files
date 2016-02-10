@@ -102,7 +102,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 		"context":
 		[
 			{ "key": "setting.tab_completion", "operator": "equal", "operand": true },
-			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*[^0-9]$", "match_all": true },
+			{ "key": "preceding_text", "operator": "not_regex_match", "operand": ".*\\b[0-9]+$", "match_all": true },
 		]
 	},
 	{ "keys": ["tab"], "command": "replace_completion_with_next_completion", "context":

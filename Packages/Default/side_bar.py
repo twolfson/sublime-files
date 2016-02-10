@@ -67,12 +67,20 @@ class RenamePathCommand(sublime_plugin.WindowCommand):
     def on_done(self, old, branch, leaf):
         new = os.path.join(branch, leaf)
 
+        if new == old:
+            return
+
         try:
+            if os.path.isfile(new):
+                raise OSError("File already exists")
+
             os.rename(old, new)
 
             v = self.window.find_open_file(old)
             if v:
                 v.retarget(new)
+        except OSError as e:
+            sublime.status_message("Unable to rename: " + str(e))
         except:
             sublime.status_message("Unable to rename")
 
