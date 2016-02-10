@@ -12,6 +12,13 @@ When writing plugins and researching Sublime Text's API, it's very useful to hav
 Whoops! Please either create an issue or a pull request about that. If you would like to run the script, it can be run via:
 
 ```bash
+# Remove all Sublime files
+./delete-sublime.sh
+
+# Download the latest EULA
+./download-eula.sh
+
+# Download/extract latest Sublime tarball
 ./extract-sublime.sh <url>
 # For example:
 # ./extract-sublime.sh http://c758482.r82.cf2.rackcdn.com/sublime_text_3_build_3083_x64.tar.bz2
@@ -37,12 +44,12 @@ The specific lines regarding "backups and archival [copies]" can be found here:
 [EULA]: EULA
 
 ## License
-In accordance with Sublime Text's EULA, all files except for `.gitignore,` `CHANGELOG.md`, `README.md`, `download-eula.sh`, and `extract-sublime.sh` in this repository are owned by SUBLIME HQ PTY LTD.
+In accordance with Sublime Text's EULA, all files except for `.gitignore,` `CHANGELOG.md`, `README.md`, `delete-sublime.sh`, `download-eula.sh`, and `extract-sublime.sh` in this repository are owned by SUBLIME HQ PTY LTD.
 
 Here are the specific lines regarding that ownership:
 
 [Copyright lines](EULA#L53-L54)
 
-With respect to the excepted files (`.gitignore`, `CHANGELOG.md`, `README.md`, `download-eula.sh`, `extract-sublime.sh` ), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
+With respect to the excepted files (`.gitignore`, `CHANGELOG.md`, `README.md`,  `delete-sublime.sh`, `download-eula.sh`, `extract-sublime.sh` ), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
 
 [UNLICENSE]: UNLICENSE
