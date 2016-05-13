@@ -5,7 +5,7 @@ set -e
 # List all the files in our directory
 for file in *; do
   # If the file is reserved, then skip it
-  if echo "$file" | grep -E "^(.git|.gitignore|CHANGELOG.md|README.md|UNLICENSE|delete-sublime.sh|download-eula.sh|extract-sublime.sh)$" &> /dev/null; then
+  if echo "$file" | grep -E "^(.git|.gitignore|CHANGELOG.md|README.md|UNLICENSE|delete-sublime.sh|download-eula.sh|extract-sublime.sh|release.sh)$" &> /dev/null; then
     continue
   fi
 
