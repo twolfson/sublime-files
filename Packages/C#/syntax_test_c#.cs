@@ -17,6 +17,11 @@ class X
     }
 }
 
+string verbatim = @"This is a test "" of a verbatim string literal - C:\User"
+//                ^^ string.quoted.double.literal punctuation.definition.string.begin
+//                                 ^^ constant.character.escape
+//                                                                     ^ string.quoted.double.literal - constant
+//                                                                          ^ string.quoted.double.literal punctuation.definition.string.end
 
 class A
 {
@@ -48,4 +53,23 @@ class TestGenericList
 
         GenericList<ExampleClass> list3 = new GenericList<ExampleClass>();
     }
+}
+
+public partial class Employee
+//     ^ storage.modifier
+//                   ^ entity.name.type.class
+{
+    public void DoWork()
+    {
+    }
+}
+
+public class Coo
+{
+    public Object text = ObjectMaker.MakeSomeText ("In order to publish your text, you need to do some texty things 'Like this' and then say hello.");
+    //                                                                                                                                              ^ - string
+    public Vector curves;
+    int Zoo()
+    //  ^ entity.name.function
+    {}
 }

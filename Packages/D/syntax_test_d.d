@@ -188,3 +188,11 @@ class CmdLin
         assert(_totalc >= _argc);
     }
 }
+ // <- - meta.class
+
+extern(C):
+struct the_c_struct;
+
+class MyClass {
+// <- storage.type
+}

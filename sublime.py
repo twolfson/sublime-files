@@ -435,6 +435,9 @@ class Window(object):
     def extract_variables(self):
         return sublime_api.window_extract_variables(self.window_id)
 
+    def status_message(self, msg):
+        sublime_api.window_status_message(self.window_id, msg)
+
 
 class Edit(object):
     def __init__(self, token):

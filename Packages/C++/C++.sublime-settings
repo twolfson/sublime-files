@@ -1,3 +1,4 @@
 {
-	"extensions": ["cpp", "cc", "cxx", "c++", "h", "hpp", "hxx", "h++", "inl", "ipp"]
+    // This file ensures that C++ gets priority for .h files
+    "extensions": ["h"]
 }

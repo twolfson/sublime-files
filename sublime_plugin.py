@@ -606,37 +606,7 @@ class ZipLoader(object):
     def __init__(self, zippath):
         self.zippath = zippath
         self.name = os.path.splitext(os.path.basename(zippath))[0]
-
-        self.contents = {"":""}
-        self.packages = {""}
-
-        z = zipfile.ZipFile(zippath, 'r')
-        files = [i.filename for i in z.infolist()]
-
-        for f in files:
-            base, ext = os.path.splitext(f)
-            if ext != ".py":
-                continue
-
-            paths = base.split('/')
-            if len(paths) > 0 and paths[len(paths) - 1] == "__init__":
-                paths.pop()
-                self.packages.add('.'.join(paths))
-
-            try:
-                self.contents['.'.join(paths)] = z.read(f).decode('utf-8')
-            except UnicodeDecodeError:
-                print(f, "in", zippath, "is not utf-8 encoded, unable to load plugin")
-                continue
-
-            while len(paths) > 1:
-                paths.pop()
-                parent = '.'.join(paths)
-                if parent not in self.contents:
-                    self.contents[parent] = ""
-                    self.packages.add(parent)
-
-        z.close()
+        self._scan_zip()
 
     def has(self, fullname):
         key = '.'.join(fullname.split('.')[1:])
@@ -654,47 +624,119 @@ class ZipLoader(object):
         return False
 
     def load_module(self, fullname):
+        # Only if a module is being reloaded and hasn't been scanned recently
+        # do we force a refresh of the contents of the .sublime-package. This
+        # allows proper code upgrades using Package Control.
+        if fullname in imp._RELOADING:
+            if self.refreshed < time.time() - 5:
+                self._scan_zip()
+
+        source, source_path, mod_file, is_pkg = self._read_source(fullname)
+
+        if source is None:
+            raise ImportError("No module named '%s'" % fullname)
+
+        is_new = False
         if fullname in sys.modules:
             mod = sys.modules[fullname]
+            old_mod_file = mod.__file__
         else:
+            is_new = True
             mod = sys.modules.setdefault(fullname, imp.new_module(fullname))
+            mod.__name__ = fullname
+            mod.__path__ = [self.zippath]
+            mod.__loader__ = self
 
-        mod.__file__ = self.zippath + "/" + fullname
-        mod.__name__ = fullname
-        mod.__path__ = [self.zippath]
-        mod.__loader__ = self
-
-        key = '.'.join(fullname.split('.')[1:])
-
-        if key in self.contents:
-            source = self.contents[key]
-            source_path = key + " in " + self.zippath
-
-        is_pkg = key in self.packages
-
-        try:
-            override_file = os.path.join(override_path, os.sep.join(fullname.split('.')) + '.py')
-            override_package_init = os.path.join(os.path.join(override_path, os.sep.join(fullname.split('.'))), '__init__.py')
-
-            if os.path.isfile(override_file):
-                with open(override_file, 'r') as f:
-                    source = f.read()
-                    source_path = override_file
-            elif os.path.isfile(override_package_init):
-                with open(override_package_init, 'r') as f:
-                    source = f.read()
-                    source_path = override_package_init
-                    is_pkg = True
-        except:
-            pass
+        mod.__file__ = mod_file
 
         if is_pkg:
             mod.__package__ = mod.__name__
         else:
             mod.__package__ = fullname.rpartition('.')[0]
 
-        exec(compile(source, source_path, 'exec'), mod.__dict__)
-        return mod
+        try:
+            exec(compile(source, source_path, 'exec'), mod.__dict__)
+            return mod
+
+        except:
+            if is_new:
+                del sys.modules[fullname]
+            else:
+                mod.__file__ = old_mod_file
+            raise
+
+    def _read_source(self, fullname):
+        name_parts = fullname.split('.')
+        override_basename = os.path.join(override_path, *name_parts)
+        override_py = override_basename + '.py'
+        override_init = os.path.join(override_basename, '__init__.py')
+
+        if os.path.isfile(override_py):
+            try:
+                with open(override_py, 'r', encoding='utf-8') as f:
+                    return (f.read(), override_py, override_py, False)
+            except (Exception) as e:
+                print(override_py, 'could not be read:', e)
+
+        if os.path.isfile(override_init):
+            try:
+                with open(override_init, 'r', encoding='utf-8') as f:
+                    return (f.read(), override_init, override_init, True)
+            except (Exception) as e:
+                print(override_init, 'could not be read:', e)
+
+        key = '.'.join(name_parts[1:])
+        if key in self.contents:
+            source = self.contents[key]
+            source_path = key + " in " + self.zippath
+            mod_file = os.path.join(self.zippath, self.filenames[key]).rstrip(os.sep)
+            is_pkg = key in self.packages
+            return (source, source_path, mod_file, is_pkg)
+
+        # This allows .py overrides to exist in subfolders that:
+        #  1. Do not exist in the .sublime-package file
+        #  2. Do not contain an __init__.py
+        if os.path.isdir(override_basename):
+            return ('', override_basename, override_basename, True)
+
+        return (None, None, None, False)
+
+    def _scan_zip(self):
+        self.contents = {"":""}
+        self.filenames = {"":""}
+        self.packages = {""}
+        self.refreshed = time.time()
+
+        z = zipfile.ZipFile(self.zippath, 'r')
+        files = [i.filename for i in z.infolist()]
+
+        for f in files:
+            base, ext = os.path.splitext(f)
+            if ext != ".py":
+                continue
+
+            paths = base.split('/')
+            if len(paths) > 0 and paths[len(paths) - 1] == "__init__":
+                paths.pop()
+                self.packages.add('.'.join(paths))
+
+            try:
+                pkg_path = '.'.join(paths)
+                self.contents[pkg_path] = z.read(f).decode('utf-8')
+                self.filenames[pkg_path] = f
+            except UnicodeDecodeError:
+                print(f, "in", zippath, "is not utf-8 encoded, unable to load plugin")
+                continue
+
+            while len(paths) > 1:
+                paths.pop()
+                parent = '.'.join(paths)
+                if parent not in self.contents:
+                    self.contents[parent] = ""
+                    self.filenames[parent] = parent
+                    self.packages.add(parent)
+
+        z.close()
 
 
 override_path = None

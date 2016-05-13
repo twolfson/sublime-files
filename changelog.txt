@@ -6,6 +6,38 @@ h2 { color: #333; font-size: 2.0em; margin: 0; }
 .release-date, .forum-link { font-size: 10pt }
 </style>
 
+<h2>Build 3114</h2>
+<div class="release-date">Release Date: 12 May 2016</div>
+<ul>
+    <li>New C++, JavaScript and Rust syntax definitions with improved accuracy and performance</li>
+    <li>Many other syntax highlighting improvements</li>
+    <li>OSX: Improved rendering performance, especially on high resolution screens</li>
+
+    <li>Improved word wrap behavior</li>
+    <li>Improved spell check behavior</li>
+    <li>Improved file indexing behavior with multiple windows open</li>
+
+    <li>Themes may now be switched on the fly without artifacts</li>
+    <li>HTML: Pressing enter when between a tag pair will increase indentation</li>
+
+    <li>Some snippets have have been moved into a sub-directories, so custom overrides and key bindings that reference them will need to be updated</li>
+    <li><tt>show_scope_name</tt> command shows the scope in a popup</li>
+    <li>Package Development: Added 'Syntax Tests - Regex Compatibility' build variant for evaluating syntax definition performance</li>
+    <li>Package Development: Expanded the set of regexes the new regex engine is able to handle</li>
+    <li>Syntax Definitions: Fixed some cases where pop matches with back references weren't working correctly</li>
+
+    <li>Fixed some Unicode handling issues in Goto Anything</li>
+    <li>Fixed a scenario where changes to <tt>.tmPreferences</tt> files weren't being picked up</li>
+    <li>Fixed a 3096 rendering performance regression</li>
+    <li>Fixed a 3096 regression in regular expressions when using <tt>\x{nnnn}</tt> escapes</li>
+    <li>Fixed a crash that could occur with an invalid result_file_regex settings</li>
+
+    <li>API: Added window.status_message</li>
+    <li>API: Changes to how plugins are loaded. This should be transparent, but resolves a number of corner cases</li>
+    <li>API: Updated to Python 3.3.6, and now includes the _ssl module on Linux, plus sqlite3 and bz2 on all platforms</li>
+    <li>API: Updated OpenSSL to 1.0.2h</li>
+</ul>
+
 <h2>Build 3103</h2>
 <div class="release-date">Release Date: 9 February 2016</div>
 <div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-build-3103">Blog Post</a></div>

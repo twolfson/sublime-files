@@ -208,7 +208,7 @@
                 [
                     { "command": "close_tag" },
                     { "command": "expand_selection", "args": {"to": "tag"}, "caption": "Expand Selection to Tag" },
-                    { "command": "insert_snippet", "args": { "name": "Packages/XML/long-tag.sublime-snippet" }, "caption": "Wrap Selection With Tag" }
+                    { "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/long-tag.sublime-snippet" }, "caption": "Wrap Selection With Tag" }
                 ]
             },
             {
@@ -759,10 +759,20 @@
                 "children": [ { "command": "$macros" } ]
             },
             { "caption": "-" },
-            { "command": "new_plugin", "caption": "New Plugin…" },
-            { "command": "new_snippet", "caption": "New Snippet…" },
-            { "command": "new_syntax", "caption": "New Syntax…" },
-            { "command": "convert_syntax" },
+            {
+                "caption": "Developer",
+                "children":
+                [
+                    { "command": "new_plugin", "caption": "New Plugin…" },
+                    { "command": "new_snippet", "caption": "New Snippet…" },
+                    { "command": "new_syntax", "caption": "New Syntax…" },
+                    { "command": "convert_syntax" },
+                    { "caption": "-" },
+                    { "command": "profile_plugins" },
+                    { "caption": "-" },
+                    { "command": "show_scope_name" },
+                ]
+            },
             { "caption": "-", "id": "end" }
         ]
     },

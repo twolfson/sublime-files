@@ -1,12 +1,17 @@
 <snippet>
-    <content><![CDATA[try {
+	<content><![CDATA[try
+{
 	$2
-} catch (${1:Exception} e) {
+}
+catch (${1:Exception} e)
+{
 	$3
-} finally {
+}
+finally
+{
 	$0
 }]]></content>
-    <tabTrigger>tcf</tabTrigger>
-    <scope>source.d</scope>
-    <description>try … catch … finally</description>
+	<tabTrigger>tcf</tabTrigger>
+	<scope>source.d</scope>
+	<description>try … catch … finally</description>
 </snippet>

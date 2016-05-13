@@ -3,6 +3,7 @@
 import plistlib
 import os
 import sys
+import re
 
 try:
     import yaml
@@ -304,7 +305,11 @@ def make_context(patterns, repository):
     return ctx
 
 def convert(fname):
-    s = sublime.load_resource(fname)
+    if fname.startswith('Packages/'):
+        s = sublime.load_resource(fname)
+    else:
+        with open(fname, 'r', encoding='utf-8') as f:
+            s = f.read()
     l = plistlib.readPlistFromBytes(s.encode("utf-8"))
 
     if "repository" in l:
@@ -387,13 +392,14 @@ try:
 
     class ConvertSyntaxCommand(sublime_plugin.WindowCommand):
         def run(self):
-            if not self.window.active_view():
+            view = self.window.active_view()
+            if not view:
                 return
 
-            syn = self.window.active_view().settings().get('syntax')
-            base, ext = os.path.splitext(syn)
-            if not ext == ".tmLanguage":
+            syn = self.syntax_info(view)
+            if not syn:
                 return
+            base, ext = os.path.splitext(syn)
 
             data = to_yaml(convert(syn))
 
@@ -412,24 +418,30 @@ try:
             if not view:
                 return False
 
-            syn = view.settings().get('syntax')
-            base, ext = os.path.splitext(syn)
-            if not ext == ".tmLanguage":
-                return False
-
-            return True
+            syn = self.syntax_info(view)
+            return syn is not None
 
         def description(self):
             view = self.window.active_view()
             if not view:
                 return super().description()
 
-            syn = view.settings().get('syntax')
-            base, ext = os.path.splitext(syn)
-            if not ext == ".tmLanguage":
+            syn = self.syntax_info(view)
+            if not syn:
                 return super().description()
 
             return "New Syntax from " + os.path.basename(syn) + "…"
+
+        def syntax_info(self, view):
+            syn = view.settings().get('syntax')
+            if syn.endswith('.tmLanguage'):
+                return syn
+
+            fname = view.file_name()
+            if fname and fname.endswith('.tmLanguage'):
+                return fname
+
+            return None
 
 
 except ImportError:

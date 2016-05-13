@@ -61,7 +61,7 @@ class NewSyntaxCommand(sublime_plugin.WindowCommand):
         v.settings().set('default_extension', 'sublime-syntax')
         v.assign_syntax("Packages/YAML/YAML.sublime-syntax")
 
-        template = r"""%YAML1.2
+        template = r"""%YAML 1.2
 ---
 # See http://www.sublimetext.com/docs/3/syntax.html
 file_extensions:

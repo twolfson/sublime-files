@@ -31,7 +31,32 @@ public class SyntaxTest {
         args.stream().forEach(System.out::println);
     }
 
-    private static void anotherMethod() {
-
+    private static void anotherMethod() throws MyException {
+//                                      ^ storage.modifier
+        throw new MyException
+                ("hello (world)");
+//                              ^ - string
     }
+}
+
+class AnyClass {
+    int bar; // this comment() is recognized as code
+    //       ^ comment.line
+
+    public void anyMethod(String finality){
+        //                        ^ variable.parameter - storage.modifier
+        System.out.println("Printed: " + finality);
+    }
+}
+
+public enum FooBaz {
+    // This is a test
+//  ^ comment.line
+    UPLOAD("foo bar"), /* This a comment */
+//  ^ constant.other.enum
+//                     ^ comment.block
+    DELETE("baz"),
+//  ^ constant.other.enum
+    // Comment here
+//  ^ comment.line
 }

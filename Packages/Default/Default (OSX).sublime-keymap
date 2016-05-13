@@ -439,18 +439,22 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 		]
 	},
 
-	{ "keys": ["enter"], "command": "insert_snippet", "args": {"contents": "\n\t$0\n"}, "context":
+	{ "keys": ["enter"], "command": "auto_indent_tag", "context":
 		[
 			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
-			{ "key": "selector", "operator": "equal", "operand": "meta.scope.between-tag-pair", "match_all": true },
 			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "selector", "operator": "equal", "operand": "punctuation.definition.tag.begin", "match_all": true },
+			{ "key": "preceding_text", "operator": "regex_contains", "operand": ">$", "match_all": true },
+			{ "key": "following_text", "operator": "regex_contains", "operand": "^</", "match_all": true },
 		]
 	},
-	{ "keys": ["shift+enter"], "command": "insert_snippet", "args": {"contents": "\n\t$0\n"}, "context":
+	{ "keys": ["shift+enter"], "command": "auto_indent_tag", "context":
 		[
 			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
-			{ "key": "selector", "operator": "equal", "operand": "meta.scope.between-tag-pair", "match_all": true },
 			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "selector", "operator": "equal", "operand": "punctuation.definition.tag.begin", "match_all": true },
+			{ "key": "preceding_text", "operator": "regex_contains", "operand": ">$", "match_all": true },
+			{ "key": "following_text", "operator": "regex_contains", "operand": "^</", "match_all": true },
 		]
 	},
 
@@ -585,7 +589,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+plus"], "command": "increase_font_size" },
 	{ "keys": ["super+minus"], "command": "decrease_font_size" },
 
-	{ "keys": ["ctrl+shift+w"], "command": "insert_snippet", "args": { "name": "Packages/XML/long-tag.sublime-snippet" } },
+	{ "keys": ["ctrl+shift+w"], "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/long-tag.sublime-snippet" } },
 
 	{ "keys": ["ctrl+shift+k"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete Line.sublime-macro"} },
 

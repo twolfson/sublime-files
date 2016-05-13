@@ -1,4 +1,4 @@
-SET ISO8859-1
+SET UTF-8
 TRY esianrtolcdugmphbyfvkwzESIANRTOLCDUGMPHBYFVKWZ'
 NOSUGGEST !
 
@@ -199,3 +199,6 @@ REP ss z
 REP shun tion
 REP shun sion
 REP shun cion
+
+ICONV 1
+ICONV ’ '

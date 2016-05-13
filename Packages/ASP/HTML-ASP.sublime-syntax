@@ -8,17 +8,16 @@ scope: text.html.asp
 contexts:
   main:
     - match: <%=?
-      captures:
-        0: punctuation.section.embedded.begin.asp
+      scope: punctuation.section.embedded.begin.asp
       push:
         - meta_scope: source.asp.embedded.html
         - match: "%>"
-          captures:
-            0: punctuation.section.embedded.end.asp
+          scope: punctuation.section.embedded.end.asp
           pop: true
-        - match: (').*?(?=%>)
-          scope: comment.line.apostrophe.asp
-          captures:
-            1: punctuation.definition.comment.asp
-        - include: scope:source.asp
+        - match: ''
+          push:
+            - include: scope:source.asp # don't directly push, so that the scope doesn't also contain 'source.asp ' as well as our 'source.asp.embedded.html '
+          with_prototype:
+            - match: "(?=%>)"
+              pop: true
     - include: scope:text.html.basic
