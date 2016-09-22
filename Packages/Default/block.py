@@ -1,16 +1,21 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 def next_line(view, pt):
     return view.line(pt).b + 1
 
+
 def prev_line(view, pt):
     return view.line(pt).a - 1
+
 
 def is_ws(str):
     for ch in str:
         if ch != ' ' and ch != '\t':
             return False
     return True
+
 
 def indented_block(view, r):
     if r.empty():
@@ -51,6 +56,7 @@ def indented_block(view, r):
             return True
 
     return False
+
 
 class BlockContext(sublime_plugin.EventListener):
     def on_query_context(self, view, key, operator, operand, match_all):
@@ -98,7 +104,6 @@ class WrapBlockCommand(sublime_plugin.TextCommand):
                     if ch == ' ' or ch == '\t':
                         ws += ch
                     else:
-                        break;
+                        break
 
                 self.view.insert(edit, nr.end(), ws + end + "\n")
-

@@ -13,7 +13,7 @@ variables:
   dollar_only_identifier: '\$(?![_$[:alnum:]])'
   dollar_identifier: '(\$)[_$[:alnum:]]+'
   func_lookahead: '\s*\b(async\s+)?function\b'
-  arrow_func_lookahead: '\s*(\basync\s*)?([_$[:alpha:]][_$[:alnum:]]*|\([^\(]*?\))\s*=>'
+  arrow_func_lookahead: '\s*(\basync\s*)?([_$[:alpha:]][_$[:alnum:]]*|\(([^()]+|\([^()]*\))*\))\s*=>'
 
 contexts:
   main:
@@ -23,10 +23,13 @@ contexts:
 
   keywords-top-level:
     - match: \bimport\b
-      scope: meta.import.js keyword.control.import.js
+      scope: meta.import.js keyword.control.import-export.js
       push: import-extended
+    - match: \bexport\b
+      scope: meta.export.js keyword.control.import-export.js
+      push: export-extended
     - match: \b(export|default|from|as)\b
-      scope: keyword.control.import.js
+      scope: keyword.control.import-export.js
 
   import-escape:
     - match: '(?=;|function|var|class)'
@@ -55,7 +58,7 @@ contexts:
     - include: import-escape
     - match: '\b(as)(?:\s+({{identifier}}))?'
       captures:
-        1: keyword.control.import.js
+        1: keyword.control.import-export.js
         2: variable.other.readwrite.js
     - match: '(?=\S)'
       set: import-extended-continue
@@ -65,7 +68,7 @@ contexts:
     - include: import-escape
     - include: comments
     - match: ','
-      scope: meta.delimiter.comma.js
+      scope: punctuation.separator.comma.js
       set: import-extended
     - match: '(?=\S)'
       pop: true
@@ -91,7 +94,7 @@ contexts:
     - include: import-escape
     - match: '\b(as)\b(\s+(?:{{identifier}}))?'
       captures:
-        1: keyword.control.import.js
+        1: keyword.control.import-export.js
         2: variable.other.readwrite.js
     - match: '(?=\S)'
       set: import-brace-continue
@@ -103,7 +106,7 @@ contexts:
     - match: '(?=\})'
       set: import-brace
     - match: ','
-      scope: meta.delimiter.comma.js
+      scope: punctuation.separator.comma.js
       set: import-brace
     - match: '(?=\S)'
       pop: true
@@ -112,7 +115,110 @@ contexts:
     - meta_scope: meta.import.js
     - include: comments
     - match: '\bfrom\b'
-      scope: keyword.control.import.js
+      scope: keyword.control.import-export.js
+    - include: literal-string
+    - match: '(?=\S)'
+      pop: true
+
+  export-escape:
+    - match: '(?=;|function|var|class)'
+      pop: true
+    - match: "(?='|\"|\\bfrom\\b)"
+      set: export-final
+
+  export-extended:
+    - meta_content_scope: meta.export.js
+    - match: '(?=\b(let|const|var)\b)'
+      set:
+        - meta_content_scope: meta.export.js
+        - match: '(?=;|\n)'
+          pop: true
+        - include: expressions
+    - include: export-escape
+    - include: comments
+    - match: '\bdefault\b'
+      scope: keyword.control.import-export.js
+      set:
+        - meta_content_scope: meta.export.js
+        - match: '(?=;|\n)'
+          pop: true
+        - include: expressions
+    - match: '\{'
+      scope: meta.block.js punctuation.definition.block.js
+      set: export-brace
+    - match: '\*'
+      scope: constant.other.js
+      set: export-extended-as
+    - match: '(?=\S)'
+      pop: true
+
+  export-extended-as:
+    - meta_content_scope: meta.export.js
+    - include: export-escape
+    - match: '\b(as)(?:\s+({{identifier}}))?'
+      captures:
+        1: keyword.control.import-export.js
+        2: variable.other.readwrite.js
+    - match: '(?=\S)'
+      set: export-extended-continue
+
+  export-extended-continue:
+    - meta_scope: meta.export.js
+    - include: export-escape
+    - include: comments
+    - match: ','
+      scope: punctuation.separator.comma.js
+      set: export-extended
+    - match: '(?=\S)'
+      pop: true
+
+  export-brace:
+    - meta_content_scope: meta.export.js meta.block.js
+    - include: export-escape
+    - include: comments
+    - match: '\}'
+      scope: punctuation.definition.block.js
+      set: export-extended-as
+    - match: '{{identifier}}'
+      scope: variable.other.readwrite.js
+      set: export-brace-as
+    - match: '\*'
+      scope: constant.other.js
+      set: export-brace-as
+    - match: '(?=\S)'
+      pop: true
+
+  export-brace-as:
+    - meta_content_scope: meta.export.js meta.block.js
+    - include: export-escape
+    - match: \b(as)\s+(default)\b
+      captures:
+        1: keyword.control.import-export.js
+        2: keyword.control.import-export.js
+    - match: '\b(as)\b(\s+(?:{{identifier}}))?'
+      captures:
+        1: keyword.control.import-export.js
+        2: variable.other.readwrite.js
+    - match: '(?=\S)'
+      set: export-brace-continue
+
+  export-brace-continue:
+    - meta_scope: meta.export.js meta.block.js
+    - include: export-escape
+    - include: comments
+    - match: '(?=\})'
+      set: export-brace
+    - match: ','
+      scope: punctuation.separator.comma.js
+      set: export-brace
+    - match: '(?=\S)'
+      pop: true
+
+  export-final:
+    - meta_scope: meta.export.js
+    - include: comments
+    - match: '\bfrom\b'
+      scope: keyword.control.import-export.js
     - include: literal-string
     - match: '(?=\S)'
       pop: true
@@ -283,6 +389,12 @@ contexts:
     - include: literal-call
     - include: literal-variable
     - include: literal-punctuation
+    - include: fallthrough
+
+  fallthrough:
+    # If an arrow function has the ( and ) on different lines, we won't have matched
+    - match: =>
+      scope: storage.type.function.arrow.js
 
   after-operator:
     # Prevent matching "{" as a block, but instead always treat as an object
@@ -348,7 +460,7 @@ contexts:
       scope: keyword.control.conditional.js
       captures:
         1: punctuation.definition.keyword.js
-    - match: '(@)(_win32|_win16|_mac|_alpha|_x86|_mc680x0|_PowerPC|_jscript|_jscript_build|_jscript_version|_debug|_fast|[a-zA-Z]\w+)'
+    - match: '(@)(_win32|_win16|_mac|_alpha|_x86|_mc680x0|_PowerPC|_jscript_build|_jscript_version|_jscript|_debug|_fast|[a-zA-Z]\w+)'
       scope: variable.other.conditional.js
       captures:
         1: punctuation.definition.variable.js
@@ -493,7 +605,7 @@ contexts:
     - match: '&&|\|\|'
       scope: keyword.operator.logical.js
       push: after-operator
-    - match: '=(?!=)'
+    - match: '=(?![=>])'
       scope: keyword.operator.assignment.js
       push: after-operator
     - match: |-
@@ -569,7 +681,7 @@ contexts:
             - match: '(?=\S)'
               pop: true
         - match: '{{identifier}}'
-          scope: entity.name.type.class.js
+          scope: entity.name.class.js
         - include: comments
 
   class-body:
@@ -821,6 +933,25 @@ contexts:
         - match: \)
           scope: punctuation.definition.parameters.end.js
           pop: true
+        # Destructuring
+        - match: \{
+          scope: punctuation.definition.block.begin.js
+          push:
+            - meta_scope: meta.block.js
+            - match: \}
+              scope: punctuation.definition.block.end.js
+              pop: true
+            - match: '{{identifier}}'
+              scope: variable.parameter.function.js
+            - match: ','
+              scope: punctuation.separator.parameter.function.js
+            - match: '='
+              scope: keyword.operator.assignment.js
+              push:
+                - meta_scope: meta.parameter.optional.js
+                - match: "(?=[,)}])"
+                  pop: true
+                - include: expressions
         - match: \.\.\.
           scope: keyword.operator.spread.js
         - match: '{{identifier}}'
@@ -866,7 +997,7 @@ contexts:
         - match: '({{identifier}})\s*(,)'
           captures:
             1: variable.other.readwrite.js
-            2: meta.delimiter.comma.js
+            2: punctuation.separator.comma.js
         - match: '({{identifier}})[ \t]*\n'
           captures:
             1: variable.other.readwrite.js
@@ -940,7 +1071,7 @@ contexts:
         - include: comments
 
   method-declaration:
-    - match: \b(get|set)\b\s*
+    - match: \b(get|set)\b(?!\s*\()\s*
       scope: meta.function.declaration.js
       captures:
         1: storage.type.accessor.js
@@ -952,6 +1083,25 @@ contexts:
       scope: meta.function.declaration.js
       captures:
         1: storage.type.js
+    - match: '(\[)({{identifier}}(?:\.{{identifier}}|\.)*)?(\])?\s*(?=$|\()'
+      scope: meta.function.declaration.js
+      captures:
+        1: punctuation.definition.symbol.begin.js
+        2: entity.name.function.js
+        3: punctuation.definition.symbol.end.js
+      push:
+        - include: function-declaration-parameters
+        - match: '\{'
+          scope: punctuation.definition.block.js
+          push:
+            - meta_scope: meta.block.js
+            - match: '\}'
+              scope: punctuation.definition.block.js
+              pop: true
+            - include: statements
+        - include: comments
+        - match: '(?=\S)'
+          pop: true
     - match: '({{identifier}})\s*'
       scope: meta.function.declaration.js
       captures:
@@ -1069,7 +1219,7 @@ contexts:
               scope: punctuation.accessor.js
               pop: true
         - match: \.
-          scope: keyword.other.accessor.js
+          scope: punctuation.accessor.js
         - include: method-call
         - match: '(?=[^ ])'
           pop: true
@@ -1105,7 +1255,7 @@ contexts:
         # getting meta scopes when they don't really apply
         - match: '(,)\s+'
           captures:
-            1: meta.delimiter.comma.js
+            1: punctuation.separator.comma.js
         - include: expressions
 
   literal-variable:
@@ -1203,7 +1353,7 @@ contexts:
     - match: \b(s(hape|ystemId|c(heme|ope|rolling)|ta(ndby|rt)|ize|ummary|pecified|e(ctionRowIndex|lected(Index)?)|rc)|h(space|t(tpEquiv|mlFor)|e(ight|aders)|ref(lang)?)|n(o(Resize|tation(s|Name)|Shade|Href|de(Name|Type|Value)|Wrap)|extSibling|ame)|c(h(ildNodes|Off|ecked|arset)?|ite|o(ntent|o(kie|rds)|de(Base|Type)?|l(s|Span|or)|mpact)|ell(s|Spacing|Padding)|l(ear|assName)|aption)|t(ype|Bodies|itle|Head|ext|a(rget|gName)|Foot)|i(sMap|ndex|d|m(plementation|ages))|o(ptions|wnerDocument|bject)|d(i(sabled|r)|o(c(type|umentElement)|main)|e(clare|f(er|ault(Selected|Checked|Value)))|at(eTime|a))|useMap|p(ublicId|arentNode|r(o(file|mpt)|eviousSibling))|e(n(ctype|tities)|vent|lements)|v(space|ersion|alue(Type)?|Link|Align)|URL|f(irstChild|orm(s)?|ace|rame(Border)?)|width|l(ink(s)?|o(ngDesc|wSrc)|a(stChild|ng|bel))|a(nchors|c(ce(ssKey|pt(Charset)?)|tion)|ttributes|pplets|l(t|ign)|r(chive|eas)|xis|Link|bbr)|r(ow(s|Span|Index)|ules|e(v|ferrer|l|adOnly))|m(ultiple|e(thod|dia)|a(rgin(Height|Width)|xLength))|b(o(dy|rder)|ackground|gColor))\b
       scope: support.constant.dom.js
     - match: '(?=.|\n)'
-      pop: true
+      set: after-identifier
 
   literal-punctuation:
     - match: \.
@@ -1231,4 +1381,4 @@ contexts:
     - match: \;
       scope: punctuation.terminator.statement.js
     - match: ","
-      scope: meta.delimiter.comma.js
+      scope: punctuation.separator.comma.js

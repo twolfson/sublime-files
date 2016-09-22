@@ -1,8 +1,8 @@
-// Place your settings in the file "User/Preferences.sublime-settings", which
-// overrides the settings in here.
+// Place your settings in the file "Packages/User/Preferences.sublime-settings",
+// which overrides the settings in here.
 //
-// Settings may also be placed in file type specific options files, for
-// example, in Packages/Python/Python.sublime-settings for python files.
+// Settings may also be placed in syntax-specific setting files, for
+// example, in Packages/User/Python.sublime-settings for python files.
 {
     // Sets the colors used within the text area
     "color_scheme": "Packages/Color Scheme - Default/Monokai.tmTheme",
@@ -207,6 +207,10 @@
     // 'unix' (LF only).
     "default_line_ending": "system",
 
+    // When enabled, hovering over a word will show a popup listing all
+    // possible locations for the definition symbol. Requires index_files.
+    "show_definitions": true,
+
     // When enabled, pressing tab will insert the best matching completion.
     // When disabled, tab will only trigger snippets or insert a tab.
     // Shift+tab can be used to insert an explicit tab when tab_completion is
@@ -365,6 +369,9 @@
     // Shows the Build Results panel when building. If set to false, the Build
     // Results can be shown via the Tools/Build Results menu.
     "show_panel_on_build": true,
+
+    // Shows build errors just under the line on which they occur.
+    "show_errors_inline": true,
 
     // Preview file contents when clicking on a file in the side bar. Double
     // clicking or editing the preview will open the file and assign it a tab.

@@ -738,7 +738,7 @@
             },
             { "command": "build", "mnemonic": "B" },
             { "command": "build", "args": {"select": true}, "caption": "Build With…" },
-            { "command": "exec", "args": {"kill": true}, "caption": "Cancel Build", "mnemonic": "C" },
+            { "command": "cancel_build", "caption": "Cancel Build", "mnemonic": "C" },
             {
                 "caption": "Build Results",
                 "mnemonic": "R",
@@ -773,6 +773,7 @@
                     { "command": "show_scope_name" },
                 ]
             },
+            { "command": "install_package_control", "caption": "Install Package Control…" },
             { "caption": "-", "id": "end" }
         ]
     },
@@ -822,45 +823,31 @@
         [
             { "command": "open_dir", "args": {"dir": "$packages"}, "caption": "Browse Packages…", "mnemonic": "B" },
             { "caption": "-" },
-            { "command": "open_file", "args": {"file": "${packages}/Default/Preferences.sublime-settings"}, "caption": "Settings – Default" },
             {
-                "command": "open_file", "args":
+                "command": "edit_settings", "args":
                 {
-                    "file": "${packages}/User/Preferences.sublime-settings",
-                    "contents": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by file type specific settings.\n{\n\t$0\n}\n"
+                    "base_file": "${packages}/Default/Preferences.sublime-settings",
+                    "default": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by syntax-specific settings.\n{\n\t$0\n}\n"
                 },
-                "caption": "Settings – User"
+                "caption": "Settings"
             },
+            { "command": "edit_syntax_settings", "caption": "Settings – Syntax Specific" },
             {
-                "caption": "Settings – More",
-                "children":
-                [
-                    { "command": "open_file_settings", "caption": "Syntax Specific – User" },
-                    {
-                        "command": "open_file", "args":
-                        {
-                            "file": "${packages}/User/Distraction Free.sublime-settings",
-                            "contents": "{\n\t$0\n}\n"
-                        },
-                        "caption": "Distraction Free – User"
-                    }
-                ]
+                "command": "edit_settings", "args":
+                {
+                    "base_file": "${packages}/Default/Distraction Free.sublime-settings",
+                    "default": "{\n\t$0\n}\n"
+                },
+                "caption": "Settings – Distraction Free"
             },
             { "caption": "-" },
             {
-                "command": "open_file", "args":
+                "command": "edit_settings", "args":
                 {
-                    "file": "${packages}/Default/Default ($platform).sublime-keymap"
+                    "base_file": "${packages}/Default/Default ($platform).sublime-keymap",
+                    "default": "[\n\t$0\n]\n"
                 },
-                "caption": "Key Bindings – Default"
-            },
-            {
-                "command": "open_file", "args":
-                {
-                    "file": "${packages}/User/Default ($platform).sublime-keymap",
-                    "contents": "[\n\t$0\n]\n"
-                },
-                "caption": "Key Bindings – User"
+                "caption": "Key Bindings"
             },
             { "caption": "-" },
             {

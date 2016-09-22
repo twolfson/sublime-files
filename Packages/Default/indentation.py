@@ -1,21 +1,20 @@
-import re
-import os
-import textwrap
 import sublime
 import sublime_plugin
+
 
 def get_tab_size(view):
     return int(view.settings().get('tab_size', 8))
 
+
 def normed_indentation_pt(view, sel, non_space=False):
     """
-        Calculates tab normed `visual` position of sel.begin() relative "
-        to start of line
+    Calculates tab normed `visual` position of sel.begin() relative "
+    to start of line
 
-        \n\t\t\t    => normed_indentation_pt => 12
-        \n  \t\t\t  => normed_indentation_pt => 12
+    \n\t\t\t    => normed_indentation_pt => 12
+    \n  \t\t\t  => normed_indentation_pt => 12
 
-        Different amount of characters, same visual indentation.
+    Different amount of characters, same visual indentation.
     """
 
     tab_size = get_tab_size(view)
@@ -34,9 +33,10 @@ def normed_indentation_pt(view, sel, non_space=False):
         elif non_space:
             break
         else:
-            pos+=1
+            pos += 1
 
     return pos
+
 
 def compress_column(column):
     # "SS\T"
@@ -52,9 +52,10 @@ def compress_column(column):
     # "CC\T"
     return column
 
+
 def line_and_normed_pt(view, pt):
-    return ( view.rowcol(pt)[0],
-            normed_indentation_pt(view, sublime.Region(pt)) )
+    return (view.rowcol(pt)[0], normed_indentation_pt(view, sublime.Region(pt)))
+
 
 def pt_from_line_and_normed_pt(view, p):
     ln, pt = p
@@ -72,16 +73,19 @@ def pt_from_line_and_normed_pt(view, p):
             pos += 1
 
         i += 1
-        if pos == pt: break
+        if pos == pt:
+            break
 
     return i
 
+
 def save_selections(view, selections=None):
-    return [ [line_and_normed_pt(view, p) for p in (sel.a, sel.b)]
-            for sel in selections or view.sel() ]
+    return [[line_and_normed_pt(view, p) for p in (sel.a, sel.b)] for sel in selections or view.sel()]
+
 
 def region_from_stored_selection(view, stored):
     return sublime.Region(*[pt_from_line_and_normed_pt(view, p) for p in stored])
+
 
 def restore_selections(view, lines_and_pts):
     view.sel().clear()
@@ -89,17 +93,19 @@ def restore_selections(view, lines_and_pts):
     for stored in lines_and_pts:
         view.sel().add(region_from_stored_selection(view, stored))
 
-def unexpand(the_string, tab_size, first_line_offset = 0, only_leading=True):
+
+def unexpand(the_string, tab_size, first_line_offset=0, only_leading=True):
     lines = the_string.split('\n')
     compressed = []
 
     for li, line in enumerate(lines):
-        pos                =      0
+        pos = 0
 
-        if not li: pos += first_line_offset
+        if not li:
+            pos += first_line_offset
 
-        rebuilt_line       =     []
-        column             =     []
+        rebuilt_line = []
+        column = []
 
         for i, char in enumerate(line):
             if only_leading and not char.isspace():
@@ -121,6 +127,7 @@ def unexpand(the_string, tab_size, first_line_offset = 0, only_leading=True):
 
     return '\n'.join(compressed)
 
+
 class TabCommand(sublime_plugin.TextCommand):
     translate = False
 
@@ -141,7 +148,8 @@ class TabCommand(sublime_plugin.TextCommand):
         restore_selections(view, sels)
         visible = region_from_stored_selection(view, visible)
         view.show(visible, False)
-        view.run_command("scroll_lines", {"amount": 1.0 })
+        view.run_command("scroll_lines", {"amount": 1.0})
+
 
 class ExpandTabs(TabCommand):
     translate = True
@@ -151,19 +159,19 @@ class ExpandTabs(TabCommand):
         tab_size = get_tab_size(view)
 
         for sel in self.operation_regions:
-            sel = view.line(sel) # TODO: expand tabs with non regular offsets
+            sel = view.line(sel)  # TODO: expand tabs with non regular offsets
             view.replace(edit, sel, view.substr(sel).expandtabs(tab_size))
 
+
 class UnexpandTabs(TabCommand):
-    def do(self, edit, only_leading = True, **kw):
+    def do(self, edit, only_leading=True, **kw):
         view = self.view
         tab_size = get_tab_size(view)
 
         for sel in self.operation_regions:
             the_string = view.substr(sel)
-            first_line_off_set = normed_indentation_pt( view, sel ) % tab_size
+            first_line_off_set = normed_indentation_pt(view, sel) % tab_size
 
-            compressed = unexpand( the_string, tab_size, first_line_off_set,
-                                only_leading = only_leading )
+            compressed = unexpand(the_string, tab_size, first_line_off_set, only_leading=only_leading)
 
             view.replace(edit, sel, compressed)

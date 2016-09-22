@@ -1,4 +1,6 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 class CopyPathCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -7,4 +9,4 @@ class CopyPathCommand(sublime_plugin.TextCommand):
             sublime.status_message("Copied file path")
 
     def is_enabled(self):
-        return self.view.file_name() != None and len(self.view.file_name()) > 0
+        return self.view.file_name() is not None and len(self.view.file_name()) > 0

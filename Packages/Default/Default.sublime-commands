@@ -47,56 +47,24 @@
     { "caption": "Project: Refresh Folders", "command": "refresh_folder_list" },
     { "caption": "Project: Edit Project",  "command": "open_file", "args": {"file": "${project}"} },
 
-    { "caption": "Preferences: Settings - Default", "command": "open_file", "args": {"file": "${packages}/Default/Preferences.sublime-settings"} },
-    { "caption": "Preferences: Settings - User", "command": "open_file", "args": {"file": "${packages}/User/Preferences.sublime-settings"} },
+    {
+        "caption": "Preferences: Settings",
+        "command": "edit_settings", "args":
+        {
+            "base_file": "${packages}/Default/Preferences.sublime-settings",
+            "default": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by syntax-specific settings.\n{\n\t$0\n}\n"
+        }
+    },
+    { "caption": "Preferences: Settings – Syntax Specific", "command": "edit_syntax_settings" },
+    { "caption": "Install Package Control", "command": "install_package_control" },
     { "caption": "Preferences: Browse Packages", "command": "open_dir", "args": {"dir": "$packages"} },
 
     {
-        "caption": "Preferences: Key Bindings - Default",
-        "command": "open_file", "args":
+        "caption": "Preferences: Key Bindings",
+        "command": "edit_settings", "args":
         {
-            "file": "${packages}/Default/Default (Windows).sublime-keymap",
-            "platform": "Windows"
-        }
-    },
-    {
-        "caption": "Preferences: Key Bindings - Default",
-        "command": "open_file", "args":
-        {
-            "file": "${packages}/Default/Default (OSX).sublime-keymap",
-            "platform": "OSX"
-        }
-    },
-    {
-        "caption": "Preferences: Key Bindings - Default",
-        "command": "open_file", "args":
-        {
-            "file": "${packages}/Default/Default (Linux).sublime-keymap",
-            "platform": "Linux"
-        }
-    },
-    {
-        "caption": "Preferences: Key Bindings - User",
-        "command": "open_file", "args":
-        {
-            "file": "${packages}/User/Default (Windows).sublime-keymap",
-            "platform": "Windows"
-        }
-    },
-    {
-        "caption": "Preferences: Key Bindings - User",
-        "command": "open_file", "args":
-        {
-            "file": "${packages}/User/Default (OSX).sublime-keymap",
-            "platform": "OSX"
-        }
-    },
-    {
-        "caption": "Preferences: Key Bindings - User",
-        "command": "open_file", "args":
-        {
-            "file": "${packages}/User/Default (Linux).sublime-keymap",
-            "platform": "Linux"
+            "base_file": "${packages}/Default/Default ($platform).sublime-keymap",
+            "default": "[\n\t$0\n]\n"
         }
     },
 

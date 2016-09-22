@@ -2,15 +2,15 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Symbol List: Hide Decorator</string>
+	<string>Symbol List</string>
 	<key>scope</key>
-	<string>source.python meta.function.decorator.python entity.name.function.decorator.python</string>
+	<string>entity.name.label.latex</string>
 	<key>settings</key>
 	<dict>
 		<key>showInSymbolList</key>
-		<integer>0</integer>
+		<integer>1</integer>
 		<key>showInIndexedSymbolList</key>
-		<integer>0</integer>
+		<integer>1</integer>
 	</dict>
 </dict>
 </plist>

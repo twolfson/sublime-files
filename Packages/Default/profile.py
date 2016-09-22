@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime_plugin
+
 
 def profile_text():
     output = ""
@@ -8,6 +9,7 @@ def profile_text():
             output += "    {0}: {1}\n".format(name, summary)
         output += "\n"
     return output
+
 
 class ProfilePluginsCommand(sublime_plugin.WindowCommand):
     def run_(self, edit_token, args):

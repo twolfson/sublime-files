@@ -1,21 +1,21 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 class PromptGotoLineCommand(sublime_plugin.WindowCommand):
-
     def run(self):
         self.window.show_input_panel("Goto Line:", "", self.on_done, None, None)
-        pass
 
     def on_done(self, text):
         try:
             line = int(text)
             if self.window.active_view():
-                self.window.active_view().run_command("goto_line", {"line": line} )
+                self.window.active_view().run_command("goto_line", {"line": line})
         except ValueError:
             pass
 
-class GotoLineCommand(sublime_plugin.TextCommand):
 
+class GotoLineCommand(sublime_plugin.TextCommand):
     def run(self, edit, line):
         # Convert from 1 based to a 0 based line number
         line = int(line) - 1

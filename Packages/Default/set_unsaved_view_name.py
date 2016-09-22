@@ -1,7 +1,9 @@
-import sublime, sublime_plugin
-import os.path
 import string
 import functools
+
+import sublime
+import sublime_plugin
+
 
 class SetUnsavedViewName(sublime_plugin.EventListener):
     setting_name = False
@@ -25,7 +27,7 @@ class SetUnsavedViewName(sublime_plugin.EventListener):
         if self.pending != 0:
             return
 
-        if view.settings().get('set_unsaved_view_name') == False:
+        if view.settings().get('set_unsaved_view_name') is False:
             return
 
         cur_name = view.settings().get('auto_name')

@@ -23,7 +23,7 @@ contexts:
     - include: expressions-early
     - include: initializers
     - include: block
-    - match: ^\s*({{identifier}})(:)(?!=)
+    - match: ^\s*((?!default){{identifier}})(:)(?!=)
       captures:
         1: entity.name.label.go
         2: punctuation.separator.go
@@ -72,11 +72,18 @@ contexts:
         - include: late-keywords
     - include: expressions-late
 
+  case-default:
+    - match: '\b(default|case)\b'
+      scope: keyword.control.go
+    - match: (,|:)
+      scope: punctuation.separator.go
+
   expressions:
     - include: expressions-early
     - include: expressions-late
 
   expressions-early:
+    - include: case-default
     - include: keywords
 
   expressions-late:
@@ -108,7 +115,7 @@ contexts:
         - include: expressions
 
   builtins:
-    - match: \b(append|cap|close|complex|copy|delete|imag|len|make|new|panel|print|println|real|recover)\b
+    - match: \b(append|cap|close|complex|copy|delete|imag|len|make|new|panic|print|println|real|recover)\b
       scope: support.function.builtin.go
 
   imports:
@@ -138,7 +145,7 @@ contexts:
     - match: '(\.)({{identifier}})(?!\s*\()'
       captures:
         1: punctuation.accessor.go
-        2: variable.other.dot-access.go
+        2: variable.other.member.go
 
   block:
     - match: '\{'

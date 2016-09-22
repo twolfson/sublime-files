@@ -1,4 +1,6 @@
-import sublime_plugin, sublime
+import sublime
+import sublime_plugin
+
 
 class KillRing:
     def __init__(self):
@@ -59,7 +61,9 @@ class KillRing:
     def __len__(self):
         return self.len
 
+
 kill_ring = KillRing()
+
 
 class YankCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -78,17 +82,16 @@ class YankCommand(sublime_plugin.TextCommand):
                 s = regions[i]
                 line = lines[i]
                 num = self.view.insert(edit, s.begin(), line)
-                self.view.erase(edit, sublime.Region(s.begin() + num,
-                    s.end() + num))
+                self.view.erase(edit, sublime.Region(s.begin() + num, s.end() + num))
         else:
             # insert the top of the kill ring at each selection
             for s in regions:
                 num = self.view.insert(edit, s.begin(), text)
-                self.view.erase(edit, sublime.Region(s.begin() + num,
-                    s.end() + num))
+                self.view.erase(edit, sublime.Region(s.begin() + num, s.end() + num))
 
     def is_enabled(self):
         return len(kill_ring) > 0
+
 
 class AddToKillRingCommand(sublime_plugin.TextCommand):
     def run(self, edit, forward):

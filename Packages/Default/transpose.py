@@ -1,29 +1,25 @@
-#!/usr/bin/env python
-#coding: utf8
-#################################### IMPORTS ###################################
+#!/usr/bin/env python3
 
-# Std Libs
 import re
 
-# Sublime Libs
 import sublime
 import sublime_plugin
 
-#################################### HELPERS ###################################
 
 def notify_nothing():
     sublime.status_message('Nothing to transpose')
+
 
 def full_region(region):
     return (sublime.Region(region.begin(), region.begin() + 1)
             if region.empty() else region)
 
+
 def perform_transposition(edit, view, trans, init_sel):
     " assumes trans is already reverse sorted sequence of regions"
     view.sel().subtract(init_sel)
 
-    for i, (sel, substr) in enumerate(zip(trans,
-                            reversed([view.substr(s) for s in trans]))):
+    for i, (sel, substr) in enumerate(zip(trans, reversed([view.substr(s) for s in trans]))):
         view.replace(edit, sel, substr)
         if not i:
             if init_sel.empty():
@@ -31,44 +27,49 @@ def perform_transposition(edit, view, trans, init_sel):
             else:
                 view.sel().add(init_sel)
 
-def transpose_selections(edit, view, can_transpose_words = False):
+
+def transpose_selections(edit, view, can_transpose_words=False):
     for sel in view.sel():
         word_sel = view.word(sel)
         word_extents = (wb, we) = (word_sel.begin(), word_sel.end())
         transpose_words = sel.end() in word_extents
 
-        #" wora! arst"
+        # " wora! arst"
         if transpose_words and can_transpose_words:
             if sel.end() == we:
                 next = view.find('\w', word_sel.end())
-                if next is None: continue
-                trans = [ view.word(next), word_sel ]
+                if next is None:
+                    continue
+                trans = [view.word(next), word_sel]
             else:
-                if wb == 0: continue
+                if wb == 0:
+                    continue
                 for pt in range(wb-1, -1, -1):
-                    if re.match('\w', view.substr(pt)): break
-                trans = [ word_sel, view.word(pt) ]
+                    if re.match('\w', view.substr(pt)):
+                        break
+                trans = [word_sel, view.word(pt)]
         else:
             p1 = max(0, sel.begin() - 1)
             character_behind_region = sublime.Region(p1)
-            #" a!a"
+            # " a!a"
             trans = [full_region(sel), full_region(character_behind_region)]
 
         perform_transposition(edit, view, trans, sel)
 
+
 def rotate_selections(edit, view):
     for sel in view.sel():
-        if sel.empty(): view.sel().add(view.word(sel))
+        if sel.empty():
+            view.sel().add(view.word(sel))
 
     sels = list(reversed(view.sel()))
 
-    strings = [ view.substr(s) for s in sels ]
+    strings = [view.substr(s) for s in sels]
     strings.append(strings.pop(0))
 
     for sel, substr in zip(sels, strings):
         view.replace(edit, sel, substr)
 
-################################### COMMANDS ###################################
 
 class Transpose(sublime_plugin.TextCommand):
     """
@@ -84,10 +85,11 @@ class Transpose(sublime_plugin.TextCommand):
     """
 
     def run(self, edit, **kw):
-        if not self.enabled(): return notify_nothing()
+        if not self.enabled():
+            return notify_nothing()
 
-        view  = self.view
-        sels  = view.sel()
+        view = self.view
+        sels = view.sel()
         nsels = len(sels)
 
         if nsels > 1 and view.has_non_empty_selection_region():

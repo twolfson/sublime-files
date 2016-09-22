@@ -285,7 +285,7 @@
 	{ "keys": ["f7"], "command": "build" },
 	{ "keys": ["ctrl+b"], "command": "build" },
 	{ "keys": ["ctrl+shift+b"], "command": "build", "args": {"select": true} },
-	{ "keys": ["ctrl+break"], "command": "exec", "args": {"kill": true} },
+	{ "keys": ["ctrl+break"], "command": "cancel_build" },
 
 	{ "keys": ["ctrl+t"], "command": "transpose" },
 

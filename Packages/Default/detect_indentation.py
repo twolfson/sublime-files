@@ -1,11 +1,11 @@
-import sublime, sublime_plugin
-from functools import partial
+import sublime
+import sublime_plugin
+
 
 class DetectIndentationCommand(sublime_plugin.TextCommand):
-    """Examines the contents of the buffer to determine the indentation
-    settings."""
+    """Examines the contents of the buffer to determine the indentation settings."""
 
-    def run(self, edit, show_message = True, threshold = 10):
+    def run(self, edit, show_message=True, threshold=10):
         sample = self.view.substr(sublime.Region(0, min(self.view.size(), 2**14)))
 
         starts_with_tab = 0
@@ -13,15 +13,18 @@ class DetectIndentationCommand(sublime_plugin.TextCommand):
         indented_lines = 0
 
         for line in sample.split("\n"):
-            if not line: continue
+            if not line:
+                continue
             if line[0] == "\t":
                 starts_with_tab += 1
                 indented_lines += 1
             elif line.startswith(' '):
                 spaces = 0
                 for ch in line:
-                    if ch == ' ': spaces += 1
-                    else: break
+                    if ch == ' ':
+                        spaces += 1
+                    else:
+                        break
                 if spaces > 1 and spaces != len(line):
                     indented_lines += 1
                     spaces_list.append(spaces)
@@ -34,8 +37,9 @@ class DetectIndentationCommand(sublime_plugin.TextCommand):
                     same_indent = list(filter(lambda x: x % indent == 0, spaces_list))
                     if len(same_indent) >= evidence[indent] * len(spaces_list):
                         if show_message:
-                            sublime.status_message("Detect Indentation: Setting indentation to "
-                                + str(indent) + " spaces")
+                            sublime.status_message(
+                                "Detect Indentation: Setting indentation to " +
+                                str(indent) + " spaces")
                         self.view.settings().set('translate_tabs_to_spaces', True)
                         self.view.settings().set('tab_size', indent)
                         return
@@ -44,8 +48,9 @@ class DetectIndentationCommand(sublime_plugin.TextCommand):
                     same_indent = list(filter(lambda x: x % indent == 0 or x % indent == 1, spaces_list))
                     if len(same_indent) >= evidence[indent] * len(spaces_list):
                         if show_message:
-                            sublime.status_message("Detect Indentation: Setting indentation to "
-                                + str(indent) + " spaces")
+                            sublime.status_message(
+                                "Detect Indentation: Setting indentation to " +
+                                str(indent) + " spaces")
                         self.view.settings().set('translate_tabs_to_spaces', True)
                         self.view.settings().set('tab_size', indent)
                         return
@@ -54,6 +59,7 @@ class DetectIndentationCommand(sublime_plugin.TextCommand):
                 if show_message:
                     sublime.status_message("Detect Indentation: Setting indentation to tabs")
                 self.view.settings().set('translate_tabs_to_spaces', False)
+
 
 class DetectIndentationEventListener(sublime_plugin.EventListener):
     def on_load(self, view):

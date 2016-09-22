@@ -5,6 +5,7 @@ name: CSS
 file_extensions:
   - css
   - css.erb
+  - css.liquid
 scope: source.css
 variables:
   # Many variable names taken directly from https://www.w3.org/TR/css3-selectors/#lex
@@ -74,25 +75,21 @@ contexts:
   main:
     - include: comment-block
     - include: selector
-    - include: charset
-    - include: import
-    - include: font-face
-    - include: media
-    - include: custom-media
-    - include: keyframes
-    - include: namespace
-    - include: page
+    - include: at-rules
     - include: property-list
 
-  charset:
-    - match: \s*((@)charset\b)\s*
-      captures:
-        1: keyword.control.at-rule.charset.css
-        2: punctuation.definition.keyword.css
-      push:
-        - meta_scope: meta.at-rule.charset.css
-        - include: at-rule-punctuation
-        - include: literal-string
+  at-rules:
+    - include: at-charset
+    - include: at-counter-style
+    - include: at-custom-media
+    - include: at-document
+    - include: at-font-face
+    - include: at-import
+    - include: at-keyframes
+    - include: at-media
+    - include: at-namespace
+    - include: at-page
+    - include: at-supports
 
   # When including `color-values` and `color-adjuster-functions`, make sure it is
   # included after the color adjustors to prevent `color-values` from consuming
@@ -125,7 +122,31 @@ contexts:
           scope: punctuation.definition.comment.css
           pop: true
 
-  custom-media:
+  at-charset:
+    - match: \s*((@)charset\b)\s*
+      captures:
+        1: keyword.control.at-rule.charset.css
+        2: punctuation.definition.keyword.css
+      push:
+        - meta_scope: meta.at-rule.charset.css
+        - include: at-rule-punctuation
+        - include: literal-string
+
+  # @counter-style
+  # https://drafts.csswg.org/css-counter-styles-3/#the-counter-style-rule
+  at-counter-style:
+    - match: \s*((@)counter-style\b)\s+(?:(?i:\b(decimal|none)\b)|({{ident}}))\s*(?={)
+      captures:
+        1: keyword.control.at-rule.counter-style.css
+        2: punctuation.definition.keyword.css
+        3: invalid.illegal.counter-style-name.css
+        4: entity.other.counter-style-name.css
+      push:
+        - meta_scope: meta.at-rule.counter-style.css
+        - include: rule-list-terminator
+        - include: rule-list
+
+  at-custom-media:
     - match: (?=\s*@custom-media\s*.*?)
       push:
         - match: \s*;
@@ -142,20 +163,44 @@ contexts:
             - match: \s*(?=;)
               pop: true
             - include: media-query-list
-  font-face:
+
+  # @document
+  # https://www.w3.org/TR/2012/WD-css3-conditional-20120911/#at-document
+  at-document:
+    - match: '((@)document)'
+      captures:
+        1: keyword.control.at-rule.document.css
+        2: punctuation.definition.keyword.css
+      push:
+        - meta_scope: meta.at-rule.document.css
+        - match: '\{'
+          scope: punctuation.definition.block.begin.css
+          push:
+            - meta_scope: meta.block.css
+            - match: '(?=\})'
+              pop: true
+            - include: main
+        - match: '\}'
+          scope: meta.block.css punctuation.definition.block.end.css
+          pop: true
+        - include: comment-block
+        - include: url-function
+        - include: url-prefix-function
+        - include: domain-function
+        - include: regexp-function
+        - include: comma-delimiter
+
+  at-font-face:
     - match: '\s*((@)font-face)\s*(?=\{)'
       captures:
         1: keyword.control.at-rule.font-face.css
         2: punctuation.definition.keyword.css
       push:
         - meta_scope: meta.at-rule.font-face.css
-        - match: '\s*(\})'
-          captures:
-            1: punctuation.section.property-list.css
-          pop: true
+        - include: rule-list-terminator
         - include: rule-list
 
-  import:
+  at-import:
     - match: \s*((@)import\b)\s*
       captures:
         1: keyword.control.at-rule.import.css
@@ -178,14 +223,12 @@ contexts:
             1: punctuation.definition.arbitrary-repetition.css
           pop: true
 
+  # @keyframes
   # https://drafts.csswg.org/css-animations/#keyframes
-  keyframes:
+  at-keyframes:
     - match: (?=\s*@(?:-webkit-|-moz-|-o-)?keyframes\s*.*?)
       push:
-        - match: '\s*(\})'
-          captures:
-            1: punctuation.section.property-list.css
-          pop: true
+        - include: rule-list-terminator
         - match: \s*((@)(-webkit-|-moz-|-o-)?keyframes)(?=.*?)
           captures:
             1: keyword.control.at-rule.keyframe.css
@@ -214,13 +257,10 @@ contexts:
                 3: keyword.other.unit.css
             - include: main
 
-  media:
+  at-media:
     - match: (?=\s*@media\s*.*?)
       push:
-        - match: '\s*(\})'
-          captures:
-            1: punctuation.section.property-list.css
-          pop: true
+        - include: rule-list-terminator
         - match: \s*((@)media)(?=.*?)
           captures:
             1: keyword.control.at-rule.media.css
@@ -293,8 +333,9 @@ contexts:
           pop: true
         - include: media-query
 
-# Namespace At-Rule: https://www.w3.org/TR/css3-namespace/
-  namespace:
+  # @namespace
+  # https://www.w3.org/TR/css3-namespace/
+  at-namespace:
     - match: '\s*((@)namespace)\s+({{ident}})?'
       captures:
         1: keyword.control.at-rule.namespace.css
@@ -305,8 +346,9 @@ contexts:
         - include: at-rule-punctuation
         - include: literal-string
 
-# Page At-Rule: https://www.w3.org/TR/CSS2/page.html
-  page:
+  # @page
+  # https://www.w3.org/TR/CSS2/page.html
+  at-page:
     - match: '\s*((@)page)\s*(?:(:)(first|left|right))?\s*(?=\{)'
       captures:
         1: keyword.control.at-rule.page.css
@@ -315,11 +357,47 @@ contexts:
         4: entity.other.pseudo-class.css
       push:
         - meta_scope: meta.at-rule.page.css
-        - match: '\s*(\})'
-          captures:
-            1: punctuation.section.property-list.css
-          pop: true
+        - include: rule-list-terminator
         - include: rule-list
+
+  # @supports
+  # https://drafts.csswg.org/css-conditional-3/#at-supports
+  at-supports:
+    - match: '((@)supports)'
+      captures:
+        1: keyword.control.at-rule.supports.css
+        2: punctuation.definition.keyword.css
+      push:
+        - meta_scope: meta.at-rule.supports.css
+        - match: '\{'
+          scope: punctuation.definition.block.begin.css
+          push:
+            - meta_scope: meta.block.css
+            - match: '(?=\})'
+              pop: true
+            - include: rule-list-body
+            - include: main
+        - match: '\}'
+          scope: meta.block.css punctuation.definition.block.end.css
+          pop: true
+        - include: at-supports-operators
+        - include: at-supports-parens
+
+  at-supports-operators:
+    - match: '\b(?i:and|or|not)\b'
+      scope: keyword.operator.logic.css
+
+  at-supports-parens:
+    - match: '\('
+      scope: punctuation.definition.group.begin.css
+      push:
+        - meta_scope: meta.group.css
+        - match: '\)'
+          scope: punctuation.definition.group.end.css
+          pop: true
+        - include: at-supports-operators
+        - include: at-supports-parens
+        - include: rule-list-body
 
   property-list:
     - match: '(?=\{)'
@@ -492,6 +570,7 @@ contexts:
       scope: support.constant.font-name.css
 
   property-values:
+    - include: comment-block
     - include: vendor-prefix
     - include: builtin-functions
     - include: unicode-range
@@ -501,6 +580,12 @@ contexts:
     - include: literal-string
     - match: \!\s*important
       scope: keyword.other.important.css
+
+  rule-list-terminator:
+    - match: '\s*(\})'
+      captures:
+        1: punctuation.section.property-list.css
+      pop: true
 
   rule-list:
     - match: '\{'
@@ -519,107 +604,96 @@ contexts:
         - match: "$|(?![-a-z])"
           pop: true
         - include: vendor-prefix
-        - match: '\b(var-)({{ident}})'
+        - match: '\b(var-)({{ident}})(?=\s)'
+          scope: invalid.deprecated.custom-property.css
           captures:
             1: keyword.other.custom-property.prefix.css
             2: support.type.custom-property.name.css
-          push:
-            - meta_scope: invalid.deprecated.custom-property.css
-            - match: \b
-              pop: true
         - include: custom-property-name
+        # Property names are sorted by popularity in descending order.
+        # Popularity data taken from https://www.chromestatus.com/metrics/css/popularity
         - match: |-
             \b(?x)(
-                align(-content|-items|-self)?
-              | alignment-(adjust|baseline)
-              | all
-              | animation(-delay|-direction|-duration|-fill-mode|-iteration-count|-name|-play-state|-timing-function)?
-              | appearance|azimuth|backface-visibility
-              | background(-attachment|-blend-mode|-clip|-color|-image|-origin|-position|-repeat|-size)?
-              | baseline-shift|behavior
-              | border(-bottom|-left|-right|-top)?-(color|radius|width|style)
-              | border-(bottom|top)-(left|right)-radius
-              | border-image(-outset|-repeat|-slice|-source|-width)?
-              | border(-bottom|-left|-right|-top|-collapse|-spacing)?
-              | bottom
-              | box-(align|decoration-break|direction|flex|ordinal-group|orient|pack|shadow|sizing)
-              | break-(after|before|inside)
-              | caption-side|clear
-              | clip(-path|-rule)?
-              | color(-interpolation(-filters)?|-profile|-rendering)?
-              | column((-count|-fill|-gap|-rule(-color|-style|-width)?|-span|-width)|s)?
-              | content
-              | counter-(increment|reset)
-              | cue(-after|-before)?
-              | cursor|direction|display|dominant-baseline|elevation|empty-cells
-              | fill(-rule)?
-              | filter
-              | flex((-item)?-align|-basis|-direction|-flow|-grow|(-line)?-pack
-                |-negative|-order|-positive|-preferred-size|-shrink|-wrap)?
-              | float|flood-color
-              | font-emphasize(-position|-style)?
-              | font-variant(-alternates|-caps|-east-asian|-ligatures|-numeric|-position)?
-              | font(-effect|-family|-feature-settings|-kerning|-language-override
-                |-size(-adjust)?|-smoothing|-stretch|-style|-synthesis|-weight)?
-              | force-broken-image-icon
-              | grid-area
-              | grid-auto-(columns|flow|rows)
-              | grid-(column|row)(-end|-start)?
-              | grid-template(-areas|-columns|-rows)?
-              | group|height|hyphens
-              | image-(orientation|rendering|resolution)
-              | ime-mode
-              | initial-letter(-align)?
-              | inline-(box-align|flex)
-              | interpolation-mode|isolation|justify-content|kerning|left|letter-spacing|lighting-color
-              | line-(box-contain|clamp|height|stacking(-ruby|-shift|-strategy)?)
-              | list-style(-image|-position|-type)?
-              | margin(-bottom|-left|-right|-top)?
-              | marker-(end|mid|offset|start)
-              | marks
-              | mask-border(-mode|-outset|-repeat|-slice|-source|-width)?
-              | mask(-clip|-composite|-image|-mode|-origin|-position|-repeat|-size|-type)?
-              | (max|min)-(height|width)
-              | mix-blend-mode
-              | nbsp-mode
-              | object-(fit|position)
-              | opacity|order|orphans|osx-font-smoothing
-              | outline(-color|-offset|-style|-width)?
-              | overflow(-scrolling|-wrap|-x|-y)?
-              | padding(-bottom|-left|-right|-top)?
-              | page(-break-(after|before|inside))?
-              | paint-order
-              | pause(-after|-before)?
-              | perspective(-origin)?
-              | pitch(-range)?
-              | play-during|pointer-events|position|quotes|resize|richness|right|scroll-behavior
-              | shape-(image-threshold|margin|outside|rendering)
-              | size
-              | speak(-header|-numeral|-punctuation)?
-              | speech-rate|src|stop-color|stress
-              | stroke(-dasharray|-line(cap|join))?
-              | tab-size|table-layout|tap-highlight-color
-              | text-align(-last)?
-              | text-decoration(-color|-line|-style)?
-              | text-emphasis(-color|-position|-style)?
-              | text-(anchor|fill-color|height|indent|justify|orientation|overflow
-                |rendering|shadow|size-adjust|transform|underline-position)
-              | top
-              | touch-(action|callout)
-              | transform(-origin(-[xy])?|-style)?
-              | transition(-delay|-duration|-property|-timing-function)?
-              | unicode-(bidi|range)
-              | user-select|vertical-align|visibility|voice-family|volume|white-space|widows|width|will-change
-              | word-(break|spacing|wrap)
-              | writing-mode|z-index|zoom
+                display|width|background-color|height|position|font-family|font-weight
+              | top|opacity|cursor|background-image|right|visibility|box-sizing
+              | user-select|left|float|margin-left|margin-top|line-height
+              | padding-left|z-index|margin-bottom|margin-right|margin
+              | vertical-align|padding-top|white-space|border-radius|padding-bottom
+              | padding-right|padding|bottom|clear|max-width|box-shadow|content
+              | border-color|min-height|min-width|font-style|border-width
+              | border-collapse|background-size|text-overflow|max-height|text-transform
+              | text-shadow|text-indent|border-style|overflow-y|list-style-type
+              | word-wrap|border-spacing|appearance|zoom|overflow-x|border-top-left-radius
+              | border-bottom-left-radius|border-top-color|pointer-events
+              | border-bottom-color|align-items|justify-content|letter-spacing
+              | border-top-right-radius|border-bottom-right-radius|border-right-width
+              | font-smoothing|border-bottom-width|border-right-color|direction
+              | border-top-width|src|border-left-color|border-left-width
+              | tap-highlight-color|table-layout|background-clip|word-break
+              | transform-origin|resize|filter|backface-visibility|text-rendering
+              | box-orient|transition-property|transition-duration|word-spacing
+              | quotes|outline-offset|animation-timing-function|animation-duration
+              | animation-name|transition-timing-function|border-bottom-style
+              | border-bottom|transition-delay|transition|unicode-bidi|border-top-style
+              | border-top|unicode-range|list-style-position|orphans|outline-width
+              | line-clamp|order|flex-direction|box-pack|animation-fill-mode
+              | outline-color|list-style-image|list-style|touch-action|flex-grow
+              | border-left-style|border-left|speak|animation-iteration-count
+              | page-break-inside|box-flex|box-align|page-break-after|animation-delay
+              | widows|border-right-style|border-right|flex-align|outline-style
+              | outline|background-origin|animation-direction|fill-opacity
+              | background-attachment|flex-wrap|transform-style|counter-increment
+              | overflow-wrap|counter-reset|animation-play-state|animation
+              | will-change|box-ordinal-group|image-rendering|mask-image|flex-flow
+              | background-position-y|stroke-width|background-position-x|background-position
+              | background-blend-mode|flex-shrink|flex-basis|flex-order|flex-item-align
+              | flex-line-pack|flex-negative|flex-pack|flex-positive|flex-preferred-size
+              | flex|user-drag|font-stretch|column-count|empty-cells|align-self
+              | caption-side|mask-size|column-gap|mask-repeat|box-direction
+              | font-feature-settings|mask-position|align-content|object-fit
+              | columns|text-fill-color|clip-path|stop-color|font-kerning
+              | page-break-before|stroke-dasharray|size|fill-rule|border-image-slice
+              | column-width|break-inside|column-break-before|border-image-width
+              | stroke-dashoffset|border-image-repeat|border-image-outset|line-break
+              | stroke-linejoin|stroke-linecap|stroke-miterlimit|stroke-opacity
+              | stroke|shape-rendering|border-image-source|border-image|border
+              | tab-size|writing-mode|perspective-origin-y|perspective-origin-x
+              | perspective-origin|perspective|text-align-last|text-align|clip-rule
+              | clip|text-anchor|column-rule-color|box-decoration-break|column-fill
+              | fill|column-rule-style|mix-blend-mode|text-emphasis-color
+              | baseline-shift|dominant-baseline|page|alignment-baseline
+              | column-rule-width|column-rule|break-after|font-variant-ligatures
+              | transform-origin-y|transform-origin-x|transform|object-position
+              | break-before|column-span|isolation|shape-outside|all
+              | color-interpolation-filters|marker|marker-end|marker-start
+              | marker-mid|color-rendering|color-interpolation|background-repeat-x
+              | background-repeat-y|background-repeat|background|mask-type
+              | flood-color|flood-opacity|text-orientation|mask-composite
+              | text-emphasis-style|paint-order|lighting-color|shape-margin
+              | text-emphasis-position|text-emphasis|shape-image-threshold
+              | mask-clip|mask-origin|mask|font-variant-caps|font-variant-alternates
+              | font-variant-east-asian|font-variant-numeric|font-variant-position
+              | font-variant|font-size-adjust|font-size|font-language-override
+              | font-display|font-synthesis|font|line-box-contain|text-justify
+              | text-decoration-color|text-decoration-style|text-decoration-line
+              | text-decoration|text-underline-position|grid-template|rotate
+              | scale|translate|grid-template-columns|grid-template-rows
+              | scroll-behavior|grid-column-start|grid-column-end|grid-column-gap
+              | grid-row-start|grid-row-end|grid-auto-rows|grid-template-areas
+              | grid-area|grid-auto-flow|grid-auto-columns|image-orientation
+              | hyphens|overflow-scrolling|overflow|color-profile|kerning
+              | nbsp-mode|color|image-resolution|grid-row|grid-column|blend-mode
+              | azimuth|pause-after|pause-before|pause|pitch-range|pitch|text-height
+              | system|negative|prefix|suffix|range|pad|fallback|additive-symbols
+              | symbols|speak-as
             )\b
           scope: support.type.property-name.css
     - match: (:)\s*
       captures:
         1: punctuation.separator.key-value.css
       push:
-        - meta_scope: meta.property-value.css
-        - match: '\s*(;|(?=\}))'
+        - meta_content_scope: meta.property-value.css
+        - match: '\s*(;)|(?=[})])'
           captures:
             1: punctuation.terminator.rule.css
           pop: true
@@ -857,6 +931,25 @@ contexts:
               - include: literal-string
               - match: '\b({{counter_styles}}|none)\b'
                 scope: support.constant.property-value.counter-style.css
+
+      # symbols()
+      # https://drafts.csswg.org/css-counter-styles-3/#symbols-function
+    - match: '\b(symbols)(?=\()'
+      scope: support.function.counter.css
+      push:
+        - meta_scope: meta.function-call.css
+        - include: function-notation-terminator
+        - match: '\('
+          scope: punctuation.definition.group.begin.css
+          push:
+          - meta_scope: meta.group.css
+          - match: '(?=\))'
+            pop: true
+          - match: '\b(cyclic|numeric|alphabetic|symbolic|fixed)\b'
+            scope: support.constant.symbol-type.css
+          - include: comma-delimiter
+          - include: literal-string
+          - include: image-type
 
       # format()
       # https://drafts.csswg.org/css-fonts-3/#descdef-src
@@ -1337,6 +1430,56 @@ contexts:
             pop: true
           - include: literal-string
           - include: unquoted-string
+
+  # url-prefix()
+  # https://www.w3.org/TR/2012/WD-css3-conditional-20120911/#url-prefix
+  url-prefix-function:
+    - match: '\b(url-prefix)(?=\()'
+      scope: support.function.url-prefix.css
+      push:
+        - meta_scope: meta.function-call.css
+        - include: function-notation-terminator
+        - match: '\('
+          scope: punctuation.definition.group.begin.css
+          push:
+          - meta_scope: meta.group.css
+          - match: '(?=\))'
+            pop: true
+          - include: literal-string
+          - include: unquoted-string
+
+  # domain()
+  # https://www.w3.org/TR/2012/WD-css3-conditional-20120911/#url-domain
+  domain-function:
+    - match: '\b(domain)(?=\()'
+      scope: support.function.domain.css
+      push:
+        - meta_scope: meta.function-call.css
+        - include: function-notation-terminator
+        - match: '\('
+          scope: punctuation.definition.group.begin.css
+          push:
+          - meta_scope: meta.group.css
+          - match: '(?=\))'
+            pop: true
+          - include: literal-string
+          - include: unquoted-string
+
+  # regexp()
+  # https://www.w3.org/TR/2012/WD-css3-conditional-20120911/#url-regexp
+  regexp-function:
+    - match: '\b(regexp)(?=\()'
+      scope: support.function.regexp.css
+      push:
+        - meta_scope: meta.function-call.css
+        - include: function-notation-terminator
+        - match: '\('
+          scope: punctuation.definition.group.begin.css
+          push:
+          - meta_scope: meta.group.css
+          - match: '(?=\))'
+            pop: true
+          - include: literal-string
 
   # image()
   # https://drafts.csswg.org/css-images-3/#funcdef-image

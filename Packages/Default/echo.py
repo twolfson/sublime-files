@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime_plugin
+
 
 class EchoCommand(sublime_plugin.ApplicationCommand):
     def run(self, **kwargs):

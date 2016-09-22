@@ -1,6 +1,9 @@
-import sublime, sublime_plugin
 import os
 import functools
+
+import sublime
+import sublime_plugin
+
 
 class NewFileAtCommand(sublime_plugin.WindowCommand):
     def run(self, dirs):
@@ -12,19 +15,21 @@ class NewFileAtCommand(sublime_plugin.WindowCommand):
     def is_visible(self, dirs):
         return len(dirs) == 1
 
+
 class DeleteFileCommand(sublime_plugin.WindowCommand):
     def run(self, files):
         # Import send2trash on demand, to avoid initialising ctypes for as long as possible
         import Default.send2trash as send2trash
         for f in files:
             v = self.window.find_open_file(f)
-            if v != None and not v.close():
+            if v is not None and not v.close():
                 return
 
             send2trash.send2trash(f)
 
     def is_visible(self, files):
         return len(files) > 0
+
 
 class NewFolderCommand(sublime_plugin.WindowCommand):
     def run(self, dirs):
@@ -35,6 +40,7 @@ class NewFolderCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, dirs):
         return len(dirs) == 1
+
 
 class DeleteFolderCommand(sublime_plugin.WindowCommand):
     def run(self, dirs):
@@ -55,10 +61,16 @@ class DeleteFolderCommand(sublime_plugin.WindowCommand):
     def is_visible(self, dirs):
         return len(dirs) > 0
 
+
 class RenamePathCommand(sublime_plugin.WindowCommand):
     def run(self, paths):
         branch, leaf = os.path.split(paths[0])
-        v = self.window.show_input_panel("New Name:", leaf, functools.partial(self.on_done, paths[0], branch), None, None)
+        v = self.window.show_input_panel(
+            "New Name:",
+            leaf,
+            functools.partial(self.on_done, paths[0], branch),
+            None,
+            None)
         name, ext = os.path.splitext(leaf)
 
         v.sel().clear()
@@ -87,18 +99,19 @@ class RenamePathCommand(sublime_plugin.WindowCommand):
     def is_visible(self, paths):
         return len(paths) == 1
 
+
 class OpenContainingFolderCommand(sublime_plugin.WindowCommand):
     def run(self, files):
-        branch,leaf = os.path.split(files[0])
+        branch, leaf = os.path.split(files[0])
         self.window.run_command("open_dir", {"dir": branch, "file": leaf})
 
     def is_visible(self, files):
         return len(files) > 0
 
+
 class FindInFolderCommand(sublime_plugin.WindowCommand):
     def run(self, dirs):
-        self.window.run_command("show_panel", {"panel": "find_in_files",
-            "where": ",".join(dirs)})
+        self.window.run_command("show_panel", {"panel": "find_in_files", "where": ",".join(dirs)})
 
     def is_visible(self, dirs):
         return len(dirs) > 0

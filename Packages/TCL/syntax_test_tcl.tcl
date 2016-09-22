@@ -1,5 +1,23 @@
 # SYNTAX TEST "Packages/TCL/Tcl.sublime-syntax"
 
+# ----------------- #
+# Line continuation
+# ----------------- #
+
+set MyDict [list\
+    Key1 {Key Value 1}\
+#                     ^ punctuation.separator.continuation
+]
+
+pg_select $database \
+"SELECT abc, def FROM xyz"
+# <- string
+
+pg_select $database \
+"SELECT abc, def FROM xyz" \
+data
+# <- - variable.function
+
 # -------------------------------------------------------------------------- #
 # Issue 134: https://github.com/SublimeTextIssues/DefaultPackages/issues/134
 # -------------------------------------------------------------------------- #
@@ -29,6 +47,10 @@ namespace eval A {
         }
     }
 }
+
+set copy [[$root selectNodes //*\[@ID="$idref"\]] cloneNode -deep]
+#                               ^^ constant.character.escape
+#                                             ^^ constant.character.escape
 
 set v "String with $var and [command substitution] in it. Also, \n escapes."
 #                  ^^^^ variable.other

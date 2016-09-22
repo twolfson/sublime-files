@@ -1,5 +1,8 @@
-import sublime, sublime_plugin
 import random
+
+import sublime
+import sublime_plugin
+
 
 def permute_selection(f, v, e):
     regions = [s for s in v.sel() if not s.empty()]
@@ -20,21 +23,26 @@ def permute_selection(f, v, e):
         [r, t] = x
         v.replace(e, r, t)
 
+
 def case_insensitive_sort(txt):
     txt.sort(key=lambda x: x.lower())
     return txt
+
 
 def case_sensitive_sort(txt):
     txt.sort()
     return txt
 
+
 def reverse_list(l):
     l.reverse()
     return l
 
+
 def shuffle_list(l):
     random.shuffle(l)
     return l
+
 
 def uniquealise_list(l):
     table = {}
@@ -45,11 +53,15 @@ def uniquealise_list(l):
             res.append(x)
     return res
 
-permute_funcs = { "reverse" : reverse_list,
-                  "shuffle" : shuffle_list,
-                  "unique"  : uniquealise_list }
 
-def unique_selection(v):
+permute_funcs = {
+    "reverse": reverse_list,
+    "shuffle": shuffle_list,
+    "unique": uniquealise_list,
+}
+
+
+def unique_selection(v, e):
     regions = [s for s in v.sel() if not s.empty()]
     regions.sort()
 
@@ -66,7 +78,8 @@ def unique_selection(v):
     for r in dupregions:
         v.erase(e, r)
 
-def shrink_wrap_region( view, region ):
+
+def shrink_wrap_region(view, region):
     a, b = region.begin(), region.end()
 
     for a in range(a, b):
@@ -80,6 +93,7 @@ def shrink_wrap_region( view, region ):
 
     return sublime.Region(a, b)
 
+
 def shrinkwrap_and_expand_non_empty_selections_to_entire_line(v):
     sw = shrink_wrap_region
     regions = []
@@ -91,6 +105,7 @@ def shrinkwrap_and_expand_non_empty_selections_to_entire_line(v):
 
     for r in regions:
         v.sel().add(r)
+
 
 def permute_lines(f, v, e):
     shrinkwrap_and_expand_non_empty_selections_to_entire_line(v)
@@ -108,13 +123,13 @@ def permute_lines(f, v, e):
 
         v.replace(e, r, u"\n".join(lines))
 
+
 def has_multiple_non_empty_selection_region(v):
     return len([s for s in v.sel() if not s.empty()]) > 1
 
+
 class SortLinesCommand(sublime_plugin.TextCommand):
-    def run(self, edit, case_sensitive=False,
-                        reverse=False,
-                        remove_duplicates=False):
+    def run(self, edit, case_sensitive=False, reverse=False, remove_duplicates=False):
         view = self.view
 
         if case_sensitive:
@@ -128,10 +143,9 @@ class SortLinesCommand(sublime_plugin.TextCommand):
         if remove_duplicates:
             permute_lines(uniquealise_list, view, edit)
 
+
 class SortSelectionCommand(sublime_plugin.TextCommand):
-    def run(self, edit, case_sensitive=False,
-                        reverse=False,
-                        remove_duplicates=False):
+    def run(self, edit, case_sensitive=False, reverse=False, remove_duplicates=False):
 
         view = self.view
 
@@ -148,9 +162,11 @@ class SortSelectionCommand(sublime_plugin.TextCommand):
     def is_enabled(self, **kw):
         return has_multiple_non_empty_selection_region(self.view)
 
+
 class PermuteLinesCommand(sublime_plugin.TextCommand):
     def run(self, edit, operation='shuffle'):
         permute_lines(permute_funcs[operation], self.view, edit)
+
 
 class PermuteSelectionCommand(sublime_plugin.TextCommand):
     def run(self, edit, operation='shuffle'):

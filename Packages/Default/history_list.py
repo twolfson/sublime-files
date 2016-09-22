@@ -4,7 +4,10 @@ Remembers the history of navigation and provides ability to
 jump backwards and forwards
 """
 
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+import unittest
+
 
 class JumpHistory():
     """
@@ -80,7 +83,7 @@ class JumpHistory():
     def jump_forward(self, active_view):
         if self.history_list == []:
             return None, []
-        #already pointing to the front
+        # already pointing to the front
         if self.current_item >= -1:
             return None, []
         # get the top selection
@@ -134,12 +137,15 @@ class JumpHistory():
     def len(self):
         return len(self.history_list)
 
+
 # dict from window id to JumpHistory
 jump_history_dict = {}
+
 
 def get_jump_history(window_id):
     global jump_history_dict
     return jump_history_dict.setdefault(window_id, JumpHistory())
+
 
 def get_jump_history_for_view(view):
     win = view.window()
@@ -148,23 +154,28 @@ def get_jump_history_for_view(view):
     else:
         return get_jump_history(win.id())
 
+
 # remember that we are jumping and ignore
 # on_deactivated callback
 g_is_jumping = False
+
 
 def lock_jump_history():
     global g_is_jumping
     g_is_jumping = True
 
+
 def unlock_jump_history():
     global g_is_jumping
     g_is_jumping = False
+
 
 class JumpHistoryUpdater(sublime_plugin.EventListener):
     """
     Listens on the sublime text events and push the navigation history into the
     JumpHistory object
     """
+
     def on_text_command(self, view, name, args):
         if view.settings().get('is_widget'):
             return
@@ -212,10 +223,12 @@ class JumpHistoryUpdater(sublime_plugin.EventListener):
         get_jump_history_for_view(view).remove_view(view.id())
         unlock_jump_history()
 
+
 class JumpBackCommand(sublime_plugin.TextCommand):
     """
     Defines a new text command "jump_back"
     """
+
     def run(self, edit):
         if self.view.settings().get('is_widget'):
             return
@@ -231,7 +244,7 @@ class JumpBackCommand(sublime_plugin.TextCommand):
 
         lock_jump_history()
         # inputs a dict where the first is the argument name
-        #print(view.window(), region_list)
+        # print(view.window(), region_list)
         # change to another view
 
         self.view.window().focus_view(view)
@@ -241,10 +254,12 @@ class JumpBackCommand(sublime_plugin.TextCommand):
         sublime.status_message("")
         unlock_jump_history()
 
+
 class JumpForwardCommand(sublime_plugin.TextCommand):
     """
     Defines a new text command "jump_forward"
     """
+
     def run(self, edit):
         if self.view.settings().get('is_widget'):
             return
@@ -276,8 +291,6 @@ class JumpForwardCommand(sublime_plugin.TextCommand):
 # to run it in sublime text:
 # import Default.history_list
 # Default.history_list.Unittest.run()
-
-import unittest
 
 class Unittest(unittest.TestCase):
 

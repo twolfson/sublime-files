@@ -1,10 +1,90 @@
 <style>
-html { background-color: #f6f6f6; }
-body { font-family: monospace; }
+html {
+    background-color: #f6f6f6;
+    margin: 16px;
+}
+body {
+    color: #333;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+ul {
+    padding-left: 1.2rem;
+}
 li { margin: 2px; }
-h2 { color: #333; font-size: 2.0em; margin: 0; }
-.release-date, .forum-link { font-size: 10pt }
+h1 {
+    font-size: 2.0rem;
+    margin: 0;
+}
+h2 {
+    color: #444;
+    font-size: 1.4rem;
+    margin: 1em 0 0.1em 0;
+}
+a {
+    color: #000;
+}
+.release-date, .forum-link {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #666;
+}
 </style>
+
+<h1>Beta Channel Changelog</h1>
+
+<h2>Build 3124</h2>
+<div class="release-date">Release Date: 22 September 2016</div>
+<div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-build-3124">Blog Post</a></div>
+<ul>
+    <li>Settings now open in a new window, with the default and user settings side-by-side</li>
+    <li>Hovering over a symbol will show a popup indicating where it's defined. This is controlled with the show_definitions setting.</li>
+    <li>Build errors are now shown inline at the location where they occurred. This is controlled with the show_errors_inline setting.</li>
+    <li>Added a menu item and command palette entry to install Package Control</li>
+
+    <li>Various syntax highlighting improvements</li>
+    <li>Significant improvements to the Scala syntax definition, with thanks to <a href="https://github.com/djspiewak">djspiewak</a> and <a href="https://github.com/gwenzek">gwenzek</a></li>
+    <li>Significant improvements to the LaTeX syntax definition, with thanks to <a href="https://github.com/randy3k">randy3k</a></li>
+
+    <li>Improved Goto Definition performance when a large number of files are open</li>
+    <li>Minor improvements to file load times</li>
+    <li>Linux and OSX: Improved memory usage</li>
+
+    <li>Fixed Replace not working as expected in conjunction with regex look behinds</li>
+    <li>Fixed build systems being unable to use "file_patterns" with the <tt>exec</tt> command</li>
+    <li>Corrected tab overlap on HiDPI Windows and Linux configurations</li>
+    <li>OSX: Fixed a graphical glitch when switching tabs</li>
+    <li>OSX: Fixed crash when entering a surrogate pair via hex input</li>
+    <li>Linux: Improved rendering performance for some systems</li>
+
+    <li>File encoding of open files is now stored in the session</li>
+    <li>Build Systems may define a cancel command using the "cancel" key</li>
+    <li>Syntax: Added <tt>clear_scopes</tt> directive, to give more control over the generated scopes</li>
+    <li>Color Schemes: Added <tt>popupCss</tt> key, for defining default popup style sheets</li>
+    <li>Color Schemes: Added <tt>phantomCss</tt> key, for defining default phantom style sheets</li>
+
+    <li>minihtml: HiDPI support was added for Windows and Linux</li>
+    <li>minihtml: Windows style line endings and single quoted attributes are now supported</li>
+    <li>minihtml: Child selectors may now be used in style sheets</li>
+    <li>minihtml: The <tt>inherit</tt> CSS value has been implemented</li>
+    <li>minihtml: <tt>font-family</tt> stacks may now be used</li>
+    <li>minihtml: Support for the <tt>line-height</tt> CSS property was added</li>
+    <li>minihtml: Elements may now be relatively positioned</li>
+    <li>minihtml: Inline elements support <tt>padding</tt> and <tt>background-color</tt> set</li>
+    <li>minihtml: CSS variables and the <tt>var()</tt> function are now supported</li>
+    <li>minihtml: Added the CSS color functions <tt>color()</tt> (partial), <tt>rgb()</tt>, <tt>rgba()</tt>, <tt>hsl()</tt> and <tt>hsla()</tt></li>
+    <li>minihtml: Fixed a stack overflow on Windows with too many unclosed tags</li>
+
+    <li>API: Added <tt>Phantom</tt> and <tt>PhantomSet</tt></li>
+    <li>API: Added <tt>ViewEventListener</tt></li>
+    <li>API: Added <tt>View.is_primary()</tt></li>
+    <li>API: Added <tt>EventListener.on_hover(view, point, hover_zone)</tt></li>
+    <li>API: Added functions to get and set visibility of the minimap, status bar, tabs and menu</li>
+    <li>API: Modifications to a selection are now constrained to the valid range</li>
+    <li>API: Updated Python 3.3 to commit 8e3b9bf917a7, and SQLite to 3.14.1</li>
+
+    <li>Packages: Loading packages will no longer abort if a <tt>.sublime-package</tt> is corrupt</li>
+    <li>Packages: Fixed an edge case when loading third party packages from unicode paths on Windows</li>
+</ul>
 
 <h2>Build 3114</h2>
 <div class="release-date">Release Date: 12 May 2016</div>

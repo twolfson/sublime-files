@@ -48,8 +48,9 @@ class RunSyntaxTestsCommand(sublime_plugin.WindowCommand):
             elif file_name.startswith('syntax_test'):
                 tests = [relative_path]
             else:
-                sublime.error_message('The current file is not a '
-                    '*.sublime-syntax, *.tmLanguage or syntax_test* file')
+                sublime.error_message(
+                    'The current file is not a  *.sublime-syntax, *.tmLanguage '
+                    'or syntax_test* file')
                 return
         else:
             tests = sublime.find_resources('syntax_test*')
@@ -88,8 +89,7 @@ class ProfileSyntaxDefinitionCommand(sublime_plugin.WindowCommand):
 
         view = self.window.active_view()
         if not view:
-            sublime.error_message('Syntax performance tests can only be run '
-                'when a buffer is open')
+            sublime.error_message('Syntax performance tests can only be run when a buffer is open')
             return
 
         if not hasattr(self, 'output_view'):
@@ -124,8 +124,9 @@ class SyntaxDefinitionCompatibilityCommand(sublime_plugin.WindowCommand):
 
         view = self.window.active_view()
         if not view or not view.file_name().endswith('.sublime-syntax'):
-            sublime.error_message('Syntax compatibility tests can only be run '
-                'when a .sublime-syntax file is open')
+            sublime.error_message(
+                'Syntax compatibility tests can only be run when a '
+                '.sublime-syntax file is open')
             return
 
         if not hasattr(self, 'output_view'):
@@ -179,15 +180,13 @@ class SyntaxDefinitionCompatibilityCommand(sublime_plugin.WindowCommand):
 
                     chunk_begin = value_begin + 1
                     chunk_end = chunk_begin + regex_col
-                    escaped_quotes = self.count_escapes(next_char, view,
-                        chunk_begin, chunk_end)
+                    escaped_quotes = self.count_escapes(next_char, view, chunk_begin, chunk_end)
 
                     while escaped_quotes:
                         col += escaped_quotes
                         chunk_begin = chunk_end
                         chunk_end += escaped_quotes
-                        escaped_quotes = self.count_escapes(next_char, view,
-                            chunk_begin, chunk_end)
+                        escaped_quotes = self.count_escapes(next_char, view, chunk_begin, chunk_end)
 
                 # Block strings
                 elif next_char == '|':
@@ -221,17 +220,14 @@ class SyntaxDefinitionCompatibilityCommand(sublime_plugin.WindowCommand):
 
                     col = indent_size + (regex_col - consumed)
 
-                append(self.output_view, line_pattern.format(relative_path,
-                    line + 1, col + 1, pattern[2]))
+                append(self.output_view, line_pattern.format(relative_path, line + 1, col + 1, pattern[2]))
 
-            message = 'FAILED: {} pattern{} in "{}" are incompatible with ' \
-                'the new regex engine\n'
+            message = 'FAILED: {} pattern{} in "{}" are incompatible with the new regex engine\n'
             s = 's' if num > 1 else ''
             params = (num, s, relative_path)
 
         else:
-            message = 'Success: all patterns in "{}" are compatible with ' \
-                'the new regex engine\n'
+            message = 'Success: all patterns in "{}" are compatible with the new regex engine\n'
             params = (relative_path,)
 
         append(self.output_view, message.format(*params))
@@ -250,10 +246,10 @@ def is_syntax(path):
 
 def package_relative_path(view):
     def show_error():
-        sublime.error_message('The current file can not be used for '
-            'testing since it is not loaded by Sublime Text.\n\nThis '
-            'is usually caused by a file not located in, or symlinked '
-            'to, the Packages folder.')
+        sublime.error_message(
+            'The current file can not be used for testing since it is not '
+            'loaded by Sublime Text.\n\nThis is usually caused by a file not '
+            'located in, or symlinked to, the Packages folder.')
 
     if not view:
         show_error()
@@ -308,5 +304,4 @@ def show_panel_on_build(window):
 
 
 def append(panel, output):
-    panel.run_command('append', {'characters': output, 'force': True,
-        'scroll_to_end': True})
+    panel.run_command('append', {'characters': output, 'force': True, 'scroll_to_end': True})

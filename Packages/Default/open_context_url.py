@@ -1,6 +1,8 @@
-import sublime_plugin
-import webbrowser
 import re
+import webbrowser
+
+import sublime_plugin
+
 
 rex = re.compile(
     r'''(?x)
@@ -11,6 +13,7 @@ rex = re.compile(
     /?[a-zA-Z0-9\-._?,!'(){}\[\]/+&@%$#=:"|~;]*                             # url path and query string
     [a-zA-Z0-9\-_~:/#@$*+=]                                                 # allowed end chars
     ''')
+
 
 class OpenContextUrlCommand(sublime_plugin.TextCommand):
     def run(self, edit, event):

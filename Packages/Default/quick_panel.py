@@ -1,5 +1,5 @@
-import sublime
 import sublime_plugin
+
 
 class QuickPanelCommand(sublime_plugin.WindowCommand):
     def select_item(self, items, idx):
@@ -8,5 +8,5 @@ class QuickPanelCommand(sublime_plugin.WindowCommand):
 
     def run(self, items):
         self.window.show_quick_panel(
-            items = [x["caption"] for x in items],
-            on_select = lambda idx: self.select_item(items, idx))
+            items=[x["caption"] for x in items],
+            on_select=lambda idx: self.select_item(items, idx))

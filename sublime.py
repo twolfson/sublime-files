@@ -1,5 +1,7 @@
-import sublime_api
 import sys
+
+import sublime_api
+
 
 class _LogWriter:
     def flush(self):
@@ -8,8 +10,13 @@ class _LogWriter:
     def write(self, s):
         sublime_api.log_message(s)
 
+
 sys.stdout = _LogWriter()
 sys.stderr = _LogWriter()
+
+HOVER_TEXT = 1
+HOVER_GUTTER = 2
+HOVER_MARGIN = 3
 
 ENCODED_POSITION = 1
 TRANSIENT = 4
@@ -20,6 +27,8 @@ MONOSPACE_FONT = 1
 KEEP_OPEN_ON_FOCUS_LOST = 2
 HTML = 1
 COOPERATE_WITH_AUTO_COMPLETE = 2
+HIDE_ON_MOUSE_MOVE = 4
+HIDE_ON_MOUSE_MOVE_AWAY = 8
 
 DRAW_EMPTY = 1
 HIDE_ON_MINIMAP = 2
@@ -56,101 +65,148 @@ DIALOG_CANCEL = 0
 DIALOG_YES = 1
 DIALOG_NO = 2
 
+UI_ELEMENT_SIDE_BAR = 1
+UI_ELEMENT_MINIMAP = 2
+UI_ELEMENT_TABS = 4
+UI_ELEMENT_STATUS_BAR = 8
+UI_ELEMENT_MENU = 16
+UI_ELEMENT_OPEN_FILES = 32
+
+LAYOUT_INLINE = 0
+LAYOUT_BELOW = 1
+LAYOUT_BLOCK = 2
+
+
 def version():
     return sublime_api.version()
+
 
 def platform():
     return sublime_api.platform()
 
+
 def arch():
     return sublime_api.architecture()
+
 
 def channel():
     return sublime_api.channel()
 
+
 def executable_path():
     return sublime_api.executable_path()
 
+
 def executable_hash():
     import hashlib
-    return (version(), platform() + '_' + arch(),
+    return (
+        version(), platform() + '_' + arch(),
         hashlib.md5(open(executable_path(), 'rb').read()).hexdigest())
+
 
 def packages_path():
     return sublime_api.packages_path()
 
+
 def installed_packages_path():
     return sublime_api.installed_packages_path()
+
 
 def cache_path():
     """ Returns the path where Sublime Text stores cache files """
     return sublime_api.cache_path()
 
+
 def status_message(msg):
     sublime_api.status_message(msg)
+
 
 def error_message(msg):
     sublime_api.error_message(msg)
 
+
 def message_dialog(msg):
     sublime_api.message_dialog(msg)
 
-def ok_cancel_dialog(msg, ok_title = ""):
+
+def ok_cancel_dialog(msg, ok_title=""):
     return sublime_api.ok_cancel_dialog(msg, ok_title)
 
-def yes_no_cancel_dialog(msg, yes_title = "", no_title = ""):
+
+def yes_no_cancel_dialog(msg, yes_title="", no_title=""):
     return sublime_api.yes_no_cancel_dialog(msg, yes_title, no_title)
 
-def run_command(cmd, args = None):
+
+def run_command(cmd, args=None):
     sublime_api.run_command(cmd, args)
 
-def get_clipboard(size_limit = 16777216):
-    """ Returns the content of the clipboard, for performance reason if the size
+
+def get_clipboard(size_limit=16777216):
+    """
+    Returns the content of the clipboard, for performance reason if the size
     of the clipboard content is bigger than size_limit, an empty string will be
     returned
     """
     return sublime_api.get_clipboard(size_limit)
 
+
 def set_clipboard(text):
     return sublime_api.set_clipboard(text)
+
 
 def log_commands(flag):
     sublime_api.log_commands(flag)
 
+
 def log_input(flag):
-    """ Enables or disables input logging. This is useful to find the names of certain keys on the keyboard """
+    """
+    Enables or disables input logging. This is useful to find the names of
+    certain keys on the keyboard
+    """
     sublime_api.log_input(flag)
 
+
 def log_result_regex(flag):
-    """ Enables or disables result regex logging. This is useful when trying to debug file_regex and line_regex in build systems """
+    """
+    Enables or disables result regex logging. This is useful when trying to
+    debug file_regex and line_regex in build systems
+    """
     sublime_api.log_result_regex(flag)
+
 
 def log_indexing(flag):
     sublime_api.log_indexing(flag)
 
+
 def log_build_systems(flag):
     sublime_api.log_build_systems(flag)
+
 
 def score_selector(scope_name, selector):
     return sublime_api.score_selector(scope_name, selector)
 
+
 def load_resource(name):
     s = sublime_api.load_resource(name)
-    if s == None:
+    if s is None:
         raise IOError("resource not found")
     return s
 
+
 def load_binary_resource(name):
     bytes = sublime_api.load_binary_resource(name)
-    if bytes == None:
+    if bytes is None:
         raise IOError("resource not found")
     return bytes
+
 
 def find_resources(pattern):
     return sublime_api.find_resources(pattern)
 
-def encode_value(val, pretty = False):
+
+def encode_value(val, pretty=False):
     return sublime_api.encode_value(val, pretty)
+
 
 def decode_value(data):
     val, err = sublime_api.decode_value(data)
@@ -160,33 +216,48 @@ def decode_value(data):
 
     return val
 
+
 def expand_variables(val, variables):
     return sublime_api.expand_variables(val, variables)
+
 
 def load_settings(base_name):
     settings_id = sublime_api.load_settings(base_name)
     return Settings(settings_id)
 
+
 def save_settings(base_name):
     sublime_api.save_settings(base_name)
 
-def set_timeout(f, timeout_ms = 0):
-    """ Schedules a function to be called in the future. Sublime Text will block while the function is running """
+
+def set_timeout(f, timeout_ms=0):
+    """
+    Schedules a function to be called in the future. Sublime Text will block
+    while the function is running
+    """
     sublime_api.set_timeout(f, timeout_ms)
 
-def set_timeout_async(f, timeout_ms = 0):
-    """ Schedules a function to be called in the future. The function will be
-    called in a worker thread, and Sublime Text will not block while the function is running """
+
+def set_timeout_async(f, timeout_ms=0):
+    """
+    Schedules a function to be called in the future. The function will be
+    called in a worker thread, and Sublime Text will not block while the
+    function is running
+    """
     sublime_api.set_timeout_async(f, timeout_ms)
+
 
 def active_window():
     return Window(sublime_api.active_window())
 
+
 def windows():
     return [Window(id) for id in sublime_api.windows()]
 
+
 def get_macro():
     return sublime_api.get_macro()
+
 
 class Window(object):
     def __init__(self, id):
@@ -224,14 +295,14 @@ class Window(object):
         else:
             return View(view_id)
 
-    def run_command(self, cmd, args = None):
+    def run_command(self, cmd, args=None):
         sublime_api.window_run_command(self.window_id, cmd, args)
 
-    def new_file(self, flags = 0, syntax = ""):
+    def new_file(self, flags=0, syntax=""):
         """ flags must be either 0 or TRANSIENT """
         return View(sublime_api.window_new_file(self.window_id, flags, syntax))
 
-    def open_file(self, fname, flags = 0, group = -1):
+    def open_file(self, fname, flags=0, group=-1):
         """
         valid bits for flags are:
         ENCODED_POSITION: fname name may have :row:col or :row suffix
@@ -359,13 +430,17 @@ class Window(object):
 
     def show_input_panel(self, caption, initial_text, on_done, on_change, on_cancel):
         """ on_done and on_change should accept a string argument, on_cancel should have no arguments """
-        return View(sublime_api.window_show_input_panel(self.window_id,
-            caption, initial_text, on_done, on_change, on_cancel))
+        return View(sublime_api.window_show_input_panel(
+            self.window_id, caption, initial_text, on_done, on_change, on_cancel))
 
-    def show_quick_panel(self, items, on_select, flags = 0, selected_index = -1, on_highlight = None):
+    def show_quick_panel(self, items, on_select, flags=0, selected_index=-1, on_highlight=None):
         """
-        on_select is called when the the quick panel is finished, and should accept a single integer, specifying which item was selected, or -1 for none
-        on_highlight is called when the quick panel is still active, and indicates the current highlighted index
+        on_select is called when the the quick panel is finished, and should
+        accept a single integer, specifying which item was selected, or -1 for none
+
+        on_highlight is called when the quick panel is still active, and
+        indicates the current highlighted index
+
         flags is a bitwise OR of MONOSPACE_FONT, and KEEP_OPEN_ON_FOCUS_LOST
         """
         items_per_row = 1
@@ -383,14 +458,39 @@ class Window(object):
                     for j in range(items_per_row):
                         flat_items.append(items[i][j])
 
-        sublime_api.window_show_quick_panel(self.window_id, flat_items,
-            items_per_row, on_select, on_highlight, flags, selected_index)
+        sublime_api.window_show_quick_panel(
+            self.window_id, flat_items, items_per_row, on_select, on_highlight,
+            flags, selected_index)
 
     def is_sidebar_visible(self):
-        return sublime_api.window_is_sidebar_visible(self.window_id)
+        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR)
 
     def set_sidebar_visible(self, flag):
-        sublime_api.window_set_sidebar_visible(self.window_id, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR, flag)
+
+    def is_minimap_visible(self):
+        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP)
+
+    def set_minimap_visible(self, flag):
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP, flag)
+
+    def is_status_bar_visible(self):
+        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR)
+
+    def set_status_bar_visible(self, flag):
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR, flag)
+
+    def get_tabs_visible(self):
+        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_TABS)
+
+    def set_tabs_visible(self, flag):
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_TABS, flag)
+
+    def is_menu_visible(self):
+        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MENU)
+
+    def set_menu_visible(self, flag):
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MENU, flag)
 
     def folders(self):
         return sublime_api.window_folders(self.window_id)
@@ -443,11 +543,12 @@ class Edit(object):
     def __init__(self, token):
         self.edit_token = token
 
+
 class Region(object):
     __slots__ = ['a', 'b', 'xpos']
 
-    def __init__(self, a, b = None, xpos = -1):
-        if b == None:
+    def __init__(self, a, b=None, xpos=-1):
+        if b is None:
             b = a
         self.a = a
         self.b = b
@@ -521,9 +622,11 @@ class Region(object):
         rb = rhs.begin()
         re = rhs.end()
 
-        return ((lb == rb and le == re) or
+        return (
+            (lb == rb and le == re) or
             (rb > lb and rb < le) or (re > lb and re < le) or
             (lb > rb and lb < re) or (le > rb and le < re))
+
 
 class Selection(object):
     def __init__(self, id):
@@ -542,10 +645,10 @@ class Selection(object):
         sublime_api.view_selection_erase(self.view_id, index)
 
     def __eq__(self, rhs):
-        return rhs != None and list(self) == list(rhs)
+        return rhs is not None and list(self) == list(rhs)
 
     def __lt__(self, rhs):
-        return rhs != None and list(self) < list(rhs)
+        return rhs is not None and list(self) < list(rhs)
 
     def __bool__(self):
         return self.view_id != 0
@@ -572,6 +675,7 @@ class Selection(object):
     def contains(self, region):
         return sublime_api.view_selection_contains(self.view_id, region.a, region.b)
 
+
 class Sheet(object):
     def __init__(self, id):
         self.sheet_id = id
@@ -595,6 +699,7 @@ class Sheet(object):
             return None
         else:
             return View(view_id)
+
 
 class View(object):
     def __init__(self, id):
@@ -620,6 +725,9 @@ class View(object):
     def is_valid(self):
         """ Returns true if the View is still a valid handle. Will return False for a closed view, for example. """
         return sublime_api.view_buffer_id(self.view_id) != 0
+
+    def is_primary(self):
+        return sublime_api.view_is_primary(self.view_id)
 
     def window(self):
         window_id = sublime_api.view_window(self.view_id)
@@ -664,7 +772,10 @@ class View(object):
         return sublime_api.view_is_scratch(self.view_id)
 
     def set_scratch(self, scratch):
-        """ Sets the scratch flag on the text buffer. When a modified scratch buffer is closed, it will be closed without prompting to save. """
+        """
+        Sets the scratch flag on the text buffer. When a modified scratch buffer
+        is closed, it will be closed without prompting to save.
+        """
         return sublime_api.view_set_scratch(self.view_id, scratch)
 
     def encoding(self):
@@ -682,7 +793,7 @@ class View(object):
     def size(self):
         return sublime_api.view_size(self.view_id)
 
-    def begin_edit(self, edit_token, cmd, args = None):
+    def begin_edit(self, edit_token, cmd, args=None):
         sublime_api.view_begin_edit(self.view_id, edit_token, cmd, args)
         return Edit(edit_token)
 
@@ -715,7 +826,7 @@ class View(object):
         """ The change_count is incremented whenever the underlying buffer is modified """
         return sublime_api.view_change_count(self.view_id)
 
-    def run_command(self, cmd, args = None):
+    def run_command(self, cmd, args=None):
         sublime_api.view_run_command(self.view_id, cmd, args)
 
     def sel(self):
@@ -728,15 +839,15 @@ class View(object):
             s = sublime_api.view_cached_substr(self.view_id, x, x + 1)
             # S2 backwards compat
             if len(s) == 0:
-                return "\x00";
+                return "\x00"
             else:
                 return s
 
-    def find(self, pattern, start_pt, flags = 0):
+    def find(self, pattern, start_pt, flags=0):
         return sublime_api.view_find(self.view_id, pattern, start_pt, flags)
 
-    def find_all(self, pattern, flags = 0, fmt = None, extractions = None):
-        if fmt == None:
+    def find_all(self, pattern, flags=0, fmt=None, extractions=None):
+        if fmt is None:
             return sublime_api.view_find_all(self.view_id, pattern, flags)
         else:
             results = sublime_api.view_find_all_with_contents(self.view_id, pattern, flags, fmt)
@@ -818,10 +929,10 @@ class View(object):
 
         return sublime_api.view_classify(self.view_id, pt)
 
-    def find_by_class(self, pt, forward, classes, separators = ""):
+    def find_by_class(self, pt, forward, classes, separators=""):
         return sublime_api.view_find_by_class(self.view_id, pt, forward, classes, separators)
 
-    def expand_by_class(self, x, classes, separators = ""):
+    def expand_by_class(self, x, classes, separators=""):
         if isinstance(x, Region):
             return sublime_api.view_expand_by_class(self.view_id, x.a, x.b, classes, separators)
         else:
@@ -838,7 +949,7 @@ class View(object):
         """ Returns the approximate visible region """
         return sublime_api.view_visible_region(self.view_id)
 
-    def show(self, x, show_surrounds = True):
+    def show(self, x, show_surrounds=True):
         """ Scrolls the view to reveal x, which may be a Region or point """
         if isinstance(x, Region):
             return sublime_api.view_show_region(self.view_id, x, show_surrounds)
@@ -859,7 +970,7 @@ class View(object):
         """ Returns the (x, y) scroll position of the view in layout coordinates """
         return sublime_api.view_viewport_position(self.view_id)
 
-    def set_viewport_position(self, xy, animate = True):
+    def set_viewport_position(self, xy, animate=True):
         """ Scrolls the view to the given position in layout coordinates """
         return sublime_api.view_set_viewport_position(self.view_id, xy, animate)
 
@@ -911,7 +1022,7 @@ class View(object):
         else:
             return sublime_api.view_unfold_regions(self.view_id, x)
 
-    def add_regions(self, key, regions, scope = "", icon = "", flags = 0):
+    def add_regions(self, key, regions, scope="", icon="", flags=0):
         # S2 has an add_regions overload that accepted flags as the 5th
         # positional argument, however this usage is no longer supported
         if not isinstance(icon, "".__class__):
@@ -924,6 +1035,21 @@ class View(object):
 
     def erase_regions(self, key):
         sublime_api.view_erase_regions(self.view_id, key)
+
+    def add_phantom(self, key, region, content, layout, on_navigate=None):
+        return sublime_api.view_add_phantom(self.view_id, key, region, content, layout, on_navigate)
+
+    def erase_phantoms(self, key):
+        sublime_api.view_erase_phantoms(self.view_id, key)
+
+    def erase_phantom_by_id(self, pid):
+        sublime_api.view_erase_phantom(self.view_id, pid)
+
+    def query_phantom(self, pid):
+        return sublime_api.view_query_phantoms(self.view_id, [pid])
+
+    def query_phantoms(self, pids):
+        return sublime_api.view_query_phantoms(self.view_id, pids)
 
     def assign_syntax(self, syntax_file):
         sublime_api.view_assign_syntax(self.view_id, syntax_file)
@@ -951,13 +1077,16 @@ class View(object):
     def erase_status(self, key):
         sublime_api.view_erase_status(self.view_id, key)
 
-    def extract_completions(self, prefix, tp = -1):
+    def extract_completions(self, prefix, tp=-1):
         return sublime_api.view_extract_completions(self.view_id, prefix, tp)
 
     def find_all_results(self):
         return sublime_api.view_find_all_results(self.view_id)
 
-    def command_history(self, delta, modifying_only = False):
+    def find_all_results_with_text(self):
+        return sublime_api.view_find_all_results_with_text(self.view_id)
+
+    def command_history(self, delta, modifying_only=False):
         return sublime_api.view_command_history(self.view_id, delta, modifying_only)
 
     def overwrite_status(self):
@@ -966,19 +1095,19 @@ class View(object):
     def set_overwrite_status(self, value):
         sublime_api.view_set_overwrite_status(self.view_id, value)
 
-    def show_popup_menu(self, items, on_select, flags = 0):
+    def show_popup_menu(self, items, on_select, flags=0):
         """
         on_select is called when the the quick panel is finished, and should accept a
         single integer, specifying which item was selected, or -1 for none
         """
-        return sublime_api.view_show_popup_table(self.view_id, items,
-            on_select, flags, -1)
+        return sublime_api.view_show_popup_table(self.view_id, items, on_select, flags, -1)
 
-    def show_popup(self, content, flags = 0, location = -1,
-        max_width = 320, max_height = 240,
-        on_navigate = None, on_hide = None):
-        sublime_api.view_show_popup(self.view_id, location, content,
-            flags, max_width, max_height, on_navigate, on_hide)
+    def show_popup(self, content, flags=0, location=-1,
+                   max_width=320, max_height=240,
+                   on_navigate=None, on_hide=None):
+        sublime_api.view_show_popup(
+            self.view_id, location, content, flags, max_width, max_height,
+            on_navigate, on_hide)
 
     def update_popup(self, content):
         sublime_api.view_update_popup_content(self.view_id, content)
@@ -992,12 +1121,13 @@ class View(object):
     def is_auto_complete_visible(self):
         return sublime_api.view_is_auto_complete_visible(self.view_id)
 
+
 class Settings(object):
     def __init__(self, id):
         self.settings_id = id
 
-    def get(self, key, default = None):
-        if default != None:
+    def get(self, key, default=None):
+        if default is not None:
             return sublime_api.settings_get_default(self.settings_id, key, default)
         else:
             return sublime_api.settings_get(self.settings_id, key)
@@ -1016,3 +1146,52 @@ class Settings(object):
 
     def clear_on_change(self, tag):
         sublime_api.settings_clear_on_change(self.settings_id, tag)
+
+
+class Phantom(object):
+    def __init__(self, region, content, layout, on_navigate=None):
+        self.region = region
+        self.content = content
+        self.layout = layout
+        self.on_navigate = on_navigate
+        self.id = None
+
+    def __eq__(self, rhs):
+        # Note that self.id is not considered
+        return (self.region == rhs.region and self.content == rhs.content and
+                self.layout == rhs.layout and self.on_navigate == rhs.on_navigate)
+
+
+class PhantomSet(object):
+    def __init__(self, view, key=""):
+        self.view = view
+        self.key = key
+        self.phantoms = []
+
+    def __del__(self):
+        for p in self.phantoms:
+            self.view.erase_phantom_by_id(p.id)
+
+    def update(self, new_phantoms):
+        # Update the list of phantoms that exist in the text buffer with their
+        # current location
+        regions = self.view.query_phantoms([p.id for p in self.phantoms])
+        for i in range(len(regions)):
+            self.phantoms[i].region = regions[i]
+
+        for p in new_phantoms:
+            try:
+                # Phantom already exists, copy the id from the current one
+                idx = self.phantoms.index(p)
+                p.id = self.phantoms[idx].id
+            except ValueError:
+                p.id = self.view.add_phantom(
+                    self.key, p.region, p.content, p.layout, p.on_navigate)
+
+        for p in self.phantoms:
+            # if the region is -1, then it's already been deleted, no need to
+            # call erase
+            if p not in new_phantoms and p.region != Region(-1):
+                self.view.erase_phantom_by_id(p.id)
+
+        self.phantoms = new_phantoms

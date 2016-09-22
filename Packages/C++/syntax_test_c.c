@@ -19,21 +19,21 @@
 /*^^^^^^^^^^^^^^^^^^^^ meta.preprocessor.macro */
 /*              ^^^^^^ meta.preprocessor.macro.parameters */
 /*      ^^^^^^^^ entity.name.function.preprocessor */
-/*                   ^ punctuation.definition.group.end */
+/*                   ^ punctuation.section.group.end */
 
 #define max(a, b, \
 /*^^^^^^^^^^^^^^^^^ meta.preprocessor.macro */ \
 /*         ^^^^^^^^ meta.preprocessor.macro.parameters */ \
 /* <- keyword.control.import.define */ \
 /*      ^ entity.name.function.preprocessor */ \
-/*         ^ punctuation.definition.group.begin */ \
+/*         ^ punctuation.section.group.begin */ \
 /*          ^ variable.parameter */ \
 /*           ^ punctuation.separator */ \
 /* */ \
 /* <- comment.block */ \
  c)  ((a>b) ? (a>c?a:c) : (b>c?b:c))
  /* <- meta.preprocessor.macro meta.group variable.parameter */
-  /* <- meta.preprocessor.macro meta.group punctuation.definition.group.end */
+  /* <- meta.preprocessor.macro meta.group punctuation.section.group.end */
  /*               ^ keyword.operator.ternary */
  /*                 ^ keyword.operator.ternary */
 
@@ -49,7 +49,7 @@ int i;
 int func() {
 /*  ^^^^^^^^ meta.function */
 /*      ^^ meta.function.parameters */
-/*         ^ meta.block punctuation.definition.block.begin */
+/*         ^ meta.block punctuation.section.block.begin */
 /*  ^ entity.name.function */
     #if( EXTAL == 40000 )       /* 40 MHz */
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function meta.block */
@@ -61,7 +61,7 @@ int func() {
     #endif
 /*  ^ keyword.control.import */
 }
-/* <- meta.function meta.block punctuation.definition.block.end */
+/* <- meta.function meta.block punctuation.section.block.end */
  /* <- - meta.function meta.block */
 
 #define CONST0 16 // Comment
@@ -151,7 +151,7 @@ if (4) {
 #endif
     int bar = 1;
 }
-/* <- meta.block punctuation.definition.block.end */
+/* <- meta.block punctuation.section.block.end */
  /* <- - meta.block */
 
 /////////////////////////////////////////////
@@ -187,12 +187,17 @@ struct point2 {
     int y;
 }
 
+int main(void) {
+/*  ^^^^ entity.name.function */
+/*       ^^^^ storage.type */
+}
+
 struct point get_point() {}
 /*           ^^^^^^^^^^^^^^ meta.function */
 /*                    ^^ meta.function.parameters */
 /*                       ^^ meta.block */
-/*                       ^ punctuation.definition.block.begin
-/*                        ^ punctuation.definition.block.end
+/*                       ^ punctuation.section.block.begin
+/*                        ^ punctuation.section.block.end
 /* ^ storage.type */
 /*     ^ - entity.name.struct */
 /*           ^ entity.name.function */
@@ -207,14 +212,17 @@ struct foo **alloc_foo();
 // Test preprocessor branching and C blocks
 /////////////////////////////////////////////
 
-int foo(int val, float val2)
-/*  ^^^^^^^^^^^^^^^^^^^^^^^^ meta.function */
-/*     ^^^^^^^^^^^^^^^^^^^^^ meta.function.parameters meta.group */
-/*     ^ punctuation.definition.group.begin */
-/*                         ^ punctuation.definition.group.end */
+int foo(int val, float val2[])
+/*  ^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function */
+/*     ^^^^^^^^^^^^^^^^^^^^^^^ meta.function.parameters meta.group */
+/*     ^ punctuation.section.group.begin */
+/*                           ^ punctuation.section.group.end */
 /*          ^^^ variable.parameter */
 /*             ^ punctuation.separator */
 /*                     ^^^^ variable.parameter */
+/*                         ^^ meta.brackets */
+/*                         ^ punctuation.section.brackets.begin */
+/*                          ^ punctuation.section.brackets.end */
 {
 /* <- meta.function meta.block */
     myClass *result;
@@ -229,7 +237,7 @@ int foo(int val, float val2)
 #endif
  /* <- keyword.control.import */
     }
-/*  ^ meta.block meta.block punctuation.definition.block.end */
+/*  ^ meta.block meta.block punctuation.section.block.end */
 /*   ^ - meta.block meta.block */
 
 #ifdef FOO
@@ -239,21 +247,21 @@ int foo(int val, float val2)
     ;
 
     if (val == -1) {
-/*                 ^ meta.block meta.block punctuation.definition.block.begin */
+/*                 ^ meta.block meta.block punctuation.section.block.begin */
 #else
  /* <- keyword.control.import */
     if (val == -2) {
-/*                 ^ meta.block meta.block punctuation.definition.block.begin */
+/*                 ^ meta.block meta.block punctuation.section.block.begin */
 #endif
  /* <- keyword.control.import */
         val += 1;
     }
-/*  ^ meta.block meta.block punctuation.definition.block.end */
+/*  ^ meta.block meta.block punctuation.section.block.end */
 /*   ^ - meta.block meta.block */
 
     return -1;
 }
-/* <- meta.function punctuation.definition.block.end */
+/* <- meta.function punctuation.section.block.end */
  /* <- - meta.function */
 
 
@@ -273,18 +281,25 @@ int /* comment */ * myfunc
 /*                  ^^^^^^ meta.function entity.name.function */
 (int * a)
 /*^^^^^^^ meta.function.parameters meta.group */
-/* <- punctuation.definition.group.begin */
+/* <- punctuation.section.group.begin */
 /*   ^ keyword.operator */
 /*     ^ variable.parameter */
-/*      ^ punctuation.definition.group.end */
+/*      ^ punctuation.section.group.end */
 {
-/* <- meta.function meta.block punctuation.definition.block.begin */
+/* <- meta.function meta.block punctuation.section.block.begin */
+}
+
+MACRO1
+RETURN_TYPE
+/* <- - entity.name.function */
+func_name() {
+/* < entity.name.function */
 }
 
 MACRO1 void * MACRO2 myfuncname () {
 /*                   ^^^^^^^^^^^^^^^ meta.function */
 /*                              ^^ meta.function.parameters */
-/*                                 ^ meta.block punctuation.definition.block.begin
+/*                                 ^ meta.block punctuation.section.block.begin
 /*     ^ storage.type */
 /*          ^ keyword.operator */
 /*                   ^ entity.name.function */
@@ -336,15 +351,15 @@ funcname2
 {
     int a[5];
 /*       ^^^ meta.brackets */
-/*       ^ punctuation.definition.brackets.begin */
-/*         ^ punctuation.definition.brackets.end */
+/*       ^ punctuation.section.brackets.begin */
+/*         ^ punctuation.section.brackets.end */
 }
 
 MACRO_CALL(int) macro_prefixed_func(){}
 /*^^^^^^^^^^^^^ meta.function-call */
 /*        ^^^^^ meta.group */
-/*        ^ punctuation.definition.group.begin */
-/*            ^ punctuation.definition.group.end */
+/*        ^ punctuation.section.group.begin */
+/*            ^ punctuation.section.group.end */
 /*              ^ entity.name.function */
 
 int* return_type_pointer_no_space(){}
@@ -372,9 +387,9 @@ static string foo(bar() + ';');
 func_call(foo
 /*^^^^^^^^^^^ meta.function-call */
 /*       ^^^^ meta.group */
-/*       ^ punctuation.definition.group.begin */
+/*       ^ punctuation.section.group.begin */
 );
-/* <- meta.function-call meta.group punctuation.definition.group.end */
+/* <- meta.function-call meta.group punctuation.section.group.end */
 
 /////////////////////////////////////////////
 // Invalid

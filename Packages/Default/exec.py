@@ -1,10 +1,15 @@
-import sublime, sublime_plugin
-import os, sys
-import threading
-import subprocess
-import functools
-import time
 import collections
+import functools
+import html
+import os
+import subprocess
+import sys
+import threading
+import time
+
+import sublime
+import sublime_plugin
+
 
 class ProcessListener(object):
     def on_data(self, proc, data):
@@ -13,14 +18,15 @@ class ProcessListener(object):
     def on_finished(self, proc):
         pass
 
-# Encapsulates subprocess.Popen, forwarding stdout to a supplied
-# ProcessListener (on a separate thread)
+
 class AsyncProcess(object):
-    def __init__(self, cmd, shell_cmd, env, listener,
-            # "path" is an option in build systems
-            path="",
-            # "shell" is an options in build systems
-            shell=False):
+    """
+    Encapsulates subprocess.Popen, forwarding stdout to a supplied
+    ProcessListener (on a separate thread)
+    """
+
+    def __init__(self, cmd, shell_cmd, env, listener, path="", shell=False):
+        """ "path" and "shell" are options in build systems """
 
         if not shell_cmd and not cmd:
             raise ValueError("shell_cmd or cmd is required")
@@ -53,26 +59,46 @@ class AsyncProcess(object):
 
         if shell_cmd and sys.platform == "win32":
             # Use shell=True on Windows, so shell_cmd is passed through with the correct escaping
-            self.proc = subprocess.Popen(shell_cmd, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-                startupinfo=startupinfo, env=proc_env, shell=True)
+            self.proc = subprocess.Popen(
+                shell_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                startupinfo=startupinfo,
+                env=proc_env,
+                shell=True)
         elif shell_cmd and sys.platform == "darwin":
             # Use a login shell on OSX, otherwise the users expected env vars won't be setup
-            self.proc = subprocess.Popen(["/bin/bash", "-l", "-c", shell_cmd], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-                startupinfo=startupinfo, env=proc_env, shell=False)
+            self.proc = subprocess.Popen(
+                ["/bin/bash", "-l", "-c", shell_cmd],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                startupinfo=startupinfo,
+                env=proc_env,
+                shell=False)
         elif shell_cmd and sys.platform == "linux":
             # Explicitly use /bin/bash on Linux, to keep Linux and OSX as
             # similar as possible. A login shell is explicitly not used for
             # linux, as it's not required
-            self.proc = subprocess.Popen(["/bin/bash", "-c", shell_cmd], stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-                startupinfo=startupinfo, env=proc_env, shell=False)
+            self.proc = subprocess.Popen(
+                ["/bin/bash", "-c", shell_cmd],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                startupinfo=startupinfo,
+                env=proc_env,
+                shell=False)
         else:
             # Old style build system, just do what it asks
-            self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE, stdin=subprocess.PIPE,
-                startupinfo=startupinfo, env=proc_env, shell=shell)
+            self.proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                startupinfo=startupinfo,
+                env=proc_env,
+                shell=shell)
 
         if path:
             os.environ["PATH"] = old_path
@@ -87,17 +113,19 @@ class AsyncProcess(object):
         if not self.killed:
             self.killed = True
             if sys.platform == "win32":
-                # terminate would not kill process opened by the shell cmd.exe, it will only kill
-                # cmd.exe leaving the child running
+                # terminate would not kill process opened by the shell cmd.exe,
+                # it will only kill cmd.exe leaving the child running
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                subprocess.Popen("taskkill /PID " + str(self.proc.pid), startupinfo=startupinfo)
+                subprocess.Popen(
+                    "taskkill /PID " + str(self.proc.pid),
+                    startupinfo=startupinfo)
             else:
                 self.proc.terminate()
             self.listener = None
 
     def poll(self):
-        return self.proc.poll() == None
+        return self.proc.poll() is None
 
     def exit_code(self):
         return self.proc.poll()
@@ -126,6 +154,7 @@ class AsyncProcess(object):
                 self.proc.stderr.close()
                 break
 
+
 class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
     BLOCK_SIZE = 2**14
     text_queue = collections.deque()
@@ -134,11 +163,35 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
 
     proc = None
 
-    def run(self, cmd = None, shell_cmd = None, file_regex = "", line_regex = "", working_dir = "",
-            encoding = "utf-8", env = {}, quiet = False, kill = False,
-            word_wrap = True, syntax = "Packages/Text/Plain text.tmLanguage",
+    errs_by_file = {}
+    phantom_sets_by_buffer = {}
+    show_errors_inline = True
+
+    def run(
+            self,
+            cmd=None,
+            shell_cmd=None,
+            file_regex="",
+            line_regex="",
+            working_dir="",
+            encoding="utf-8",
+            env={},
+            quiet=False,
+            kill=False,
+            update_phantoms_only=False,
+            hide_phantoms_only=False,
+            word_wrap=True,
+            syntax="Packages/Text/Plain text.tmLanguage",
             # Catches "path" and "shell"
             **kwargs):
+
+        if update_phantoms_only:
+            if self.show_errors_inline:
+                self.update_phantoms()
+            return
+        if hide_phantoms_only:
+            self.hide_phantoms()
+            return
 
         # clear the text_queue
         self.text_queue_lock.acquire()
@@ -160,8 +213,7 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             self.output_view = self.window.create_output_panel("exec")
 
         # Default the to the current files directory if no working directory was given
-        if (working_dir == "" and self.window.active_view()
-                        and self.window.active_view().file_name()):
+        if working_dir == "" and self.window.active_view() and self.window.active_view().file_name():
             working_dir = os.path.dirname(self.window.active_view().file_name())
 
         self.output_view.settings().set("result_file_regex", file_regex)
@@ -191,6 +243,9 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
         show_panel_on_build = sublime.load_settings("Preferences.sublime-settings").get("show_panel_on_build", True)
         if show_panel_on_build:
             self.window.run_command("show_panel", {"panel": "output.exec"})
+
+        self.hide_phantoms()
+        self.show_errors_inline = sublime.load_settings("Preferences.sublime-settings").get("show_errors_inline", True)
 
         merged_env = env.copy()
         if self.window.active_view():
@@ -230,9 +285,9 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             if not self.quiet:
                 self.append_string(None, "[Finished]")
 
-    def is_enabled(self, kill = False):
+    def is_enabled(self, kill=False, **kwargs):
         if kill:
-            return (self.proc != None) and self.proc.poll()
+            return (self.proc is not None) and self.proc.poll()
         else:
             return True
 
@@ -276,12 +331,25 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
                 # the text_queue
                 return
 
-            str = self.text_queue.popleft()
+            characters = self.text_queue.popleft()
             is_empty = (len(self.text_queue) == 0)
         finally:
             self.text_queue_lock.release()
 
-        self.output_view.run_command('append', {'characters': str, 'force': True, 'scroll_to_end': True})
+        self.output_view.run_command(
+            'append',
+            {'characters': characters, 'force': True, 'scroll_to_end': True})
+
+        if self.show_errors_inline and characters.find('\n') >= 0:
+            errs = self.output_view.find_all_results_with_text()
+            errs_by_file = {}
+            for file, line, column, text in errs:
+                if file not in errs_by_file:
+                    errs_by_file[file] = []
+                errs_by_file[file].append((line, column, text))
+            self.errs_by_file = errs_by_file
+
+            self.update_phantoms()
 
         if not is_empty:
             sublime.set_timeout(self.service_text_queue, 1)
@@ -290,12 +358,10 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
         if not self.quiet:
             elapsed = time.time() - proc.start_time
             exit_code = proc.exit_code()
-            if exit_code == 0 or exit_code == None:
-                self.append_string(proc,
-                    ("[Finished in %.1fs]" % (elapsed)))
+            if exit_code == 0 or exit_code is None:
+                self.append_string(proc, "[Finished in %.1fs]" % elapsed)
             else:
-                self.append_string(proc, ("[Finished in %.1fs with exit code %d]\n"
-                    % (elapsed, exit_code)))
+                self.append_string(proc, "[Finished in %.1fs with exit code %d]\n" % (elapsed, exit_code))
                 self.append_string(proc, self.debug_text)
 
         if proc != self.proc:
@@ -305,20 +371,97 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
         if len(errs) == 0:
             sublime.status_message("Build finished")
         else:
-            sublime.status_message(("Build finished with %d errors") % len(errs))
+            sublime.status_message("Build finished with %d errors" % len(errs))
 
     def on_data(self, proc, data):
         try:
-            str = data.decode(self.encoding)
+            characters = data.decode(self.encoding)
         except:
-            str = "[Decode error - output not " + self.encoding + "]\n"
+            characters = "[Decode error - output not " + self.encoding + "]\n"
             proc = None
 
         # Normalize newlines, Sublime Text always uses a single \n separator
         # in memory.
-        str = str.replace('\r\n', '\n').replace('\r', '\n')
+        characters = characters.replace('\r\n', '\n').replace('\r', '\n')
 
-        self.append_string(proc, str)
+        self.append_string(proc, characters)
 
     def on_finished(self, proc):
         sublime.set_timeout(functools.partial(self.finish, proc), 0)
+
+    def update_phantoms(self):
+        stylesheet = '''
+            <style>
+                div.error {
+                    padding: 0.4rem 0 0.4rem 0.7rem;
+                    margin: 0.2rem 0;
+                    border-radius: 2px;
+                }
+
+                div.error span.message {
+                    padding-right: 0.7rem;
+                }
+
+                div.error a {
+                    text-decoration: inherit;
+                    padding: 0.35rem 0.7rem 0.45rem 0.8rem;
+                    position: relative;
+                    bottom: 0.05rem;
+                    border-radius: 0 2px 2px 0;
+                    font-weight: bold;
+                }
+                html.dark div.error a {
+                    background-color: #00000018;
+                }
+                html.light div.error a {
+                    background-color: #ffffff18;
+                }
+            </style>
+        '''
+
+        for file, errs in self.errs_by_file.items():
+            view = self.window.find_open_file(file)
+            if view:
+
+                buffer_id = view.buffer_id()
+                if buffer_id not in self.phantom_sets_by_buffer:
+                    phantom_set = sublime.PhantomSet(view, "exec")
+                    self.phantom_sets_by_buffer[buffer_id] = phantom_set
+                else:
+                    phantom_set = self.phantom_sets_by_buffer[buffer_id]
+
+                phantoms = []
+
+                for line, column, text in errs:
+                    pt = view.text_point(line - 1, column - 1)
+                    phantoms.append(sublime.Phantom(
+                        sublime.Region(pt, view.line(pt).b),
+                        ('<body id=inline-error>' + stylesheet +
+                            '<div class="error">' +
+                            '<span class="message">' + html.escape(text, quote=False) + '</span>' +
+                            '<a href=hide>' + chr(0x00D7) + '</a></div>' +
+                            '</body>'),
+                        sublime.LAYOUT_BELOW,
+                        on_navigate=self.on_phantom_navigate))
+
+                phantom_set.update(phantoms)
+
+    def hide_phantoms(self):
+        for file, errs in self.errs_by_file.items():
+            view = self.window.find_open_file(file)
+            if view:
+                view.erase_phantoms("exec")
+
+        self.errs_by_file = {}
+        self.phantom_sets_by_buffer = {}
+        self.show_errors_inline = False
+
+    def on_phantom_navigate(self, url):
+        self.hide_phantoms()
+
+
+class ExecEventListener(sublime_plugin.EventListener):
+    def on_load(self, view):
+        w = view.window()
+        if w is not None:
+            w.run_command('exec', {'update_phantoms_only': True})

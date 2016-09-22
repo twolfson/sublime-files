@@ -1,4 +1,6 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 class IncreaseFontSizeCommand(sublime_plugin.ApplicationCommand):
     def run(self):
@@ -18,6 +20,7 @@ class IncreaseFontSizeCommand(sublime_plugin.ApplicationCommand):
 
         sublime.save_settings("Preferences.sublime-settings")
 
+
 class DecreaseFontSizeCommand(sublime_plugin.ApplicationCommand):
     def run(self):
         s = sublime.load_settings("Preferences.sublime-settings")
@@ -36,6 +39,7 @@ class DecreaseFontSizeCommand(sublime_plugin.ApplicationCommand):
         s.set("font_size", current)
 
         sublime.save_settings("Preferences.sublime-settings")
+
 
 class ResetFontSizeCommand(sublime_plugin.ApplicationCommand):
     def run(self):

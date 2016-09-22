@@ -1,11 +1,14 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 def clamp(xmin, x, xmax):
     if x < xmin:
         return xmin
     if x > xmax:
         return xmax
-    return x;
+    return x
+
 
 class DeleteWordCommand(sublime_plugin.TextCommand):
     def find_by_class(self, pt, classes, forward):
@@ -43,13 +46,15 @@ class DeleteWordCommand(sublime_plugin.TextCommand):
 
         return sublime.Region(pos, self.find_by_class(pos + delta, classes, forward))
 
-    def run(self, edit, forward = True, sub_words = False):
+    def run(self, edit, forward=True, sub_words=False):
         if forward:
             classes = sublime.CLASS_WORD_END | sublime.CLASS_PUNCTUATION_END | sublime.CLASS_LINE_START
             if sub_words:
                 classes |= sublime.CLASS_SUB_WORD_END
         else:
-            classes = sublime.CLASS_WORD_START | sublime.CLASS_PUNCTUATION_START | sublime.CLASS_LINE_END | sublime.CLASS_LINE_START
+            classes = (
+                sublime.CLASS_WORD_START | sublime.CLASS_PUNCTUATION_START |
+                sublime.CLASS_LINE_END | sublime.CLASS_LINE_START)
             if sub_words:
                 classes |= sublime.CLASS_SUB_WORD_START
 
@@ -60,8 +65,7 @@ class DeleteWordCommand(sublime_plugin.TextCommand):
 
         sz = self.view.size()
         for s in new_sels:
-            self.view.sel().add(sublime.Region(clamp(0, s.a, sz),
-                clamp(0, s.b, sz)))
+            self.view.sel().add(sublime.Region(clamp(0, s.a, sz), clamp(0, s.b, sz)))
 
         self.view.run_command("add_to_kill_ring", {"forward": forward})
 

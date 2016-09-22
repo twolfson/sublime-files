@@ -14,7 +14,7 @@
 <div class="navbar">
 <a class="barlink" href="/">Home</a>
 <a class="barlink" href="/3">Download</a>
-<a class="barlink" href="https://www.sublimetext.com/buy">Buy</a>
+<a class="barlink" href="https://www.sublimetext.com/buy?v=3">Buy</a>
 <a class="barlink" href="/blog/">Blog</a>
 <a class="barlink" href="https://forum.sublimetext.com/">Forum</a>
 <a class="barlink" href="/support">Support</a>

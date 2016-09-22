@@ -1,5 +1,8 @@
-import sublime, sublime_plugin
 import re
+
+import sublime
+import sublime_plugin
+
 
 class ClipboardHistory():
     """
@@ -24,7 +27,7 @@ class ClipboardHistory():
         display_text = (display_text[:DISPLAY_LEN] + '...') if len(display_text) > DISPLAY_LEN else display_text
 
         self.del_duplicate(text)
-        self.storage.insert(0, (display_text, text));
+        self.storage.insert(0, (display_text, text))
 
         if len(self.storage) > self.LIST_LIMIT:
             del self.storage[self.LIST_LIMIT:]
@@ -42,6 +45,7 @@ class ClipboardHistory():
 
 g_clipboard_history = ClipboardHistory()
 
+
 class ClipboardHistoryUpdater(sublime_plugin.EventListener):
     """
     Listens on the sublime text events and push the clipboard content into the
@@ -55,6 +59,7 @@ class ClipboardHistoryUpdater(sublime_plugin.EventListener):
         if name == 'copy' or name == 'cut':
             g_clipboard_history.push_text(sublime.get_clipboard())
 
+
 class PasteFromHistoryCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         if self.view.settings().get('is_widget'):
@@ -63,9 +68,7 @@ class PasteFromHistoryCommand(sublime_plugin.TextCommand):
         # provide paste choices
         paste_list = g_clipboard_history.get()
         keys = [x[0] for x in paste_list]
-        self.view.show_popup_menu(
-            keys,
-            lambda choice_index : self.paste_choice(choice_index))
+        self.view.show_popup_menu(keys, lambda choice_index: self.paste_choice(choice_index))
 
     def is_enabled(self):
         return not g_clipboard_history.empty()
@@ -80,5 +83,4 @@ class PasteFromHistoryCommand(sublime_plugin.TextCommand):
         g_clipboard_history.push_text(text)
 
         sublime.set_clipboard(text)
-        self.view.run_command("paste");
-
+        self.view.run_command("paste")

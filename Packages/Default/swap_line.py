@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 
 def expand_to_line(view, region):
@@ -6,6 +7,7 @@ def expand_to_line(view, region):
     As view.full_line, but doesn't expand to the next line if a full line is
     already selected
     """
+
     if not (region.a == region.b) and view.substr(region.end() - 1) == '\n':
         return sublime.Region(view.line(region).begin(), region.end())
     else:
@@ -28,8 +30,8 @@ def extract_line_blocks(view):
 
     return merged_blocks
 
-class SwapLineUpCommand(sublime_plugin.TextCommand):
 
+class SwapLineUpCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         blocks = extract_line_blocks(self.view)
 
@@ -72,8 +74,8 @@ class SwapLineUpCommand(sublime_plugin.TextCommand):
         # Ensure the selection is visible
         self.view.show(self.view.sel(), False)
 
-class SwapLineDownCommand(sublime_plugin.TextCommand):
 
+class SwapLineDownCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         blocks = extract_line_blocks(self.view)
 

@@ -245,7 +245,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+b"], "command": "build" },
 	{ "keys": ["super+shift+b"], "command": "build", "args": {"select": true} },
 
-	{ "keys": ["ctrl+c"], "command": "exec", "args": {"kill": true} },
+	{ "keys": ["ctrl+c"], "command": "cancel_build" },
 
 	{ "keys": ["ctrl+t"], "command": "transpose" },
 
@@ -671,7 +671,12 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
 
-	{ "keys": ["super+,"], "command": "open_file", "args": {"file": "${packages}/User/Preferences.sublime-settings"} },
+	{ "keys": ["super+,"], "command": "edit_settings", "args":
+		{
+			"base_file": "${packages}/Default/Preferences.sublime-settings",
+			"default": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by syntax-specific settings.\n{\n\t$0\n}\n"
+		}
+	},
 
 	{ "keys": ["super+k", "super+y"], "command": "yank" },
 	{ "keys": ["super+k", "super+k"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete to Hard EOL.sublime-macro"} },

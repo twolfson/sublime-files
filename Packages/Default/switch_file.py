@@ -1,12 +1,16 @@
-import sublime, sublime_plugin
 import os.path
 import platform
+
+import sublime
+import sublime_plugin
+
 
 def compare_file_names(x, y):
     if platform.system() == 'Windows' or platform.system() == 'Darwin':
         return x.lower() == y.lower()
     else:
         return x == y
+
 
 class SwitchFileCommand(sublime_plugin.WindowCommand):
     def run(self, extensions=[]):
@@ -17,7 +21,6 @@ class SwitchFileCommand(sublime_plugin.WindowCommand):
         if not fname:
             return
 
-        path = os.path.dirname(fname)
         base, ext = os.path.splitext(fname)
 
         start = 0
@@ -38,5 +41,5 @@ class SwitchFileCommand(sublime_plugin.WindowCommand):
             new_path = base + '.' + extensions[idx]
 
             if os.path.exists(new_path):
-                self.window.open_file(new_path, flags = sublime.FORCE_GROUP)
+                self.window.open_file(new_path, flags=sublime.FORCE_GROUP)
                 break

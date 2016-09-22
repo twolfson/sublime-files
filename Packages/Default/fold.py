@@ -1,10 +1,13 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
+
 
 def fold_region_from_indent(view, r):
     if r.b == view.size():
         return sublime.Region(r.a - 1, r.b)
     else:
         return sublime.Region(r.a - 1, r.b - 1)
+
 
 class FoldUnfoldCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -26,6 +29,7 @@ class FoldUnfoldCommand(sublime_plugin.TextCommand):
             self.view.sel().clear()
             for r in new_sel:
                 self.view.sel().add(r)
+
 
 class FoldCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -55,6 +59,7 @@ class FoldCommand(sublime_plugin.TextCommand):
         for r in new_sel:
             self.view.sel().add(r)
 
+
 class FoldAllCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         folds = []
@@ -74,6 +79,7 @@ class FoldAllCommand(sublime_plugin.TextCommand):
 
         sublime.status_message("Folded " + str(len(folds)) + " regions")
 
+
 class FoldByLevelCommand(sublime_plugin.TextCommand):
     def run(self, edit, level):
         level = int(level)
@@ -87,7 +93,7 @@ class FoldByLevelCommand(sublime_plugin.TextCommand):
                     r = fold_region_from_indent(self.view, s)
                     folds.append(r)
                     tp = s.b
-                    continue;
+                    continue
 
             tp = self.view.full_line(tp).b
 
@@ -95,6 +101,7 @@ class FoldByLevelCommand(sublime_plugin.TextCommand):
         self.view.show(self.view.sel())
 
         sublime.status_message("Folded " + str(len(folds)) + " regions")
+
 
 class UnfoldCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -118,6 +125,7 @@ class UnfoldCommand(sublime_plugin.TextCommand):
             self.view.sel().clear()
             for r in new_sel:
                 self.view.sel().add(r)
+
 
 class UnfoldAllCommand(sublime_plugin.TextCommand):
     def run(self, edit):

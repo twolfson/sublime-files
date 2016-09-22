@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 
-import plistlib
 import os
+import plistlib
 import sys
-import re
 
 try:
     import yaml
 except ImportError:
     pass
 
+
 def needs_yaml_quoting(s):
-    return (s == "" or s[0] in "\"'%-:?@`&*!,#|>0123456789="
-        or s.startswith("<<")
-        or s in ["true", "false", "null"]
-        or "# " in s or ": " in s
-        or "[" in s or "]" in s or "{" in s or "}" in s
-        or "\n" in s or s[-1] in ":#" or s.strip() != s)
+    return (
+        s == "" or
+        s[0] in "\"'%-:?@`&*!,#|>0123456789=" or
+        s.startswith("<<") or
+        s in ["true", "false", "null"] or
+        "# " in s or
+        ": " in s or
+        "[" in s or
+        "]" in s or
+        "{" in s or
+        "}" in s or
+        "\n" in s or
+        s[-1] in ":#" or
+        s.strip() != s)
+
 
 def quote(s):
     if "\\" in s or '"' in s:
@@ -24,9 +33,11 @@ def quote(s):
     else:
         return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
+
 def order_keys(l):
-    key_order = reversed(["name", "main", "match", "comment", "file_extensions", "first_line_match",
-        "hidden", "match", "scope", "main"])
+    key_order = reversed([
+        "name", "main", "match", "comment", "file_extensions",
+        "first_line_match", "hidden", "match", "scope", "main"])
     l = sorted(l)
     for key in key_order:
         if key in l:
@@ -34,7 +45,8 @@ def order_keys(l):
             l.insert(0, key)
     return l
 
-def to_yaml(val, start_block_on_newline = False, indent = 0):
+
+def to_yaml(val, start_block_on_newline=False, indent=0):
     tab_size = 2
     out = ""
 
@@ -103,6 +115,7 @@ def to_yaml(val, start_block_on_newline = False, indent = 0):
         out += str(val) + "\n"
     return out
 
+
 def build_scope_map():
     syntax_by_scope = {}
     for f in sublime.find_resources("*.tmLanguage"):
@@ -117,7 +130,10 @@ def build_scope_map():
 
     return syntax_by_scope
 
+
 scope_map = {}
+
+
 def syntax_for_scope(key):
     use_scope_refs = True
     if use_scope_refs:
@@ -129,8 +145,10 @@ def syntax_for_scope(key):
 
         return scope_map[key]
 
+
 def is_external_syntax(key):
     return key[0] not in "#$"
+
 
 def format_external_syntax(key):
     assert(is_external_syntax(key))
@@ -141,8 +159,10 @@ def format_external_syntax(key):
     else:
         return syntax_for_scope(key)
 
+
 def leading_whitespace(s):
     return s[0:len(s) - len(s.lstrip())]
+
 
 def format_regex(s):
     if "\n" in s:
@@ -170,6 +190,7 @@ def format_regex(s):
 
     return s
 
+
 def format_comment(s):
     s = s.strip().replace("\t", "    ")
 
@@ -177,6 +198,7 @@ def format_comment(s):
         s = s.rstrip("\n") + "\n"
 
     return s
+
 
 def format_captures(c):
     ret = {}
@@ -192,8 +214,10 @@ def format_captures(c):
             ret[k] = v["name"]
     return ret
 
+
 def warn(msg):
     print(msg, file=sys.stderr)
+
 
 def make_context(patterns, repository):
     ctx = []
@@ -228,9 +252,10 @@ def make_context(patterns, repository):
                     end_entry["captures"] = captures
 
             if "\\G" in end_entry["match"]:
-                warn("pop pattern contains \\G, this will not work as expected"
-                    " if it's intended to refer to the begin regex: "
-                    + end_entry["match"] )
+                warn(
+                    "pop pattern contains \\G, this will not work as expected"
+                    " if it's intended to refer to the begin regex: " +
+                    end_entry["match"])
 
             apply_last = False
             if "applyEndPatternLast" in p and p["applyEndPatternLast"] == 1:
@@ -304,6 +329,7 @@ def make_context(patterns, repository):
 
     return ctx
 
+
 def convert(fname):
     if fname.startswith('Packages/'):
         s = sublime.load_resource(fname)
@@ -369,7 +395,7 @@ def extract_by_key(key, v):
         return ret
     elif isinstance(v, dict):
         ret = []
-        for k,x in v.items():
+        for k, x in v.items():
             if k == key:
                 ret.append(x)
             else:
@@ -377,6 +403,7 @@ def extract_by_key(key, v):
         return ret
     else:
         return []
+
 
 def find_external_refs():
     refmap = {}
@@ -409,8 +436,7 @@ try:
             v = self.window.new_file()
             v.set_name(os.path.basename(base) + ".sublime-syntax")
             v.assign_syntax("Packages/YAML/YAML.sublime-syntax")
-            v.settings().set("default_dir",
-                os.path.join(sublime.packages_path(), "User"))
+            v.settings().set("default_dir", os.path.join(sublime.packages_path(), "User"))
             v.run_command('append', {'characters': data})
 
         def is_visible(self):
