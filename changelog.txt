@@ -32,6 +32,15 @@ a {
 
 <h1>Beta Channel Changelog</h1>
 
+<h2>Build 3126</h2>
+<div class="release-date">Release Date: 23 September 2016</div>
+<ul>
+    <li>Added Indexing Status to the Help menu to give more information about what the indexer is doing</li>
+    <li>Fixed a compatibility issue with some third party syntax definitions that include <tt>JavaScript.sublime-syntax</tt></li>
+    <li>Reduced the default number of worker processes used for indexing. This can be manually controlled via the <tt>index_workers</tt> setting</li>
+    <li>API: Updated OpenSSL to 1.0.2i</li>
+</ul>
+
 <h2>Build 3124</h2>
 <div class="release-date">Release Date: 22 September 2016</div>
 <div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-build-3124">Blog Post</a></div>

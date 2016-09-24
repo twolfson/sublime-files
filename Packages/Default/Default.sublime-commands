@@ -99,4 +99,5 @@
 
     { "caption": "About", "command": "show_about_window" },
     { "caption": "Changelog", "command": "show_changelog" },
+    { "caption": "Indexing Status", "command": "show_progress_window" },
 ]
