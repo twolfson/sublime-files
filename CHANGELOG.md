@@ -1,4 +1,6 @@
 # sublime-files
+3126.0.0 - Upgrade release with Sublime Text build 3126
+
 3124.0.0 - Upgrade release with Sublime Text build 3124
 
 3114.0.0 - Upgrade release with Sublime Text build 3114
