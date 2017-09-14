@@ -215,7 +215,7 @@ class ShowDefinitions(sublime_plugin.EventListener):
             <body id=show-definitions>
                 <style>
                     body {
-                        font-family: sans-serif;
+                        font-family: system;
                     }
                     h1 {
                         font-size: 1.1rem;

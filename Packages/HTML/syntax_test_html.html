@@ -7,27 +7,39 @@
 <html>
     <head>
         <title>Test HTML</title>
-        <script type="text/javascript"><!--
+        <script type="text/javascript"> <!--
+        ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.script.begin.html
         ## ^ entity.name.tag.script - source.js.embedded.html
         ##            ^ string.quoted.double.html - source.js.embedded.html
+        ##                              ^^^^ comment.block.html punctuation.definition.comment.html
             var foo = 100;
             var baz = function() {
                 ## <- entity.name.function.js
             }
-        //--></script>
-        ## ^ source.js.embedded.html
-        ##      ^ entity.name.tag.script.html - source.js.embedded.html
+
+            (a --> b);
+            ## ^^^ source.js.embedded.html meta.group.js keyword.operator
+        --> </script>
+        ## <- comment.block.html punctuation.definition.comment.html
+        ##    ^^^^^^ entity.name.tag.script.html
+        ##  ^^^^^^^^^ meta.tag.script.end.html - source.js.embedded.html
+        ##           ^ - meta.tag
         <style type="text/css">
+        ## ^^^^^^^^^^^^^^^^^^^^ meta.tag.style.begin.html
         ## ^ entity.name.tag.style.html
         ## ^^^^^^^^^^^^^^^^^^^^ - source.css.embedded.html
         ##      ^ entity.other.attribute-name
+        ##                     ^ - meta.tag
             h2 {
             ## <- entity.name.tag.css
                 font-family: "Arial";
                 ##             ^ string.quoted.double.css
             }
         </style>
-        ## ^ entity.name.tag.style.html - source.css.embedded.html
+        ##^^^^^ entity.name.tag.style.html
+        ##<- meta.tag.style.end.html - source.css.embedded.html
+        ##^^^^^^ meta.tag.style.end.html - source.css.embedded.html
+        ##      ^ - meta.tag
         <style />
         ##       ^ - source.css.embedded.html
         ## ^ meta.tag.inline.any.html entity.name.tag.inline.any.html
@@ -44,6 +56,14 @@
         ##   ^^^^^ entity.other.attribute-name
         ##   ^^^^^^^^^^^^^^^^^ meta.attribute-with-value
         ##         ^^^^^^^^^^^ string.unquoted
+
+<div
+title="description"></div>
+## <- entity.other.attribute-name
+
+<div title="description"
+class="foo"></div>
+## <- entity.other.attribute-name.class
 
         <div title='description'></div>
         ##  ^ - meta.attribute-with-value
@@ -146,10 +166,11 @@
         ##                   ^ meta.function-call.js support.function.js
         ## ^^^^^^^^ entity.other.attribute-name
 
-        <article><span><othertag></othertag></span></article>
+        <article><span><othertag></othertag><othertag /></span></article>
         ## ^^^^^ entity.name.tag.block.any.html
         ##        ^^^^ entity.name.tag.inline.any.html
         ##              ^^^^^^^^ entity.name.tag.other.html
+        ##                                            ^^ meta.tag.other.html punctuation.definition.tag.end.html
 
         <form-custom-tag><div-custom-tag><span-custom-tag></span-custom-tag></div-custom-tag></form-custom-tag>
         ##^^^^^^^^^^^^^^ entity.name.tag.custom.html
@@ -157,6 +178,10 @@
         ##                                ^^^^^^^^^^^^^^^ entity.name.tag.custom.html
         ##                                                  ^^^^^^^^^^^^^^^ entity.name.tag.custom.html
         ##                                                                    ^^^^^^^^^^^^^^ entity.name.tag.custom.html
+        
+        <test-custom-tag/>
+        ##^^^^^^^^^^^^^^^^ meta.tag.custom.html
+        ##              ^^ punctuation.definition.tag.end.html
 
         <INVALID-CUSTOM-TAG></INVALID-CUSTOM-TAG>
         ## ^^^^^^^^^^^^^^^^ invalid.illegal.uppercase-custom-tag-name.html
@@ -210,6 +235,11 @@
         <a href="http://google.com/?one=1&two=2"></a>
         ##                               ^ - constant.character.entity
         ##                               ^ - invalid.illegal
+        
+        <hr/><hr />
+        ## ^^ meta.tag.block.any punctuation.definition.tag.end
+        ##    ^^ entity.name.tag.block.any
+        ##       ^^ punctuation.definition.tag.end
     </body>
     # ^^^^ entity.name.tag.structure
 </html>

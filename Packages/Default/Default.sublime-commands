@@ -68,6 +68,15 @@
         }
     },
 
+    {
+        "caption": "UI: Select Color Scheme",
+        "command": "select_color_scheme"
+    },
+    {
+        "caption": "UI: Select Theme",
+        "command": "select_theme"
+    },
+
     { "caption": "File: Save All", "command": "save_all" },
     { "caption": "File: Revert", "command": "revert" },
     { "caption": "File: New View into File", "command": "clone_file" },

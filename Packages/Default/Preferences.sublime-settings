@@ -18,6 +18,9 @@
     // "subpixel_antialias", "no_round" (OS X only), "gdi" (Windows only) and
     // "directwrite" (Windows only)
     "font_options": [],
+    // Font options for theme text. Valid options are: "no_antialias",
+    // "gray_antialias", "gdi" (Windows only) and "directwrite" (Windows only)
+    "theme_font_options": [],
 
     // Characters that are considered to separate words
     "word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?",
@@ -94,7 +97,7 @@
     "dictionary": "Packages/Language - English/en_US.dic",
 
     // Sets which scopes are checked for spelling errors
-    "spelling_selector": "markup.raw, source string.quoted - punctuation - meta.preprocessor.c.include, source comment - source comment.block.preprocessor, -(source, constant, keyword, storage, support, variable, markup.underline.link, meta.tag)",
+    "spelling_selector": "markup.raw, source string.quoted - punctuation - meta.preprocessor.include, source comment - source comment.block.preprocessor, -(source, constant, keyword, storage, support, variable, markup.underline.link, meta.tag)",
 
     // Set to true to draw a border around the visible rectangle on the minimap.
     // The color of the border will be determined by the "minimapBorder" key in
@@ -112,9 +115,9 @@
     "caret_style": "smooth",
 
     // These settings control the size of the caret
-    "caret_extra_top": 0,
-    "caret_extra_bottom": 0,
-    "caret_extra_width": 0,
+    "caret_extra_top": 2,
+    "caret_extra_bottom": 2,
+    "caret_extra_width": 1,
 
     // Set to false to disable underlining the brackets surrounding the caret
     "match_brackets": true,
@@ -301,9 +304,8 @@
     // Show folders in the side bar in bold
     "bold_folder_labels": false,
 
-    // OS X only: Set to true to disable Lion style full screen support.
-    // Sublime Text must be restarted for this to take effect.
-    "use_simple_full_screen": false,
+    // Draw divider lines between sections of the UI when using the Adaptive theme
+    "adaptive_dividers": true,
 
     // OS X only. Valid values are true, false, and "auto". Auto will enable
     // the setting when running on a screen 2560 pixels or wider (i.e., a
@@ -342,6 +344,12 @@
     // Text will never start in full screen mode.
     "remember_full_screen": false,
 
+    // OS X only. If the user's default shell should be invoked to obtain the
+    // user's customized environment variables. May be a boolean, or a string
+    // of the path the shell to invoke. Sublime Text must be restarted for this
+    // to take effect.
+    "shell_environment": true,
+
     // Always prompt before reloading a file, even if the file hasn't been
     // modified. The default behavior is to automatically reload a file if it
     // hasn't been edited. If a file has unsaved changes, a prompt will always
@@ -354,6 +362,9 @@
 
     // OS X only: This controls if an empty window is created at startup or not.
     "create_window_at_startup": true,
+
+    // OS X only: Show recent files on the Touch Bar.
+    "show_navigation_bar": true,
 
     // Set to true to close windows as soon as the last file is closed, unless
     // there's a folder open within the window.

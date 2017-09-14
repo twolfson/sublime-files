@@ -36,9 +36,9 @@ class EditSettingsCommand(sublime_plugin.ApplicationCommand):
             'platform': platform_name,
         }
 
-        base_file = sublime.expand_variables(base_file, variables)
+        base_file = sublime.expand_variables(base_file.replace('\\', '\\\\'), variables)
         if user_file is not None:
-            user_file = sublime.expand_variables(user_file, variables)
+            user_file = sublime.expand_variables(user_file.replace('\\', '\\\\'), variables)
 
         base_path = base_file.replace('${packages}', 'res://Packages')
         is_resource = base_path.startswith('res://')
@@ -153,6 +153,9 @@ class EditSettingsListener(sublime_plugin.EventListener):
         view_settings = view.settings()
 
         if not view_settings.get('edit_settings_view'):
+            return
+
+        if view.window() is None:
             return
 
         view_settings.set('window_id', view.window().id())

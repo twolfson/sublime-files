@@ -986,14 +986,24 @@ class View(object):
         """ Converts a text point to layout coordinates """
         return sublime_api.view_text_to_layout(self.view_id, tp)
 
+    def text_to_window(self, tp):
+        """ Converts a text point to window coordinates """
+        return self.layout_to_window(self.text_to_layout(tp))
+
     def layout_to_text(self, xy):
-        """ Converts a point in layout coordinates to a text coodinate """
+        """ Converts layout coordinates to a text point """
         return sublime_api.view_layout_to_text(self.view_id, xy)
 
+    def layout_to_window(self, xy):
+        """ Converts layout coordinates to window coordinates """
+        return sublime_api.view_layout_to_window(self.view_id, xy)
+
     def window_to_layout(self, xy):
+        """ Converts window coordinates to layout coordinates """
         return sublime_api.view_window_to_layout(self.view_id, xy)
 
     def window_to_text(self, xy):
+        """ Converts window coordinates to a text point """
         return self.layout_to_text(self.window_to_layout(xy))
 
     def line_height(self):

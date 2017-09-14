@@ -263,6 +263,23 @@ PROPERTY_DICT = {
     ],
     'font-variant-position': ['normal', 'sub', 'super'],
     'font-weight': ['normal', 'bold', '<absolute_weight>', '<relative_weight>'],
+    'grid': [],
+    'grid-area': [],
+    'grid-auto-columns': ['auto', '<percentage>', '<length>'],
+    'grid-auto-flow': ['row', 'column' 'dense'],
+    'grid-auto-rows': ['auto', '<percentage>', '<length>'],
+    'grid-column-gap': ['<length>', '<percentage>'],
+    'grid-gap': ['<length>', '<percentage>'],
+    'grid-row-gap': ['<length>', '<percentage>'],
+    'grid-template-areas': [],
+    'grid-template-columns': ['auto', '<percentage>', '<length>'],
+    'grid-template-rows': ['auto', '<percentage>', '<length>'],
+    'grid-column': ['<number>'],
+    'grid-column-end': ['<number>'],
+    'grid-column-start': ['<number>'],
+    'grid-row': ['<number>'],
+    'grid-row-end': ['<number>'],
+    'grid-row-start': ['<number>'],
     'height': ['<length>', '<percentage>', 'auto'],
     'hyphens': ['none', 'manual', 'auto'],
     'image-rendering': [
@@ -381,6 +398,7 @@ PROPERTY_DICT = {
     'transition-timing-function': ['<timing_function>'],
     'unicode-bidi': ['normal', 'embed', 'bidi-override'],
     'unicode-range': [],
+    'user-select': ['auto', 'text', 'none', 'contain'],
     'vertical-align': [
         'baseline', 'sub', 'super', 'text-top', 'text-bottom', 'middle', 'top',
         'bottom', '<percentage>', '<length>'
@@ -416,7 +434,7 @@ def parse_css_data():
         # Append values that are allowed for all properties
         allowed_values += ['all', 'inherit', 'initial', 'unset']
 
-        for name in names.split():
+        for name in names.split(' | '):
             props[name] = sorted(allowed_values)
 
     return props
@@ -429,16 +447,25 @@ class CSSCompletions(sublime_plugin.EventListener):
         # match inside a CSS document and
         # match inside the style attribute of HTML tags, incl. just before the quote that closes the attribute value
         css_selector_scope = "source.css - meta.selector.css"
-        html_style_selector_scope = "text.html meta.attribute-with-value.style.html " + \
+        html_style_attr_selector_scope = "text.html meta.attribute-with-value.style.html " + \
                                     "string.quoted - punctuation.definition.string.begin.html"
-        selector_scope = css_selector_scope + ', ' + html_style_selector_scope
+        selector_scope = css_selector_scope + ', ' + html_style_attr_selector_scope
         prop_name_scope = "meta.property-name.css"
         prop_value_scope = "meta.property-value.css"
         loc = locations[0]
 
         # When not inside CSS, don’t trigger
         if not view.match_selector(loc, selector_scope):
-            return []
+            # if the text immediately after the caret is a HTML style tag beginning, and the character before the
+            # caret matches the CSS scope, then probably the user is typing here (where | represents the caret):
+            # <style type="text/css">.test { f|</style>
+            # i.e. after a "style" HTML open tag and immediately before the closing tag.
+            # so we want to offer CSS completions here.
+            if view.match_selector(loc, 'text.html meta.tag.style.end punctuation.definition.tag.begin.html') and \
+               view.match_selector(loc - 1, selector_scope):
+                pass
+            else:
+                return []
 
         if not self.props:
             self.props = parse_css_data()
@@ -446,7 +473,9 @@ class CSSCompletions(sublime_plugin.EventListener):
 
         l = []
         if (view.match_selector(loc, prop_value_scope) or
-            # This will catch scenarios like .foo {font-style: |}
+            # This will catch scenarios like:
+            # - .foo {font-style: |}
+            # - <style type="text/css">.foo { font-weight: b|</style>
             view.match_selector(loc - 1, prop_value_scope)):
 
             alt_loc = loc - len(prefix)

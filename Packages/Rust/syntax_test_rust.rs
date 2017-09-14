@@ -1,14 +1,16 @@
 // SYNTAX TEST "Packages/Rust/Rust.sublime-syntax"
 
 // Line comments
-// <- comment.line.double-slash
-// ^^^^^^^^^^^^^ comment.line.double-slash
+// <- comment.line.double-slash punctuation.definition.comment
+// ^^^^^^^^^^^^^^ comment.line.double-slash
+
+// <- - comment
 /// Line doc comments
 // <- comment.line.documentation
 // ^^^^^^^^^^^^^ comment.line.documentation
 
 /*!
-// <- comment.block.documentation
+// <- comment.block.documentation punctuation.definition.comment
  // <- comment.block.documentation
 //^ comment.block.documentation
 Block doc comments
@@ -149,18 +151,23 @@ pub use self::trafile::*;
 // <- storage.modifier
 //   ^ keyword.other
 //      ^^^^^^^^^^^^^^^ meta.path
+//          ^^ punctuation.accessor
 
 use std::fmt;
 // <- keyword.other
 //  ^^^^^ meta.path
+//     ^^ punctuation.accessor
 //       ^^^ - meta.path
 use foo::i32;
 //  ^^^^^ meta.path
+//     ^^ punctuation.accessor
 //       ^^^ - meta.path storage.type
 use foo::Bar;
 //  ^^^^^ meta.path
+//     ^^ punctuation.accessor
 use foo::{Baz, QUX, quux};
 //  ^^^^^ meta.path
+//     ^^ punctuation.accessor
 //       ^^^^^^^^^^^^^^^^ meta.block
 //             ^^^ constant.other
 
@@ -168,16 +175,16 @@ String my_var = format!("Hello {0}", "World");
 // ^^^ support.type
 //            ^ keyword.operator
 //              ^^^^^^^ support.macro
-//                     ^ punctuation.definition.group.begin
+//                     ^ punctuation.section.group.begin
 //                     ^^^^^^^^^^^^^^^^^^^^^^ meta.group
 //                      ^^^^^^^^^^^ string.quoted.double
 //                             ^^^ constant.other.placeholder
-//                                          ^ punctuation.definition.group.end
+//                                          ^ punctuation.section.group.end
 
 my_var = format!("Hello {name}, how are you?",
 //     ^ keyword.operator
 //       ^^^^^^^ support.macro
-//              ^ punctuation.definition.group.begin
+//              ^ punctuation.section.group.begin
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.group
 //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double
 //                      ^^^^^^ constant.other.placeholder
@@ -185,31 +192,33 @@ my_var = format!("Hello {name}, how are you?",
 // ^^^^^^^^^^^^^ meta.group
 //      ^ keyword.operator
 //       ^^^^^^ string.quoted.double
-//             ^ punctuation.definition.group.end
+//             ^ punctuation.section.group.end
 
 struct BasicStruct(i32);
 // ^^^^^^^^^^^^^^^^^^^^ meta.struct
 // <- storage.type.struct
 //^^^^ storage.type.struct
 //     ^^^^^^^^^^^ entity.name.struct
-//                ^ punctuation.definition.group.begin
+//                ^ punctuation.section.group.begin
 //                 ^^^ storage.type
-//                    ^ punctuation.definition.group.end
+//                    ^ punctuation.section.group.end
 
 #[derive(Debug)]
-// <- comment.block.attribute
-//^^^^^^^^^^^^^^ comment.block.attribute
+// <- meta.annotation punctuation.definition.annotation
+//^^^^^^^^^^^^^^ meta.annotation
+//^^^^^^ variable.annotation
+//      ^^^^^^^ meta.annotation.parameters
 struct PrintableStruct(Box<i32>);
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.struct
 // <- storage.type.struct
 //^^^^ storage.type.struct
 //     ^^^^^^^^^^^^^^^ entity.name.struct
-//                    ^ punctuation.definition.group.begin
+//                    ^ punctuation.section.group.begin
 //                     ^^^^^^^^ meta.generic
 //                        ^ punctuation.definition.generic.begin
 //                         ^^^ storage.type
 //                            ^ punctuation.definition.generic.end
-//                             ^ punctuation.definition.group.end
+//                             ^ punctuation.section.group.end
 
 impl fmt::Display for PrintableStruct {
 // <- meta.impl
@@ -217,16 +226,17 @@ impl fmt::Display for PrintableStruct {
 // <- storage.type.impl
 //^^ storage.type.impl
 //   ^^^^^ meta.path
+//      ^^ punctuation.accessor
 //                ^^^ keyword.other
 //                    ^^^^^^^^^^^^^^^ entity.name.impl
-//                                    ^ meta.block punctuation.definition.block.begin
+//                                    ^ meta.block punctuation.section.block.begin
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.impl
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function
 //  ^^ storage.type.function
 //     ^^^ entity.name.function
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function.parameters
-//        ^ punctuation.definition.parameters.begin
+//        ^ punctuation.section.parameters.begin
 //         ^ keyword.operator
 //          ^^^^ variable.parameter
 //                ^ variable.parameter
@@ -234,54 +244,66 @@ impl fmt::Display for PrintableStruct {
 //                   ^ keyword.operator
 //                    ^^^ storage.modifier
 //                        ^^^^^ meta.path
-//                                      ^ punctuation.definition.parameters.end
+//                                      ^ punctuation.section.parameters.end
 //                                        ^^ punctuation.separator
 //                                           ^^^^^ meta.path
-//                                                       ^ meta.block punctuation.definition.block.begin
+//                                              ^^ punctuation.accessor
+//                                                       ^ meta.block punctuation.section.block.begin
         write!(f, "{}", self.0)
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function
 //      ^^^^^^ support.macro
 //            ^^^^^^^^^^^^^^^^^ meta.group
-//            ^ punctuation.definition.group.begin
+//            ^ punctuation.section.group.begin
 //                ^^^^ string.quoted.double
 //                 ^^ constant.other.placeholder
-//                            ^ punctuation.definition.group.end
+//                            ^ punctuation.section.group.end
     }
 // ^^ meta.function meta.block
-//  ^ punctuation.definition.block.end
+//  ^ punctuation.section.block.end
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 let logical: bool = true;
 //         ^ punctuation.separator
 //           ^^^^ storage.type
 //                ^ keyword.operator
 //                  ^^^^ constant.language
+//                      ^ punctuation.terminator
 let mut mutable = 12;
 //  ^^^ storage.modifier
+//                  ^ punctuation.terminator
 
 let ch = '∞';
 //       ^^^ string.quoted.single
+//          ^ punctuation.terminator
 
 let tuple = (1.0, 0i32, "Hello");
 //          ^^^^^^^^^^^^^^^^^^^^ meta.group
-//          ^ punctuation.definition.group.begin
+//          ^ punctuation.section.group.begin
 //           ^^^ constant.numeric.float
 //                ^ constant.numeric.integer.decimal
 //                 ^^^ storage.type
 //                      ^^^^^^^ string.quoted.double
-//                             ^ punctuation.definition.group.end
+//                             ^ punctuation.section.group.end
+//                              ^ punctuation.terminator
 
 let xs: [i32; 5] = [1, 2, 3, 4, 5];
 //    ^ punctuation.separator
 //      ^^^^^^^^ meta.group
-//      ^ punctuation.definition.group.begin
+//      ^ punctuation.section.group.begin
 //       ^^^ storage.type
+//          ^ punctuation.separator
 //            ^ constant.numeric.integer.decimal
-//             ^ punctuation.definition.group.end
+//             ^ punctuation.section.group.end
 //                 ^^^^^^^^^^^^^^^ meta.group
-//                 ^ punctuation.definition.group.begin
-//                               ^ punctuation.definition.group.end
+//                 ^ punctuation.section.group.begin
+//                   ^ punctuation.separator
+//                      ^ punctuation.separator
+//                         ^ punctuation.separator
+//                            ^ punctuation.separator
+//                               ^ punctuation.section.group.end
+//                                ^ punctuation.terminator
+
 let xsl = &xs;
 //        ^ keyword.operator
 
@@ -325,19 +347,19 @@ enum OperatingSystem
 // ^^^^^^^^^^^^^^^^^ meta.enum
 //   ^^^^^^^^^^^^^^^ entity.name.enum
 {
-// <- meta.enum meta.block punctuation.definition.block.begin
+// <- meta.enum meta.block punctuation.section.block.begin
     Osx,
     Windows,
     Linux,
     Bsd(String),
     //  ^^^^^^ support.type
     Info { field: i32, value: str }
-    //   ^ meta.block meta.block punctuation.definition.block.begin
+    //   ^ meta.block meta.block punctuation.section.block.begin
     //            ^^^ storage.type
     //                        ^^^ storage.type
-    //                            ^ meta.block meta.block punctuation.definition.block.end
+    //                            ^ meta.block meta.block punctuation.section.block.end
 }
-// <- meta.enum meta.block punctuation.definition.block.end
+// <- meta.enum meta.block punctuation.section.block.end
 
 const ZERO: u64 = 0;
 // <- storage.type
@@ -356,66 +378,67 @@ static NAME: &'static str = "John";
 
 
 let z = {
-//      ^ meta.block punctuation.definition.block.begin
+//      ^ meta.block punctuation.section.block.begin
     2 * 5
 //  ^ constant.numeric.integer.decimal
 //    ^ keyword.operator
 //      ^ constant.numeric.integer.decimal
 };
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 fn my_func(x: i32)
 // <- storage.type.function
 // ^^^^^^^ entity.name.function
 //        ^^^^^^^^ meta.function.parameters
-//        ^ punctuation.definition.parameters.begin
+//        ^ punctuation.section.parameters.begin
 //         ^ variable.parameter
 //          ^ punctuation.separator
-//               ^ punctuation.definition.parameters.end
+//               ^ punctuation.section.parameters.end
 {
-// <-  meta.function meta.block punctuation.definition.block.begin
+// <-  meta.function meta.block punctuation.section.block.begin
 
 }
-// <-  meta.function meta.block punctuation.definition.block.end
+// <-  meta.function meta.block punctuation.section.block.end
 
 let n = 5;
 
 if n < 0 {
-//       ^ meta.block punctuation.definition.block.begin
+//       ^ meta.block punctuation.section.block.begin
 // <- keyword.control
     print!("{} is negative", n);
+//                             ^ punctuation.terminator
 } else if n > 0 {
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 // ^^^ keyword.control
-//              ^ meta.block punctuation.definition.block.begin
+//              ^ meta.block punctuation.section.block.begin
 //     ^^ keyword.control
     print!("{0} is positive", n);
 } else {
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 // ^^^ keyword.control
-//     ^ meta.block punctuation.definition.block.begin
+//     ^ meta.block punctuation.section.block.begin
     print!("{} is zero", n);
 // ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 let big_n =
 //        ^ keyword.operator
     if n < 10 && n > -10 {
-//                       ^ meta.block punctuation.definition.block.begin
+//                       ^ meta.block punctuation.section.block.begin
         10 * n
     } else {
-//  ^ meta.block punctuation.definition.block.end
-//         ^ meta.block punctuation.definition.block.begin
+//  ^ meta.block punctuation.section.block.end
+//         ^ meta.block punctuation.section.block.begin
         n / 2
     };
-//  ^ meta.block punctuation.definition.block.end
+//  ^ meta.block punctuation.section.block.end
 
 'label_name: loop {
 // ^^^^^^^^ entity.name.label
 //         ^ punctuation.separator
 //           ^^^^ keyword.control
-//                ^ meta.block punctuation.definition.block.begin
+//                ^ meta.block punctuation.section.block.begin
     n += 1;
     if n / 2 == 5 {
 //       ^ keyword.operator
@@ -442,7 +465,7 @@ for i in 1..10 {
     println!("I: {}", i);
 // ^^^^^^^^^^^^^^^^^^^^^^ meta.block
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 let o = match n {
 //      ^^^^^ keyword.control
@@ -472,16 +495,16 @@ let mut j = BasicStruct(10);
 if let BasicStruct(i) = j {
 // ^^^ storage.type
 //                    ^ keyword.operator
-//                        ^ meta.block punctuation.definition.block.begin
+//                        ^ meta.block punctuation.section.block.begin
     println!("Basic value: {}", i);
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 while let BasicStruct(k) = j {
 //^^^ keyword.control
 //    ^^^ storage.type
 //                       ^ keyword.operator
-//                           ^ meta.block punctuation.definition.block.begin
+//                           ^ meta.block punctuation.section.block.begin
     println!("Constructed example: {}", j)
     j = BasicStruct(j + 1);
     if k > 20 {
@@ -489,7 +512,7 @@ while let BasicStruct(k) = j {
         //^^^ meta.block meta.block keyword.control
     }
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 fn foo<A>(i: u32, b: i64) -> u32 {
 // <- storage.type.function
@@ -498,10 +521,10 @@ fn foo<A>(i: u32, b: i64) -> u32 {
 //      ^ punctuation.definition.generic.end
 //       ^^^^^^^^^^^^^^^^ meta.function.parameters
 //                           ^^^ storage.type
-//                               ^ meta.block punctuation.definition.block.begin
+//                               ^ meta.block punctuation.section.block.begin
 
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 // Guards
 match n {
@@ -523,7 +546,7 @@ match n {
 match my_func() {
 // ^^ keyword.control
 //    ^^^^^^^ support.function
-//              ^ meta.block punctuation.definition.block.begin
+//              ^ meta.block punctuation.section.block.begin
     0 => println!("None"),
 //  ^ constant.numeric.integer.decimal
 //    ^^ keyword.operator
@@ -536,7 +559,7 @@ match my_func() {
 //  ^ keyword.operator
 //    ^^ keyword.operator
 }
-// <- meta.block punctuation.definition.block.end
+// <- meta.block punctuation.section.block.end
 
 fn my_other_func(e: OperatingSystem) -> u32 {
 // ^^^^^^^^^^^^^ entity.name.function
@@ -547,7 +570,7 @@ fn my_other_func(e: OperatingSystem) -> u32 {
 struct Point
 // ^^^^^^^^^ meta.struct
 {
-// <- meta.struct meta.block punctuation.definition.block.begin
+// <- meta.struct meta.block punctuation.section.block.begin
     x: i32,
 //  ^ variable.other.member
 //   ^ punctuation.separator
@@ -557,12 +580,12 @@ struct Point
 //   ^ punctuation.separator
 //     ^^^ storage.type
 }
-// <-  meta.block punctuation.definition.block.end
+// <-  meta.block punctuation.section.block.end
 
 impl Point
 //^^^^^^^^ meta.impl
 {
-// <- meta.impl meta.block punctuation.definition.block.begin
+// <- meta.impl meta.block punctuation.section.block.begin
     fn new(x: i32, y: i32) -> Point
     // <- storage.type.function
     // ^^^ entity.name.function
@@ -576,6 +599,21 @@ impl Point
         self.x *= 2;
         self.y *= 2;
     }
+
+    fn sum((x, y): (i32, i32)) -> i32 {
+//         ^^^^^^ meta.group
+//         ^ punctuation.section.group.begin
+//           ^ punctuation.separator
+//              ^ punctuation.section.group.end
+//               ^ punctuation.separator
+//                 ^^^^^^^^^^ meta.group
+//                 ^ punctuation.section.group.begin
+//                  ^^^ storage.type
+//                     ^ punctuation.separator
+//                       ^^^ storage.type
+//                          ^ punctuation.section.group.end
+//                             ^^ punctuation.separator
+    }
 }
 
 pub fn pub_function() -> bool
@@ -587,28 +625,56 @@ pub fn pub_function() -> bool
     return true
 }
 
+fn factory() -> Box<Fn(i32) -> i32> {
+// <- storage.type.function
+// ^^^^^^^ entity.name.function
+//                  ^^^^^^^^^^^^^^ meta.generic
+//                      ^^ storage.type
+//                              ^^ storage.type
+//                          ^^ punctuation.separator
+    Box::new(|x| x + 1)
+//     ^^ punctuation.accessor
+}
+
 let inferred_closure = |i, j: u32| i + 1;
 //  ^^^^^^^^^^^^^^^^ entity.name.function
 //                     ^^^^^^^^^^^^^^^^^ meta.function.closure
 //                     ^^^^^^^^^^^ meta.function.parameters
-//                     ^ punctuation.definition.parameters.begin
+//                     ^ punctuation.section.parameters.begin
 //                      ^ variable.parameter
+//                       ^ punctuation.separator
 //                         ^ variable.parameter
 //                          ^ punctuation.separator
 //                            ^^^ storage.type
-//                               ^ punctuation.definition.parameters.end
+//                               ^ punctuation.section.parameters.end
 let closure = || -> i32 { | | 1 + 2 };
 //  ^^^^^^^ entity.name.function
 //            ^^^^^^^^^^^^^^^^^^^^^^^ meta.function.closure
 //            ^^ meta.function.parameters
-//            ^ punctuation.definition.parameters.begin
-//             ^ punctuation.definition.parameters.end
+//            ^ punctuation.section.parameters.begin
+//             ^ punctuation.section.parameters.end
 //                  ^^^ storage.type
 //                      ^^^^^^^^^^^^^ meta.block
-//                      ^ meta.block punctuation.definition.block.begin
+//                      ^ meta.block punctuation.section.block.begin
 //                            ^ constant.numeric.integer.decimal
 //                                ^ constant.numeric.integer.decimal
-//                                  ^ meta.block punctuation.definition.block.end
+//                                  ^ meta.block punctuation.section.block.end
+
+let f = |(x, y): (u32, &mut u32)| { x + y };
+//      ^ punctuation.section.parameters.begin
+//        ^ variable.parameter
+//         ^ punctuation.separator
+//           ^ variable.parameter
+//               ^^^^^^^^^^^^^^^ meta.group
+//               ^ punctuation.section.group.begin
+//                ^^^ storage.type
+//                   ^ punctuation.separator
+//                     ^ keyword.operator
+//                      ^^^ storage.modifier
+//                          ^^^ storage.type
+//                             ^ punctuation.section.group.end
+//                              ^ punctuation.section.parameters.end
+
 
 let c = a | b;
 //        ^ keyword.operator
@@ -631,12 +697,12 @@ pub fn from_buf_reader<T>(s: io::BufReader<T>) -> Result<isize, &'static str>
 {
     macro_rules! eat_numbers {
         ($count:expr, $msg:expr) => {{
-        //                          ^ meta.function meta.block meta.macro meta.block meta.block punctuation.definition.block.begin
-        //                           ^ meta.function meta.block meta.macro meta.block meta.block meta.block punctuation.definition.block.begin
+        //                          ^ meta.function meta.block meta.macro meta.block meta.block punctuation.section.block.begin
+        //                           ^ meta.function meta.block meta.macro meta.block meta.block meta.block punctuation.section.block.begin
             let parse_err = concat!("Err parsing value in ", $msg);
             try!{ eat_numbers(&mut lines, $count, parse_err, missing_err, too_many) }
         //  ^^^^ support.macro
-        //      ^ meta.function meta.block meta.macro meta.block meta.block meta.block meta.block punctuation.definition.block.begin
+        //      ^ meta.function meta.block meta.macro meta.block meta.block meta.block meta.block punctuation.section.block.begin
         }}
     };
      // <- meta.function meta.block - meta.macro
@@ -654,9 +720,9 @@ pub mod my_mod {
 // <- storage.modifier
 //  ^^^ storage.type.module
 //      ^^^^^^ entity.name.module
-//             ^ meta.block punctuation.definition.block.begin
+//             ^ meta.block punctuation.section.block.begin
 }
-// <- meta.module meta.block punctuation.definition.block.end
+// <- meta.module meta.block punctuation.section.block.end
 
 struct Val (f64,);
 struct GenVal<T>(T,);
@@ -716,20 +782,20 @@ impl<'a, T: MyTrait + OtherTrait> PrintInOption for T where
 pub trait Animal {
 // <- storage.modifier
 //^^^^^^^^^^^^^^^^ meta.trait
-//               ^ meta.block punctuation.definition.block.begin
+//               ^ meta.block punctuation.section.block.begin
     fn noise(quiet: bool) {
         // Comment
     }
 }
-// <- meta.trait meta.block punctuation.definition.block.end
+// <- meta.trait meta.block punctuation.section.block.end
 
 fn collect_vec() {
     let _: Vec<(usize, usize)> = (0..10).enumerate().collect::<Vec<_>>();
 //         ^^^^^^^^^^^^^^^^^^^ meta.generic
-//             ^ punctuation.definition.type.begin
+//             ^ punctuation.section.group.begin
 //              ^^^^^ storage.type
 //                     ^^^^^ storage.type
-//                          ^ punctuation.definition.type.end
+//                          ^ punctuation.section.group.end
 //                                                            ^^^^^^^^ meta.generic
 //                                                             ^^^^^^ meta.generic meta.generic
 //                                                                 ^ keyword.operator
@@ -742,7 +808,7 @@ fn collect_vec() {
 }
 
 macro_rules! forward_ref_binop [
-//                             ^ meta.macro meta.group punctuation.definition.group.begin
+//                             ^ meta.macro meta.group punctuation.section.group.begin
     (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
 //        ^^^^ variable.parameter
 //             ^^^^^ storage.type
@@ -753,7 +819,7 @@ macro_rules! forward_ref_binop [
 //                                             ^^ variable.parameter
 //                                                ^^ storage.type
 //                                                    ^^ keyword.operator
-//                                                       ^ meta.macro meta.group meta.block punctuation.definition.block.begin
+//                                                       ^ meta.macro meta.group meta.block punctuation.section.block.begin
         impl<'a, 'b> $imp<&'a $u> for &'b $t {
 //      ^^^^ storage.type.impl
 //          ^^^^^^^^ meta.generic
@@ -768,13 +834,16 @@ macro_rules! forward_ref_binop [
 //                                    ^ keyword.operator
 //                                     ^^ storage.modifier.lifetime
 //                                        ^^ variable.other
-//                                           ^ meta.macro meta.group meta.block meta.impl meta.block punctuation.definition.block.begin
+//                                           ^ meta.macro meta.group meta.block meta.impl meta.block punctuation.section.block.begin
             type Output = <$t as $imp<$u>>::Output;
 //                        ^^^^^^^^^^^^^^^^ meta.generic
-//                                        ^^ meta.path
+//                                        ^^ meta.path punctuation.accessor
 
             #[inline]
-//          ^^^^^^^^^ comment.block.attribute
+//          ^^^^^^^^^ meta.annotation
+//          ^ punctuation.definition.annotation
+//           ^ punctuation.section.group.begin
+//                  ^ punctuation.section.group.end
             fn $method(self, other: &'a $u) -> <$t as $imp<$u>>::Output {
 //          ^^ storage.type.function
 //             ^^^^^^^ variable.other
@@ -784,8 +853,20 @@ macro_rules! forward_ref_binop [
 //                                      ^^ variable.other
 //                                          ^^ punctuation.separator
 //                                             ^^^^^^^^^^^^^^^^ meta.generic
-//                                                             ^^ meta.path
-//                                                                      ^ meta.macro meta.group meta.block meta.impl meta.block meta.block punctuation.definition.block.begin
+//                                                             ^^ meta.path punctuation.accessor
+//                                                                      ^ meta.macro meta.group meta.block meta.impl meta.block meta.block punctuation.section.block.begin
+                #![cfg(all(unix, target_pointer_width = "32"))]
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.annotation
+//                 ^^^ variable.annotation
+//                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.annotation.parameters
+//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+//                     ^^^ variable.function
+//                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.group
+//                        ^ punctuation.section.group.begin
+//                             ^ punctuation.separator
+//                                                    ^ keyword.operator
+//                                                      ^^^^ string.quoted
+//                                                          ^ punctuation.section.group.end
                 $imp::$method(*self, *other)
 //              ^^^^ variable.other
 //                    ^^^^^^^ variable.other
@@ -798,7 +879,7 @@ macro_rules! forward_ref_binop [
 ]
 
 macro_rules! alternate_group (
-//                           ^ meta.macro meta.group punctuation.definition.group.begin
+//                           ^ meta.macro meta.group punctuation.section.group.begin
     ($a:expr) => (
 //   ^^ variable.parameter
 //      ^^^^ storage.type
@@ -809,32 +890,129 @@ macro_rules! alternate_group (
 macro_rules! kleene_star {
     ($($arg:tt)+) => (
 //   ^ meta.macro meta.block meta.group keyword.operator
-//    ^ meta.macro meta.block meta.group punctuation.definition.group.begin
+//    ^ meta.macro meta.block meta.group punctuation.section.group.begin
 //     ^^^^ meta.macro meta.block meta.group variable.other
 //         ^^^^^ meta.macro meta.block meta.group
-//              ^ meta.macro meta.block meta.group punctuation.definition.group.end
+//              ^ meta.macro meta.block meta.group punctuation.section.group.end
 //                ^ meta.macro meta.block keyword.operator
         println!($($arg));
     ),
     ($($arg:tt)*) => (
 //     ^^^^ meta.macro meta.block meta.group variable.other
 //         ^^^^^ meta.macro meta.block meta.group
-//              ^ meta.macro meta.block meta.group punctuation.definition.group.end
+//              ^ meta.macro meta.block meta.group punctuation.section.group.end
 //                ^ meta.macro meta.block keyword.operator
         println!($($arg)*);
     ),
     ($($arg:tt);+) => (
 //     ^^^^ meta.macro meta.block meta.group variable.other
 //         ^^^^^^ meta.macro meta.block meta.group
-//               ^ meta.macro meta.block meta.group punctuation.definition.group.end
+//               ^ meta.macro meta.block meta.group punctuation.section.group.end
 //                 ^ meta.macro meta.block keyword.operator
         println!($($arg));
     ),
     ($($arg:tt),*) => (
 //     ^^^^ meta.macro meta.block meta.group variable.other
 //         ^^^^^^ meta.macro meta.block meta.group
-//               ^ meta.macro meta.block meta.group punctuation.definition.group.end
+//               ^ meta.macro meta.block meta.group punctuation.section.group.end
 //                 ^ meta.macro meta.block keyword.operator
         println!($($arg)*);
     )
+}
+
+pub fn next_lex<T:PartialOrd>(/* block */data: &mut [T] // line {
+//                            ^^^^^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.block.rust
+//                                                      ^^^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.line.double-slash.rust
+    /* block2 */ data2: &mut [T]  // line
+//  ^^^^^^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.block.rust
+//                                ^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.line.double-slash.rust
+    ) -> bool {
+    unimplemented!();
+}
+
+pub fn next_lex2</* block */T/* comments */:/* everywhere */
+//               ^^^^^^^^^^^ comment.block.rust
+//                           ^^^^^^^^^^^^^^ comment.block.rust
+//                                          ^^^^^^^^^^^^^^^^ comment.block.rust
+    // Many comments
+//  ^^^^^^^^^^^^^^^^ comment.line.double-slash.rust
+    /* help */ PartialOrd // Possibly too many comments
+//  ^^^^^^^^^^ comment.block.rust
+//                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.line.double-slash.rust
+> (
+    /* block2 */ data2: &mut [T]  // line
+//  ^^^^^^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.block.rust
+//                                ^^^^^^^ source.rust meta.function.rust meta.function.parameters.rust comment.line.double-slash.rust
+    ) -> bool {
+    unimplemented!();
+}
+
+pub fn new<T>() -> Fibonacci<T>
+    where T: One + Zero,
+//  ^^^^^ keyword.other.rust
+    for <'a> &'a T: Add<Output = T>,
+//  ^^^ keyword.other.rust
+//      ^ punctuation.definition.generic.begin.rust
+//       ^^ storage.modifier.lifetime.rust
+//         ^ punctuation.definition.generic.end.rust
+//           ^ keyword.operator.rust
+//            ^^ storage.modifier.lifetime.rust
+{
+    unimplemented!();
+}
+
+pub fn new<T>() -> Fibonacci<T>
+    where for <'a> &'a T: Add<Output = T>,
+//  ^^^^^ keyword.other.rust
+//        ^^^ keyword.other.rust
+//            ^ punctuation.definition.generic.begin.rust
+//             ^^ storage.modifier.lifetime.rust
+//               ^ punctuation.definition.generic.end.rust
+//                 ^ keyword.operator.rust
+//                  ^^ storage.modifier.lifetime.rust
+{
+    unimplemented!();
+}
+
+impl<T> Fibonacci<T>
+    where for <'a> &'a T: Add<Output = T>,
+//  ^^^^^ keyword.other.rust
+//        ^^^ keyword.other.rust
+//            ^ punctuation.definition.generic.begin.rust
+//             ^^ storage.modifier.lifetime.rust
+//               ^ punctuation.definition.generic.end.rust
+//                 ^ keyword.operator.rust
+//                  ^^ storage.modifier.lifetime.rust
+{
+    unimplemented!();
+}
+
+impl<T> Iterator for Fibonacci<T>
+    where T: Clone,
+//  ^^^^^ keyword.other.rust
+    for <'a> &'a T: Add<Output = T>,
+//  ^^^ keyword.other.rust
+//      ^ punctuation.definition.generic.begin.rust
+//       ^^ storage.modifier.lifetime.rust
+//         ^ punctuation.definition.generic.end.rust
+//           ^ keyword.operator.rust
+//            ^^ storage.modifier.lifetime.rust
+{
+    unimplemented!();
+}
+
+pub const FOO: Option<[i32; 1]> = Some([1]);
+//                    ^ punctuation.section.group.begin.rust
+//                        ^ punctuation.separator
+//                          ^ constant.numeric
+//                           ^ punctuation.section.group.end.rust
+
+fn abc() {
+    println!("{}hello\
+//                   ^ punctuation.separator.continuation.line.rust
+         world, there is no whitespace between hello and world in the output", 0o202u64);
+}
+
+impl ApplicationPreferenceseeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee {
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ entity.name.impl.rust
 }

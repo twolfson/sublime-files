@@ -577,6 +577,9 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+shift+f2"], "command": "clear_bookmarks" },
 	{ "keys": ["alt+f2"], "command": "select_all_bookmarks" },
 
+	{ "keys": ["ctrl+r"], "command": "next_bookmark" },
+	{ "keys": ["ctrl+shift+r"], "command": "toggle_bookmark" },
+
 	{ "keys": ["super+k", "super+u"], "command": "upper_case" },
 	{ "keys": ["super+k", "super+l"], "command": "lower_case" },
 	{ "keys": ["super+k", "super+space"], "command": "set_mark" },
@@ -669,6 +672,14 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	},
 	{ "keys": ["alt+enter"], "command": "find_all", "args": {"close_panel": true},
 		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+
+	// Find in Files panel key bindings
+	{ "keys": ["alt+enter"], "command": "find_all",
+		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["ctrl+alt+enter"], "command": "replace_all",
+		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
 	},
 
 	{ "keys": ["super+,"], "command": "edit_settings", "args":

@@ -714,6 +714,14 @@
 		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
 
+	// Find in Files panel key bindings
+	{ "keys": ["alt+enter"], "command": "find_all",
+		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["ctrl+alt+enter"], "command": "replace_all",
+		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+
 	// HTML, XML close tag
 	{ "keys": ["/"], "command": "close_tag", "args": { "insert_slash": true }, "context":
 		[

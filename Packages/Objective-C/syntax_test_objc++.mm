@@ -137,6 +137,9 @@ scanf("%ms %as %*[, ]", &buf);
 /*         ^^^ constant.other.placeholder */
 /*             ^^^^^^ constant.other.placeholder */
 
+"foo % baz"
+/*   ^ - invalid */
+
 char rawStr1[] = R"("This is a raw string")";
 /*               ^ storage.type.string */
 /*                ^ punctuation.definition.string.begin */
@@ -240,6 +243,10 @@ template<typename First = U<V>, typename... Rest> class tupleVariadic;
 /*                                      ^^^ keyword.operator.variadic */
 /*                                              ^ punctuation.section.generic.end */
 
+template<typename T...> void SomeClass<T...>::function();
+/*                                      ^^^ keyword.operator.variadic */
+/*                                            ^^^^^^^^ entity.name.function */
+
 template<typename Foo> inline struct Foo* baz()
 /*                     ^^^^^^ storage.modifier */
 /*                                   ^ - entity.name */
@@ -269,6 +276,89 @@ typedef std :: vector<std::vector<int> > Table;
 /*                               ^ punctuation.section.generic.begin */
 /*                                   ^ punctuation.section.generic.end */
 /*                                     ^ punctuation.section.generic.end */
+
+template <typename T = float, int a = 3, bool b = true>
+                  /* ^ meta.template keyword.operator                               */
+                  /*                ^ meta.template keyword.operator                */
+                  /*                  ^ meta.template constant.numeric              */
+                  /*                            ^ meta.template keyword.operator    */
+                  /*                              ^ meta.template constant.language */
+struct Foo 
+{
+
+/* <- meta.struct - meta.template */
+
+    void bar(int a = 3, bool b = true) {}
+                /* ^ - meta.template keyword.operator                */
+                /*   ^ - meta.template constant.numeric              */
+                /*             ^ - meta.template keyword.operator    */
+                /*               ^ - meta.template constant.language */
+};
+
+/* <- - meta.block - meta.struct - meta.template  */
+
+template <std::size_t Count = 128>
+/*           ^^ meta.template punctuation.accessor             */
+/*                          ^ meta.template keyword.operator   */
+/*                            ^ meta.template constant.numeric */
+class fixed_array : private std::array<int, Count> {};
+
+constexpr std::size_t f() { return 128; }
+template <std::size_t Count = f()>
+/*           ^^ meta.template punctuation.accessor                             */
+/*                          ^ meta.template keyword.operator                   */
+/*                            ^ meta.template variable.function                */
+/*                             ^^ meta.template meta.function-call punctuation */
+/*                               ^ meta.template punctuation                   */
+class fixed_array : private std::array<int, Count> {};
+
+template<class T> class A { /* ... */ };
+template<class T, class U = T> class B { /* ... */ };
+/*                        ^ meta.template keyword.operator */
+/*                          ^ meta.template                */
+/*                           ^ meta.template punctuation   */
+/*                            ^ - meta.template            */
+template <class ...Types> class C { /* ... */ };
+
+// templates inside templates... it's templates all the way down 
+template<template<class> class P> class X { /* ... */ };
+/*      ^ meta.template punctuation                              */
+/*               ^ meta.template meta.template punctuation       */
+/*                ^^^^^ meta.template meta.template storage.type */
+/*                     ^ meta.template meta.template punctuation */
+/*                       ^^^^^ meta.template storage.type        */
+/*                              ^ meta.template punctuation      */
+
+X<A> xa; // OK
+X<B> xb; // OK in C++14 after CWG 150
+         // Error earlier: not an exact match
+X<C> xc; // OK in C++14 after CWG 150
+
+// template declarations spanning multiple lines
+template
+/* <- meta.template storage.type */
+<
+/* <- meta.template punctuation.section.generic.begin */
+    class T,
+    class U = T
+>
+class B
+{
+    /* ... */
+};
+
+// template declarations spanning multiple lines
+template
+<
+/* <- meta.template punctuation.section.generic.begin */
+    std::size_t Count = f()
+/*     ^^ meta.template punctuation.accessor                             */
+/*                    ^ meta.template keyword.operator                   */
+/*                      ^ meta.template variable.function                */
+/*                       ^^ meta.template meta.function-call punctuation */
+>
+/* <- meta.template punctuation.section.generic.end */
+class fixed_array : private std::array<int, Count> {};
 
 /////////////////////////////////////////////
 // Storage Modifiers
@@ -398,6 +488,9 @@ reinterpret_cast<int>(2.0);
 static_cast<int>(2.0);
 /* <- keyword.operator.word.cast */
 
+auto var = *reinterpret_cast<std::vector<std::shared_ptr<AnyClass>>*>(v);
+/*          ^ keyword.operator.word.cast */
+/*                           ^ - variable.function */
 
 /////////////////////////////////////////////
 // Language Constants
@@ -773,6 +866,24 @@ void test_in_extern_c_block()
 {
 }
 #else
+
+/* temporary C++ preprocessor block */
+#ifdef __cplusplus
+/*                <- meta.preprocessor */
+/*   <- keyword.control.import */
+# ifndef _Bool
+/*            <- meta.preprocessor */
+/*      <- keyword.control.import */
+   typedef bool _Bool;   /* semi-hackish: C++ has no _Bool; bool is builtin */
+/* ^ storage.type */
+/*              ^ entity.name.type.typedef */
+# endif
+/*     <- meta.preprocessor */
+/*     <- keyword.control.import */
+#endif
+/*    <- meta.preprocessor */
+/*    <- keyword.control.import */
+
 void test_in_extern_c_block()
 /*   ^^^^^^^^^^^^^^^^^^^^^^^^ meta.function */
 /*                         ^^ meta.function.parameters meta.group */
@@ -797,6 +908,11 @@ std::vector<std::uint8_t> func_returning_path_generic(int a);
 /*         ^ punctuation.section.generic */
 /*                        ^ entity.name.function */
 
+void f()
+{
+    static_assert(false, "oops");
+    /* ^ keyword.operator.word */
+}
 
 long double operator "" _km (long double x);
 /*          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function */
@@ -853,6 +969,20 @@ namespace tl {
 
 MACRONAME namespace ns3 {}
 /*        ^ keyword.control */
+
+extern "C++"
+// ^ storage.modifier
+//     ^^^^^ string.quoted.double
+{
+namespace std _GLIBCXX_VISIBILITY(default)
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.namespace
+// ^ keyword.control
+//        ^ entity.name.namespace
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call
+//                               ^^^^^^^^^ meta.group
+//                                ^ keyword.control
+{}
+}
 
 /////////////////////////////////////////////
 // Classes, structs, unions and enums
@@ -1168,6 +1298,115 @@ private:
 /* <- meta.class meta.block punctuation.section.block.end */
  /* <- - meta.class meta.block */
 
+struct X {
+    Y f() override noexcept final;
+    /*^ entity.name.function */
+    /*    ^ storage.modifier */
+    /*             ^ storage.modifier */
+    /*                      ^ storage.modifier */
+    ::Y g() override noexcept final;
+    /* <- punctuation.accessor */
+    /*  ^ entity.name.function */
+    /*      ^ storage.modifier */
+    /*               ^ storage.modifier */
+    /*                        ^ storage.modifier */
+};
+
+class X {
+  public:
+    ::Y g() override noexcept final;
+    /* <- punctuation.accessor */
+    /*  ^ entity.name.function */
+    /*      ^ storage.modifier */
+    /*               ^ storage.modifier */
+    /*                        ^ storage.modifier */
+};
+
+union Y {
+    ::Y g() override noexcept final;
+    /* <- punctuation.accessor */
+    /*  ^ entity.name.function */
+    /*      ^ storage.modifier */
+    /*               ^ storage.modifier */
+    /*                        ^ storage.modifier */
+};
+
+class Child : public Parent {
+    ::anotherClass Func() override;
+    /* <- punctuation.accessor */
+    /*             ^ entity.name.function */
+    /*                    ^ storage.modifier */
+}
+
+class Adapter2 : public Abstraction, private Scenario {
+/*                                 ^ punctuation.separator */
+}
+
+class Adapter : public Abstraction
+    #if defined ASPECTO_MACRO
+/*  ^^^ keyword.control.import  */
+    , public Scenario
+/*  ^ punctuation.separator */
+/*    ^ storage.modifier */
+/*           ^ entity.other.inherited-class */
+    #endif
+/*  ^^^^^^ keyword.control.import  */
+{
+
+}
+
+/* C++11 "uniform initialization" in initializer lists */
+class Foo {
+public:
+    Foo() : var1(1), var(2), var3{3}, var(4) {}
+                                 /* ^ meta.method.constructor.initializer-list */
+                                 /*   ^ - meta.function-call - variable.function */
+private:
+    int var1, var2, var3, var4;    
+};
+
+class X {
+    int a, b, i, j;
+public:
+    const int& r;
+    X(int i)
+      : r(a) // initializes X::r to refer to X::a
+      /* ^ meta.method.constructor.initializer-list punctuation         */
+      /*   ^ meta.method.constructor.initializer-list punctuation       */
+      , b{i} // initializes X::b to the value of the parameter i
+      /* ^ meta.method.constructor.initializer-list punctuation         */
+      /*   ^ meta.method.constructor.initializer-list punctuation       */
+      , i(i) // initializes X::i to the value of the parameter i
+      /* ^ meta.method.constructor.initializer-list punctuation         */
+      /*   ^ meta.method.constructor.initializer-list punctuation       */
+      , j(this->i) // initializes X::j to the value of X::i
+      /* ^ meta.method.constructor.initializer-list punctuation         */
+      /*         ^ meta.method.constructor.initializer-list punctuation */
+      , j
+      /*^ variable */
+      (this->i)
+      /* <- meta.method.constructor.initializer-list punctuation */
+    { }
+/*  ^ punctuation - meta.method.constructor.initializer-list   */
+/*    ^ punctuation - meta.method.constructor.initializer-list */
+};
+
+struct A {
+  static_assert(0 < 1, "");
+  /* ^ keyword.operator.word                    */
+  /*            ^ meta.function-call            */
+  /*              ^ keyword.operator.comparison */
+
+  A();
+/*^ meta.method.constructor entity.name.function.constructor */
+
+  void f();
+  /* ^ storage.type                       */
+  /*   ^ meta.method entity.name.function */
+  /*      ^ punctuation.terminator        */
+};
+/* <- punctuation.section.block.end - invalid.illegal */
+
 struct bar {
 /*^^^^^^^^^^ meta.struct */
 /*^^^^ storage.type */
@@ -1199,6 +1438,39 @@ enum baz {
 }
 /* <- meta.enum meta.block punctuation.section.block.end */
  /* <- - meta.enum meta.block */
+
+int main(void)
+{
+    struct UI_BoundingBox decorativeBox = {10, titleHeight-3, width-20, height-10};
+/*         ^ - entity.name */
+/*                        ^ - entity.name */
+}
+
+struct foo MACRO {
+/*     ^ entity.name.struct */
+/*         ^ - entity.name */
+}
+
+// Partially-typed
+struct foo
+/*     ^ entity.name */
+
+struct UI_MenuBoxData
+/* <- storage.type */
+/*     ^ entity.name.struct */
+{
+    struct UI_BoundingBox position;
+/*         ^ - entity.name */
+/*                        ^ - entity.name */
+    enum UI_BoxCharType borderType;
+/*       ^ - entity.name */
+/*                      ^ - entity.name */
+    unsigned int paddingX;
+    unsigned int paddingY;
+    struct UI_ScrollBoxText boxContents[];
+/*         ^ - entity.name */
+/*                          ^ - entity.name */
+};
 
 enum class qux : std::uint8_t
 /*^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.enum */
@@ -1360,6 +1632,31 @@ int disabled_func() {
 /*  ^ comment.block */
 #endif
 
+BOOL
+GetTextMetrics(
+    HDC hdc,
+    LPTEXTMETRIC lptm
+    )
+{
+#ifdef UNICODE
+/* <- keyword.control.import */
+    return GetTextMetricsW(
+/*         ^ variable.function */
+#else
+/* <- keyword.control.import */
+    return GetTextMetricsA(
+/*         ^ variable.function */
+#endif
+/* <- keyword.control.import */
+        hdc,
+        lptm
+        );
+/*      ^ meta.function-call */
+/*       ^ - meta.function-call */
+}
+ /* <- - meta.function */
+ /* <- - meta.block */
+
 /////////////////////////////////////////////
 // Matching various function definitions
 /////////////////////////////////////////////
@@ -1390,6 +1687,44 @@ foo() {
 MyClass3::
 ~MyClass3() {
 /* <- entity.name.function */
+}
+
+struct A
+{
+    #ifdef X
+    static_assert(false, "asdf");
+    /* ^ keyword.operator.word */
+    #endif
+
+    void f()
+    {
+        #ifdef X
+        static_assert(false, "asdf");
+        /* ^ keyword.operator.word */
+        #endif
+    }
+
+    void f()
+    {
+        static_assert(false, "asdf");
+        /* ^ keyword.operator.word */
+    }
+};
+
+void f()
+{
+    static_assert(false, "asdf");
+/* ^ meta.function meta.block */
+/*  ^ keyword.operator.word   */
+}
+
+void f()
+{
+    #ifdef X
+    static_assert(false, "asdf");
+/* ^ meta.function meta.block */
+/*  ^ keyword.operator.word   */
+    #endif
 }
 
 Glib::ustring Node::_getDragTip(GdkEventMotion */*event*/);
@@ -1532,3 +1867,33 @@ NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K like %@",
 /*                                          ^ variable.function */
 {}
 @end
+
+/////////////////////////////////////////////
+// Includes
+/////////////////////////////////////////////
+
+#include "foobar.h"
+/* <- keyword.control.import.include */
+/*       ^ punctuation.definition.string.begin */
+/*        ^^^^^^^^ string.quoted.double.include */
+/*                ^ punctuation.definition.string.end */
+
+#include <cstdlib>
+/* <- keyword.control.import.include */
+/*       ^ punctuation.definition.string.begin */
+/*        ^^^^^^^ string.quoted.other.lt-gt.include */
+/*               ^ punctuation.definition.string.end */
+
+#ifdef _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+#include_next <math.h>
+/* <- keyword.control.import.include */
+/*            ^ punctuation.definition.string.begin */
+/*             ^^^^^^ string.quoted.other.lt-gt.include */
+/*                   ^ punctuation.definition.string.end */
+#endif
+
+#include<iostream>
+/* <- keyword.control.import.include */
+/*      ^ punctuation.definition.string.begin */
+/*       ^^^^^^^^ string.quoted.other.lt-gt.include */
+/*               ^ punctuation.definition.string.end */

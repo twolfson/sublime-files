@@ -10,7 +10,12 @@ file_extensions:
   - rss
   - opml
   - svg
-first_line_match: '^<\?xml '
+first_line_match: |-
+    (?x)
+    ^(?:
+        <\?xml\s
+     |  \s*<([\w-]+):Envelope\s+xmlns:\1\s*=\s*"http://schemas.xmlsoap.org/soap/envelope/"\s*>
+     )
 scope: text.xml
 variables:
   # This is the full XML Name production, but should not be used where namespaces
@@ -25,7 +30,7 @@ variables:
 
 contexts:
   main:
-    - match: '(<\?)\s*({{qualified_name}})'
+    - match: '(<\?)(xml)(?=\s)'
       captures:
         1: punctuation.definition.tag.begin.xml
         2: entity.name.tag.xml
@@ -54,13 +59,7 @@ contexts:
             1: punctuation.definition.tag.end.xml
           pop: true
         - include: internal-subset
-    - match: '<!--'
-      scope: punctuation.definition.comment.begin.xml
-      push:
-        - meta_scope: comment.block.xml
-        - match: '-->'
-          scope: punctuation.definition.comment.end.xml
-          pop: true
+    - include: comment
     - match: '(</?){{qualified_name}}([^/>\s]*)'
       captures:
         1: punctuation.definition.tag.begin.xml
@@ -84,6 +83,25 @@ contexts:
           scope: punctuation.definition.tag.end.xml
           pop: true
         - include: tag-stuff
+    - match: '(<\?)(xml-stylesheet|xml-model)(?=\s|\?>)'
+      captures:
+        1: punctuation.definition.tag.begin.xml
+        2: entity.name.tag.xml
+      push:
+        - meta_scope: meta.tag.preprocessor.xml
+        - match: \?>
+          scope: punctuation.definition.tag.end.xml
+          pop: true
+        - include: tag-stuff
+    - match: '(<\?)((?![xX][mM][lL]){{qualified_name}})(?=\s|\?>)'
+      captures:
+        1: punctuation.definition.tag.begin.xml
+        2: entity.name.tag.xml
+      push:
+        - meta_scope: meta.tag.preprocessor.xml
+        - match: \?>
+          scope: punctuation.definition.tag.end.xml
+          pop: true
     - include: entity
     - match: '<!\[CDATA\['
       scope: punctuation.definition.string.begin.xml
@@ -92,13 +110,13 @@ contexts:
         - match: ']]>'
           scope: punctuation.definition.string.end.xml
           pop: true
+    - match: ']]>'
+      scope: invalid.illegal.missing-entity.xml
     - include: should-be-entity
   should-be-entity:
     - match: '&'
       scope: invalid.illegal.bad-ampersand.xml
     - match: '<'
-      scope: invalid.illegal.missing-entity.xml
-    - match: '>'
       scope: invalid.illegal.missing-entity.xml
   double-quoted-string:
     - match: '"'
@@ -116,6 +134,16 @@ contexts:
       captures:
         1: punctuation.definition.constant.xml
         2: punctuation.definition.constant.xml
+  comment:
+    - match: '<!--'
+      scope: punctuation.definition.comment.begin.xml
+      push:
+        - meta_scope: comment.block.xml
+        - match: '-->'
+          scope: punctuation.definition.comment.end.xml
+          pop: true
+        - match: '-{2,}'
+          scope: invalid.illegal.double-hyphen-within-comment.xml
   internal-subset:
     - match: \[
       scope: punctuation.definition.constant.xml
@@ -123,6 +151,7 @@ contexts:
         - meta_scope: meta.internalsubset.xml
         - match: \]
           pop: true
+        - include: comment
         - include: entity-decl
         - include: element-decl
         - include: attlist-decl

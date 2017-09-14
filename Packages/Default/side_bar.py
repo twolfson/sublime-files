@@ -76,6 +76,13 @@ class RenamePathCommand(sublime_plugin.WindowCommand):
         v.sel().clear()
         v.sel().add(sublime.Region(0, len(name)))
 
+    def is_case_change(self, old, new):
+        if old.lower() != new.lower():
+            return False
+        if os.stat(old).st_ino != os.stat(new).st_ino:
+            return False
+        return True
+
     def on_done(self, old, branch, leaf):
         new = os.path.join(branch, leaf)
 
@@ -83,7 +90,7 @@ class RenamePathCommand(sublime_plugin.WindowCommand):
             return
 
         try:
-            if os.path.isfile(new):
+            if os.path.isfile(new) and not self.is_case_change(old, new):
                 raise OSError("File already exists")
 
             os.rename(old, new)

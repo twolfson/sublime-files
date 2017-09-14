@@ -1,5 +1,6 @@
 import re
 import textwrap
+import unicodedata
 
 import Default.comment
 import sublime
@@ -115,19 +116,20 @@ class ExpandSelectionToParagraphCommand(sublime_plugin.TextCommand):
 
 
 class WrapLinesCommand(sublime_plugin.TextCommand):
-    line_prefix_pattern = re.compile("^\W+")
-
     def extract_prefix(self, sr):
         lines = self.view.split_by_newlines(sr)
         if len(lines) == 0:
             return None
 
-        initial_prefix_match = self.line_prefix_pattern.match(self.view.substr(
-            lines[0]))
-        if not initial_prefix_match:
-            return None
+        prefix = ''
+        for char in self.view.substr(lines[0]):
+            cat = unicodedata.category(char)[0]
+            if ord(char) > 32 and cat != 'Z' and cat != 'P':
+                break
+            prefix += char
 
-        prefix = self.view.substr(sublime.Region(lines[0].begin(), lines[0].begin() + initial_prefix_match.end()))
+        if not prefix:
+            return None
 
         for line in lines[1:]:
             if self.view.substr(sublime.Region(line.begin(), line.begin() + len(prefix))) != prefix:

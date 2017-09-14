@@ -1,5 +1,6 @@
 import sublime
 import sublime_plugin
+import sublime_api
 
 
 MAX_COLUMNS = 2
@@ -186,6 +187,13 @@ class AutomaticPaneCloser(sublime_plugin.EventListener):
         window = sublime.active_window()
 
         if not is_automatic_layout(window):
+            return
+
+        if sublime_api.window_is_dragging(window.id()):
+            return
+
+        # Only close panes when closing the transient sheet
+        if view.size() != 0 or view.file_name() is not None:
             return
 
         # Maintain the focused group, which is required if the group being

@@ -14,7 +14,7 @@ variables:
   nonascii: '[\p{L}\p{M}\p{S}\p{N}&&[^[:ascii:]]]'
   nmstart: '(?:[[_a-zA-Z]{{nonascii}}]|{{escape}})'
   nmchar: '(?:[[-\w]{{nonascii}}]|{{escape}})'
-  ident: '-?{{nmstart}}{{nmchar}}*'
+  ident: '(?:--{{nmchar}}+|-?{{nmstart}}{{nmchar}}*)'
 
   # Types
   # https://www.w3.org/TR/css3-values/#numeric-types
@@ -33,21 +33,21 @@ variables:
 
   custom_element_chars: |-
     (?x:
-        [-_a-z0-9\xB7]
+        [-_a-z0-9\x{00B7}]
       | \\\.
-      | [\xC0-\xD6]
-      | [\xD8-\xF6]
-      | [\x{000000F8}-\x{000002FF}]
-      | [\x{00000300}-\x{0000037D}]
-      | [\x{0000037F}-\x{00001FFF}]
-      | [\x{0000200C}-\x{0000200D}]
-      | [\x{0000203F}-\x{00002040}]
-      | [\x{00002070}-\x{0000218F}]
-      | [\x{00002C00}-\x{00002FEF}]
-      | [\x{00003001}-\x{0000D7FF}]
-      | [\x{0000F900}-\x{0000FDCF}]
-      | [\x{0000FDF0}-\x{0000FFFD}]
-      | [\x{00010000}-\x{000EFFFF}]
+      | [\x{00C0}-\x{00D6}]
+      | [\x{00D8}-\x{00F6}]
+      | [\x{00F8}-\x{02FF}]
+      | [\x{0300}-\x{037D}]
+      | [\x{037F}-\x{1FFF}]
+      | [\x{200C}-\x{200D}]
+      | [\x{203F}-\x{2040}]
+      | [\x{2070}-\x{218F}]
+      | [\x{2C00}-\x{2FEF}]
+      | [\x{3001}-\x{D7FF}]
+      | [\x{F900}-\x{FDCF}]
+      | [\x{FDF0}-\x{FFFD}]
+      | [\x{10000}-\x{EFFFF}]
     )
 
   combinators: '(?:>{1,3}|[~+])'
@@ -112,6 +112,12 @@ contexts:
       scope: constant.other.color.rgb-value.css
       captures:
         1: punctuation.definition.constant.css
+      # RGBA Hexadecimal Colors
+      # https://en.wikipedia.org/wiki/RGBA_color_space#RGBA_hexadecimal_.28word-order.29
+    - match: '(#)\h{8}\b'
+      scope: constant.other.color.rgba-value.css
+      captures:
+        1: punctuation.definition.constant.css
 
   comment-block:
     - match: /\*
@@ -135,7 +141,7 @@ contexts:
   # @counter-style
   # https://drafts.csswg.org/css-counter-styles-3/#the-counter-style-rule
   at-counter-style:
-    - match: \s*((@)counter-style\b)\s+(?:(?i:\b(decimal|none)\b)|({{ident}}))\s*(?={)
+    - match: \s*((@)counter-style\b)\s+(?:(?i:\b(decimal|none)\b)|({{ident}}))\s*(?=\{|$)
       captures:
         1: keyword.control.at-rule.counter-style.css
         2: punctuation.definition.keyword.css
@@ -143,6 +149,7 @@ contexts:
         4: entity.other.counter-style-name.css
       push:
         - meta_scope: meta.at-rule.counter-style.css
+        - include: comment-block
         - include: rule-list-terminator
         - include: rule-list
 
@@ -191,12 +198,13 @@ contexts:
         - include: comma-delimiter
 
   at-font-face:
-    - match: '\s*((@)font-face)\s*(?=\{)'
+    - match: '\s*((@)font-face)\s*(?=\{|$)'
       captures:
         1: keyword.control.at-rule.font-face.css
         2: punctuation.definition.keyword.css
       push:
         - meta_scope: meta.at-rule.font-face.css
+        - include: comment-block
         - include: rule-list-terminator
         - include: rule-list
 
@@ -349,7 +357,7 @@ contexts:
   # @page
   # https://www.w3.org/TR/CSS2/page.html
   at-page:
-    - match: '\s*((@)page)\s*(?:(:)(first|left|right))?\s*(?=\{)'
+    - match: '\s*((@)page)\s*(?:(:)(first|left|right))?\s*(?=\{|$)'
       captures:
         1: keyword.control.at-rule.page.css
         2: punctuation.definition.keyword.css
@@ -357,6 +365,7 @@ contexts:
         4: entity.other.pseudo-class.css
       push:
         - meta_scope: meta.at-rule.page.css
+        - include: comment-block
         - include: rule-list-terminator
         - include: rule-list
 
@@ -425,7 +434,7 @@ contexts:
               | border(-bottom|-left|-right|-top)?-(color|radius|width|style)
               | border-(bottom|top)-(left|right)-radius
               | border-image(-outset|-repeat|-slice|-source|-width)?
-              | border(-bottom|-left|-right|-top|-collapse|-spacing)?
+              | border(-bottom|-left|-right|-top|-collapse|-spacing|-box)?
               | both|bottom
               | box(-shadow)?
               | break-(all|word)
@@ -516,9 +525,12 @@ contexts:
               | replaced|reset-size|reverse|ridge|right
               | round
               | row(-resize|-reverse)?
-              | rtl|ruby|running|saturat(e|ion)|screen
+              | run-in
+              | ruby(-base|-text)?(-container)?
+              | rtl|running|saturat(e|ion)|screen
               | scroll(-position|bar)?
               | separate|sepia
+              | scale-down
               | shape-(image-threshold|margin|outside)
               | show
               | sideways(-lr|-rl)?
@@ -542,7 +554,7 @@ contexts:
               | super|swash
               | table(-caption|-cell|(-column|-footer|-header|-row)-group|-column|-row)?
               | tabular-nums|tb-rl
-              | text((-bottom|-(decoration|emphasis)-color|-indent|-(over|under)-edge|-shadow|-size(-adjust)?|-top)|field)?
+              | text((-bottom|-(decoration|emphasis)-color|-indent|-(over|under|after|before)-edge|-shadow|-size(-adjust)?|-top)|field)?
               | thi(ck|n)
               | titling-ca(ps|se)
               | to[p]?
@@ -566,7 +578,7 @@ contexts:
             )\b
       scope: support.constant.property-value.css
       # Generic Font Families: https://www.w3.org/TR/CSS2/fonts.html
-    - match: \b(?i:arial|century|comic|courier|garamond|georgia|helvetica|impact|lucida|symbol|system|tahoma|times|trebuchet|utopia|verdana|webdings|sans-serif|serif|monospace|fantasy|cursive)\b
+    - match: \b(?i:sans-serif|serif|monospace|fantasy|cursive)\b(?=\s*[;,\n}])
       scope: support.constant.font-name.css
 
   property-values:
@@ -610,6 +622,26 @@ contexts:
             1: keyword.other.custom-property.prefix.css
             2: support.type.custom-property.name.css
         - include: custom-property-name
+        - match: \bfont(-family)?(?!-)\b
+          scope: support.type.property-name.css
+          push:
+            - match: (:)([ \t]*)
+              captures:
+                1: punctuation.separator.key-value.css
+                2: meta.property-value.css
+              push:
+                - meta_content_scope: meta.property-value.css
+                - match: '\s*(;)|(?=[})])'
+                  captures:
+                    1: punctuation.terminator.rule.css
+                  pop: true
+                - include: property-values
+                - match: '{{ident}}(\s+{{ident}})*'
+                  scope: string.unquoted.css
+                - match: ','
+                  scope: punctuation.separator.css
+            - match: ''
+              pop: true
         # Property names are sorted by popularity in descending order.
         # Popularity data taken from https://www.chromestatus.com/metrics/css/popularity
         - match: |-
@@ -638,7 +670,7 @@ contexts:
               | border-top|unicode-range|list-style-position|orphans|outline-width
               | line-clamp|order|flex-direction|box-pack|animation-fill-mode
               | outline-color|list-style-image|list-style|touch-action|flex-grow
-              | border-left-style|border-left|speak|animation-iteration-count
+              | border-left-style|border-left|animation-iteration-count
               | page-break-inside|box-flex|box-align|page-break-after|animation-delay
               | widows|border-right-style|border-right|flex-align|outline-style
               | outline|background-origin|animation-direction|fill-opacity
@@ -676,21 +708,22 @@ contexts:
               | font-variant|font-size-adjust|font-size|font-language-override
               | font-display|font-synthesis|font|line-box-contain|text-justify
               | text-decoration-color|text-decoration-style|text-decoration-line
-              | text-decoration|text-underline-position|grid-template|rotate
-              | scale|translate|grid-template-columns|grid-template-rows
-              | scroll-behavior|grid-column-start|grid-column-end|grid-column-gap
-              | grid-row-start|grid-row-end|grid-auto-rows|grid-template-areas
+              | text-decoration|text-underline-position|grid-template-rows
+              | grid-template-columns|grid-template-areas|grid-template|rotate|scale
+              | translate|scroll-behavior|grid-column-start|grid-column-end
+              | grid-column-gap|grid-row-start|grid-row-end|grid-auto-rows
               | grid-area|grid-auto-flow|grid-auto-columns|image-orientation
               | hyphens|overflow-scrolling|overflow|color-profile|kerning
-              | nbsp-mode|color|image-resolution|grid-row|grid-column|blend-mode
-              | azimuth|pause-after|pause-before|pause|pitch-range|pitch|text-height
-              | system|negative|prefix|suffix|range|pad|fallback|additive-symbols
-              | symbols|speak-as
+              | nbsp-mode|color|image-resolution|grid-row-gap|grid-row|grid-column
+              | blend-mode|azimuth|pause-after|pause-before|pause|pitch-range|pitch
+              | text-height|system|negative|prefix|suffix|range|pad|fallback
+              | additive-symbols|symbols|speak-as|speak|grid-gap
             )\b
           scope: support.type.property-name.css
-    - match: (:)\s*
+    - match: (:)([ \t]*)
       captures:
         1: punctuation.separator.key-value.css
+        2: meta.property-value.css
       push:
         - meta_content_scope: meta.property-value.css
         - match: '\s*(;)|(?=[})])'
@@ -1269,6 +1302,7 @@ contexts:
           - include: percentage-type
           - include: minmax-function
           - include: integer-type
+          - include: var-function
           - match: \b(auto-fill|auto-fit)\b
             scope: support.keyword.repetitions.css
           - match: \b(max-content|min-content|auto)\b
@@ -1363,19 +1397,25 @@ contexts:
       scope: support.function.calc.css
       push:
         - meta_scope: meta.function-call.css
-        - include: function-notation-terminator
         - match: '\('
           scope: punctuation.definition.group.begin.css
-          push:
-          - meta_scope: meta.group.css
-          - match: '(?=\))'
-            pop: true
-          - include: calc-function
-          - include: var-function
-          - include: numeric-values
-          - include: attr-function
-          - match: "[-/*+]"
-            scope: keyword.operator.css
+          push: inside-calc-parens
+        - match: ''
+          pop: true
+
+  inside-calc-parens:
+    - meta_scope: meta.group.css
+    - match: '(?=\))'
+      set: function-notation-terminator
+    - include: calc-function
+    - include: var-function
+    - include: numeric-values
+    - include: attr-function
+    - match: "[-/*+]"
+      scope: keyword.operator.css
+    - match: '\('
+      scope: punctuation.definition.group.begin.css
+      push: inside-calc-parens
 
   # attr()
   # https://www.w3.org/TR/css3-values/#funcdef-attr
@@ -1720,6 +1760,7 @@ contexts:
             pop: true
           - include: comma-delimiter
           - include: color-adjuster-functions # must be included before `color-values`
+          - include: var-function
           - include: color-values
           - include: angle-type
           - include: number-type
@@ -1805,6 +1846,7 @@ contexts:
             scope: keyword.other.color-space.css
           - include: color-values
           - include: percentage-type
+          - include: var-function
 
   unicode-range:
     - match: |-
@@ -1830,7 +1872,7 @@ contexts:
   # Custom Properties
   # https://drafts.csswg.org/css-variables/#typedef-custom-property-name
   custom-property-name:
-    - match: '(--)({{ident}})'
+    - match: '(--)({{nmchar}}+)'
       scope: support.type.custom-property.css
       captures:
         1: punctuation.definition.custom-property.css

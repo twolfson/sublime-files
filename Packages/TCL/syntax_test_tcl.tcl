@@ -18,6 +18,22 @@ pg_select $database \
 data
 # <- - variable.function
 
+becs::wizFrame -info [becs_infobody "interface.jpg" \
+    "Specify VID parameters<br><br><strong>VID groups</strong> can be used to build ranges that is added to the VID range field."] \
+    -title "$ifacename VID parameters"
+# ^ - meta.substitution
+
+if {[catch {becs::objectCreate -class interface \
+        -flags "statistics,interfaceautoprobe" \
+        -name $aggrname -role $extra_role \
+                        -parameters [array get params] \
+        -opaque [list "becs.editor" "ifrole.tcl"] \
+        -parentoid $aggr_attach_oid} err]} {
+return "Creating aggregator interface $aggrname under element/management element-module OID $aggr_attach_oid: $err"
+}
+#^ - meta.block
+#^ - meta.substitution
+
 # -------------------------------------------------------------------------- #
 # Issue 134: https://github.com/SublimeTextIssues/DefaultPackages/issues/134
 # -------------------------------------------------------------------------- #
@@ -47,6 +63,30 @@ namespace eval A {
         }
     }
 }
+
+set dirname "${v_seagull_cfg_root}/seagull-[format "%02d" [expr $ctrlport - $v_seagull_ctrl_port]]"
+#                                           ^^^^^^ keyword.other
+#                                                          ^^^^ keyword.other
+
+set a [list]
+#      ^^^^ keyword.other
+
+set res "[join [lrange [split $res ","] 0 end-1] ","] ..."
+#         ^^^^ keyword.other
+#               ^^^^^^ keyword.other
+#                       ^^^^^ keyword.other
+
+regexp {instance="?([^" \t]+)"?} $counter matchedstring instance; # comment
+#       ^^^^^^^^^^^^^^^^^^^^^^^ string.regexp
+
+set check1 [regexp {^'(.){0,32}'$} $param]
+#                   ^^^^^^^^^^^^^ string.regexp
+
+set check2 [regexp {[*\?\|"<>:/\]+} $param]
+#                   ^^^^^^^^^^^^^^ string.regexp
+
+set stepquote [regsub -all {"} $line {""} ]
+#                             ^ - string
 
 set copy [[$root selectNodes //*\[@ID="$idref"\]] cloneNode -deep]
 #                               ^^ constant.character.escape
@@ -98,15 +138,12 @@ proc ${ns}::suffix {} {}
 # -------------------------------------------------------------------------- #
 set ok1 {["]"]}
 #       ^^^^^^^ meta.block
-#        ^^^^^ meta.substitution
 #         ^^^ string.quoted.double
 set ok2 {["][]"]}
 #       ^^^^^^^^^ meta.block
-#        ^^^^^^^ meta.substitution
 #         ^^^^^ string.quoted.double
 set not_ok {["]["]}
 #          ^^^^^^^^ meta.block
-#           ^^^^^^ meta.substitution
 #            ^^^^ string.quoted.double
 puts $ok1            ;# ["]"]
 # ^ keyword.other
@@ -159,3 +196,76 @@ else {}
 
 set y {1 2 3}a
 #            ^ invalid.illegal
+
+# -------------------------------------------------#
+# https://github.com/sublimehq/Packages/issues/779
+# ------------------------------------------------ #
+regexp -inline -all -- {%[a-zA-Z_]*%} "whatever"
+#      ^^^^^^^^^^^^^^^^^ - string
+
+regexp -all -inline {%[a-zA-Z_]*%} "whatever"
+#      ^^^^^^^^^^^^^^ - string
+
+# -------------------------------------------------#
+# https://github.com/sublimehq/Packages/issues/783
+# https://github.com/sublimehq/Packages/issues/784
+# ------------------------------------------------ #
+set objRegExp {(^[a-zA-Z]{2}[a-zA-Z0-9-]{2,12}$)}
+#             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block - invalid
+#                                                ^ - meta.block
+set objRegExp {(.{0,200})}
+#             ^^^^^^^^^^^^ meta.block - invalid
+#                         ^ - meta.block
+
+proc test {} {
+
+    set saoid [svcmap_saoid sm]
+#   ^^^ keyword.other
+    # Syntax highligting works inside an if statement:
+    if {[defvar cpe_uplink_ifoid 0] == 0} {
+        array set cpe_param [objectGetField -oid $cpeoid -fieldname parameters]
+#       ^^^^^ keyword.other
+#                            ^^^^^^^^^^^^^^ variable.function
+        if {[info exists cpe_param(model)]} {
+            set cpe_model $cpe_param(model)
+        } else {
+            error "ERROR: Model not set"
+#           ^^^^^ keyword.other
+#                 ^ string.quoted.double
+        }
+    }
+
+    # but not within for example a foreach loop:
+    foreach cpe_ifoid [objectTreeFind -oid $cpeoid -walkdown 0 -classmask interface] {
+#   ^^^^^^^ keyword.control
+#                      ^^^^^^^^^^^^^^ variable.function
+        set cpe_if_role [objectGetField -oid $cpe_ifoid -fieldname role]
+#       ^^^ keyword.other
+        if {[string match "uplink.running" $cpe_if_role]} {
+#       ^^ keyword.control
+#            ^^^^^^ keyword.other
+            set cpe_uplink_ifoid $cpe_ifoid
+            set cpe_uplink_name [objectGetField -oid $cpe_uplink_ifoid -fieldname name]
+            break
+        }
+    }
+
+    switch -- $parclass {
+#   ^^^^^^ keyword.control
+        "element-attach" {
+#       ^^^^^^^^^^^^^^^^ string.quoted.double
+            # CPE SA
+#           ^^^^^^^^^ comment
+            return [svcmap_hook_return sm]
+#           ^^^^^^ keyword.control
+#                   ^^^^^^^^^^^^^^^^^^ variable.function
+        }
+
+        "interface" {
+#       ^^^^^^^^^^^ string.quoted.double
+            set ifoid $paroid
+            set eaoid [elm_oid_by_iface $ifoid]
+            set earole [objectGetField -oid $eaoid -fieldname role]
+		}
+	}
+}

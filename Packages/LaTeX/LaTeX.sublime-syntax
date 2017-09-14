@@ -64,6 +64,7 @@ contexts:
           pop: true
         - include: general-constants
         - include: general-commands
+        - include: global-braces
         - match: '[A-Za-z[:digit:]-]*(?=\s*\=)'
           scope: variable.parameter.bracket.latex
 
@@ -173,7 +174,7 @@ contexts:
           (\{)(\\[A-Za-z@]+)(\})
           | (\\[A-Za-z@])+
         )
-        (?:(\[)(?:[^\]]*)(\]))?
+        (?:(\[)(?:[^\]]*)(\]))*
         (\{)
       captures:
         1: support.function.newcommand.latex storage.modifier.newcommand.latex
@@ -369,7 +370,7 @@ contexts:
       captures:
         1: support.function.begin.latex keyword.control.flow.begin.latex
         2: punctuation.definition.backslash.latex
-        3: punctuation.definition.brace.bebgin.latex
+        3: punctuation.definition.group.brace.begin.latex
         4: variable.parameter.function.latex
         5: punctuation.definition.group.brace.end.latex
       push:
@@ -485,6 +486,8 @@ contexts:
     - include: scope:text.tex#math-characters
     - include: scope:text.tex#math-numerics
     - include: general-constants
+    - match: (?=\})
+      pop: true
 
   inline-math:
     - match: \$
@@ -544,6 +547,7 @@ contexts:
           align|alignat|aligned|alignedat|displaymath
           |eqnarray|equation|flalign|gather|gathered
           |math|multline|x?xalignat|split
+          |dmath|dseries|dgroup|darray|dsuspend
         )\*?)\s*(\})
       captures:
         1: support.function.begin.latex keyword.control.flow.begin.latex
@@ -589,6 +593,7 @@ contexts:
         2: punctuation.definition.backslash.latex
         3: punctuation.definition.verb.latex
       push:
+        - meta_include_prototype: false
         - meta_scope: meta.environment.verbatim.verb.latex
         - meta_content_scope: markup.raw.verb.latex
         - match: '\3'
@@ -771,6 +776,7 @@ contexts:
     - include: minted
     - include: pkgcomment
     - include: beamer
+    - include: pkgarray
 
   # listings package
   pkglistings:
@@ -1654,3 +1660,170 @@ contexts:
        3: punctuation.definition.group.brace.begin.latex
        4: entity.name.function.frame.latex
        5: punctuation.definition.group.brace.end.latex
+
+  # support for array package
+  pkgarray:
+    - match: |-
+        (?x)
+        (
+          (\\)newcolumntype
+        )
+        (?:
+          (\{)
+          (
+            (?:\\[A-Za-z@]+)
+            | (?:[A-Za-z@])
+          )
+          (\})
+        )
+        (?:(\[)(?:[^\]]*)(\]))*
+        (\{)
+      captures:
+        1: support.function.newcolumntype.latex
+        2: punctuation.definition.backslash.latex
+        3: punctuation.definition.group.brace.begin.latex
+        4: support.function.latex entity.name.newcolumntype.latex
+        5: punctuation.definition.group.brace.end.latex
+        6: punctuation.definition.group.bracket.begin.latex
+        7: punctuation.definition.group.bracket.end.latex
+        8: punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_include_prototype: false
+        - meta_scope: meta.function.newcolumntype.latex
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: array-preamble
+
+
+    - match: |-
+        (?x)
+        ((\\)begin)(\{)(tabular)(\})
+        (?:(\[)(?:b|c|t)(\]))?
+        (?=\s*\{)
+      captures:
+        1: support.function.begin.latex keyword.control.flow.begin.latex
+        2: punctuation.definition.backslash.latex
+        3: punctuation.definition.group.brace.begin.latex
+        4: variable.parameter.function.latex
+        5: punctuation.definition.group.brace.end.latex
+        6: punctuation.definition.group.bracket.begin.latex
+        7: punctuation.definition.group.bracket.end.latex
+      push:
+        - meta_scope: meta.environment.tabular.latex
+        - match: '\{'
+          scope: meta.function.column-spec.latex punctuation.definition.group.brace.begin.latex
+          set:
+            - meta_content_scope: meta.environment.tabular.latex meta.function.column-spec.latex
+            - include: array-preamble
+            - match: '\}'
+              scope: punctuation.definition.group.brace.end.latex
+              set:
+                - meta_content_scope: meta.environment.tabular.latex
+                - match: '((\\)end)(\{)(tabular)(\})'
+                  scope: meta.environment.tabular.latex
+                  captures:
+                    1: support.function.end.latex keyword.control.flow.end.latex
+                    2: punctuation.definition.backslash.latex
+                    3: punctuation.definition.group.brace.begin.latex
+                    4: variable.parameter.function.latex
+                    5: punctuation.definition.group.brace.end.latex
+                  pop: true
+                - include: main
+
+
+  array-preamble:
+    - match: '\{'
+      scope: punctuation.definition.group.brace.begin.latex
+      push:
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: array-preamble
+
+    - match: 'l|r|c'
+      scope: keyword.other.column-type.latex
+
+    - match: '(?:p|m|b)(?=\s*\{)'
+      scope: support.function.parbox-column.latex
+      push:
+        - meta_scope: meta.function.parbox-column.latex
+        - include: general-1-argument
+
+    - match: '(>)\s*(\{)'
+      captures:
+        1: support.function.insert-before-column.latex
+        2: punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_scope: meta.function.before-column-decl.latex
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: general-constants
+        - include: general-commands
+        - include: macro-braces
+
+    - match: '(<)\s*(\{)'
+      captures:
+        1: support.function.insert-after-column.latex
+        2: punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_scope: meta.function.after-column-decl.latex
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: general-constants
+        - include: general-commands
+        - include: macro-braces
+
+    - match: '\|'
+      scope: keyword.operator.inter-column-line.latex
+
+    - match: '(@)\s*(\{)'
+      captures:
+        1: support.function.inter-column-nospace.latex
+        2: punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_scope: meta.function.inter-column-decl.latex
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: general-constants
+        - include: general-commands
+        - include: macro-braces
+
+    - match: '(!)\s*(\{)'
+      captures:
+        1: support.function.inter-column.latex
+        2: punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_scope: meta.function.inter-column-decl.latex
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          pop: true
+        - include: general-constants
+        - include: general-commands
+        - include: macro-braces
+
+    - match: '(\*)\s*(\{)'
+      captures:
+        1: support.function.insert-repeated.latex
+        2: meta.function.insert-repeated-count.latex punctuation.definition.group.brace.begin.latex
+      push:
+        - meta_content_scope: meta.function.insert-repeated-count.latex
+        - match: '\d+'
+          scope: constant.numeric.array-count.latex
+        - include: general-commands
+        - match: '\}'
+          scope: punctuation.definition.group.brace.end.latex
+          set:
+            - match: '\{'
+              scope: meta.function.insert-repeated-content.latex punctuation.definition.group.brace.begin.latex
+              set:
+                - meta_content_scope: meta.function.insert-repeated-content.latex
+                - include: array-preamble
+                - match: '\}'
+                  scope: meta.function.insert-repeated-content.latex punctuation.definition.group.brace.end.latex
+                  pop: true
+            - match: (?=\S)
+              pop: true

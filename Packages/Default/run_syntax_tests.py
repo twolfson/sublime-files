@@ -255,6 +255,11 @@ def package_relative_path(view):
         show_error()
         return None
 
+    def os_to_resource_path(p):
+        if p and os.name == 'nt':
+            p = p.replace('\\', '/')
+        return p
+
     path = None
     file_name = None
     relative_path = None
@@ -265,7 +270,7 @@ def package_relative_path(view):
     path = view.file_name()
     file_name = os.path.basename(path)
     if path.startswith(data_dir):
-        relative_path = 'Packages' + path[len(packages_path):]
+        relative_path = os_to_resource_path('Packages' + path[len(packages_path):])
 
     else:
         # Detect symlinked files that are opened from outside the Packages dir
@@ -273,7 +278,7 @@ def package_relative_path(view):
         suffix = file_name
         while not prefix.endswith(os.sep):
             if os.path.exists(os.path.join(packages_path, suffix)):
-                relative_path = os.path.join('Packages', suffix)
+                relative_path = os_to_resource_path(os.path.join('Packages', suffix))
                 break
             prefix, tail = os.path.split(prefix)
             suffix = os.path.join(tail, suffix)
@@ -282,14 +287,15 @@ def package_relative_path(view):
         # are actually the same. Otherwise it may just be a checked-out version
         # of the Packages repository.
         if relative_path:
-            loader_version = sublime.load_resource(relative_path)
-            with open(path, 'r', encoding='utf-8', newline='') as f:
-                fs_version = f.read()
-            if fs_version != loader_version:
+            try:
+                loader_version = sublime.load_resource(relative_path)
+            except IOError:
                 relative_path = None
-
-    if relative_path and os.name == 'nt':
-        relative_path = relative_path.replace('\\', '/')
+            else:
+                with open(path, 'r', encoding='utf-8', newline='') as f:
+                    fs_version = f.read()
+                if fs_version != loader_version:
+                    relative_path = None
 
     if not relative_path:
         show_error()
