@@ -5,7 +5,7 @@
 // example, in Packages/User/Python.sublime-settings for python files.
 {
     // Sets the colors used within the text area
-    "color_scheme": "Packages/Color Scheme - Default/Monokai.tmTheme",
+    "color_scheme": "Monokai.sublime-color-scheme",
 
     // Note that the font_face and font_size are overridden in the platform
     // specific settings file, for example, "Preferences (Linux).sublime-settings".
@@ -14,12 +14,31 @@
     "font_face": "",
     "font_size": 10,
 
-    // Valid options are "no_bold", "no_italic", "no_antialias", "gray_antialias",
-    // "subpixel_antialias", "no_round" (OS X only), "gdi" (Windows only) and
-    // "directwrite" (Windows only)
+    // Valid options on all platforms are:
+    //  - "no_bold": Disables bold text
+    //  - "no_italic": Disables italic text
+    // Antialiasing options:
+    //  - "no_antialias": Disables antialiasing
+    //  - "gray_antialias": Uses grayscale antialiasing instead of subpixel
+    // Ligature options:
+    //  - "no_liga": Disables standard ligatures (OpenType liga feature)
+    //  - "no_clig": Disables contextual ligatures (OpenType clig feature)
+    //  - "no_calt": Disables contextual alternatives (OpenType calt feature)
+    //  - "dlig": Enables discretionary ligatures (OpenType dlig feature)
+    //  - "ss01": Enables OpenType stylistic set 1. Can enable sets 1 to 10
+    //        by changing the last two digits.
+    // Windows-only options:
+    //  - "directwrite": (default) Use DirectWrite for font rendering
+    //  - "gdi": Use GDI for font rendering
+    //  - "dwrite_cleartype_classic": Only applicable to "directwrite" mode,
+    //        should render fonts similar to traditional GDI
+    //  - "dwrite_cleartype_natural": Only applicable to "directwrite" mode,
+    //        should render fonts similar to ClearType "natural quality" GDI
+    //  - "subpixel_antialias": Force ClearType antialiasing when disabled
+    //        at system level
     "font_options": [],
-    // Font options for theme text. Valid options are: "no_antialias",
-    // "gray_antialias", "gdi" (Windows only) and "directwrite" (Windows only)
+    // Font options for theme text. Valid options are the same as
+    // "font_options", except "no_bold" and "no_italic" are not supported
     "theme_font_options": [],
 
     // Characters that are considered to separate words

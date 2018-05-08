@@ -37,15 +37,15 @@ def transpose_selections(edit, view, can_transpose_words=False):
         # " wora! arst"
         if transpose_words and can_transpose_words:
             if sel.end() == we:
-                next = view.find('\w', word_sel.end())
+                next = view.find(r'\w', word_sel.end())
                 if next is None:
                     continue
                 trans = [view.word(next), word_sel]
             else:
                 if wb == 0:
                     continue
-                for pt in range(wb-1, -1, -1):
-                    if re.match('\w', view.substr(pt)):
+                for pt in range(wb - 1, -1, -1):
+                    if re.match(r'\w', view.substr(pt)):
                         break
                 trans = [word_sel, view.word(pt)]
         else:

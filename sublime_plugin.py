@@ -2,6 +2,7 @@ import imp
 import importlib
 import os
 import sys
+import threading
 import time
 import traceback
 import zipfile
@@ -53,6 +54,12 @@ all_callbacks = {
     'on_load_async': [],
     'on_clone_async': []}
 
+pending_on_activated_async_lock = threading.Lock()
+
+pending_on_activated_async_callbacks = {
+    'EventListener': [],
+    'ViewEventListener': []}
+
 profile = {}
 
 
@@ -64,13 +71,13 @@ def unload_module(module):
         module.unload_handler()
 
     # Unload the old plugins
-    if "plugins" in module.__dict__:
+    if "__plugins__" in module.__dict__:
         for view_id, listener_instances in view_event_listeners.items():
             for vel in listener_instances[:]:
-                if vel.__class__ in module.plugins:
+                if vel.__class__ in module.__plugins__:
                     listener_instances.remove(vel)
 
-        for p in module.plugins:
+        for p in module.__plugins__:
             for cmd_cls_list in all_command_classes:
                 try:
                     cmd_cls_list.remove(p)
@@ -110,6 +117,9 @@ def reload_plugin(modulename):
 
     module_plugins = []
     on_activated_targets = []
+    vel_on_activated_classes = []
+    el_on_activated_async_targets = []
+    vel_on_activated_async_targets = []
     module_view_event_listener_classes = []
     for type_name in dir(m):
         try:
@@ -138,18 +148,34 @@ def reload_plugin(modulename):
                     if "on_activated" in dir(obj):
                         on_activated_targets.append(obj)
 
+                    if "on_activated_async" in dir(obj):
+                        el_on_activated_async_targets.append(obj)
+
                     module_plugins.append(obj)
 
                 if issubclass(t, ViewEventListener):
                     view_event_listener_classes.append(t)
                     module_view_event_listener_classes.append(t)
+                    if "on_activated" in dir(t):
+                        vel_on_activated_classes.append(t)
+                    if "on_activated_async" in dir(t):
+                        vel_on_activated_async_targets.append(t)
                     module_plugins.append(t)
 
         except AttributeError:
             pass
 
+    if el_on_activated_async_targets or vel_on_activated_async_targets:
+        with pending_on_activated_async_lock:
+            pending_on_activated_async_callbacks['EventListener'].extend(
+                el_on_activated_async_targets
+            )
+            pending_on_activated_async_callbacks['ViewEventListener'].extend(
+                vel_on_activated_async_targets
+            )
+
     if len(module_plugins) > 0:
-        m.plugins = module_plugins
+        m.__plugins__ = module_plugins
 
     if api_ready:
         if "plugin_loaded" in m.__dict__:
@@ -158,23 +184,70 @@ def reload_plugin(modulename):
             except:
                 traceback.print_exc()
 
-        # Synthesize any required on_activated calls
-        for el in on_activated_targets:
-            w = sublime.active_window()
-            if w:
-                v = w.active_view()
-                if v:
-                    try:
-                        el.on_activated(v)
-                    except:
-                        traceback.print_exc()
-
         # Create any require ViewEventListener objects
         if len(module_view_event_listener_classes) > 0:
             for w in sublime.windows():
                 for v in w.views():
                     create_view_event_listeners(
                         module_view_event_listener_classes, v)
+
+        # Synthesize any required on_activated calls
+        w = sublime.active_window()
+        if w:
+            v = w.active_view()
+            if v:
+                for el in on_activated_targets:
+                    try:
+                        el.on_activated(v)
+                    except:
+                        traceback.print_exc()
+
+                for vel_cls in vel_on_activated_classes:
+                    vel = find_view_event_listener(v, vel_cls)
+                    if not vel:
+                        continue
+                    try:
+                        vel.on_activated()
+                    except:
+                        traceback.print_exc()
+
+
+def synthesize_on_activated_async():
+    if not api_ready:
+        return
+
+    with pending_on_activated_async_lock:
+        els = pending_on_activated_async_callbacks['EventListener']
+        vels = pending_on_activated_async_callbacks['ViewEventListener']
+        pending_on_activated_async_callbacks['EventListener'] = []
+        pending_on_activated_async_callbacks['ViewEventListener'] = []
+
+    for el in els:
+        w = sublime.active_window()
+        if not w:
+            continue
+        v = w.active_view()
+        if not v:
+            continue
+        try:
+            el.on_activated_async(v)
+        except:
+            traceback.print_exc()
+
+    for vel_cls in vels:
+        w = sublime.active_window()
+        if not w:
+            continue
+        v = w.active_view()
+        if not v:
+            continue
+        vel = find_view_event_listener(v, vel_cls)
+        if not vel:
+            continue
+        try:
+            vel.on_activated_async()
+        except:
+            traceback.print_exc()
 
 
 def create_application_commands():
@@ -211,6 +284,12 @@ def on_api_ready():
             except:
                 traceback.print_exc()
 
+    # Create ViewEventListener instances
+    if len(view_event_listener_classes) > 0:
+        for w in sublime.windows():
+            for v in w.views():
+                attach_view(v)
+
     # Synthesize an on_activated call
     w = sublime.active_window()
     if w:
@@ -220,12 +299,6 @@ def on_api_ready():
                 on_activated(view_id)
             except:
                 traceback.print_exc()
-
-    # Create ViewEventListener instances
-    if len(view_event_listener_classes) > 0:
-        for w in sublime.windows():
-            for v in w.views():
-                attach_view(v)
 
 
 def is_view_event_listener_applicable(cls, view):
@@ -426,6 +499,7 @@ def on_load(view_id):
 
     for callback in all_callbacks['on_load']:
         run_callback('on_load', callback, lambda: callback.on_load(v))
+    run_view_listener_callback(v, 'on_load')
 
 
 def on_load_async(view_id):
@@ -435,17 +509,20 @@ def on_load_async(view_id):
             callback.on_load_async(v)
         except:
             traceback.print_exc()
+    run_async_view_listener_callback(v, 'on_load_async')
 
 
 def on_pre_close(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_pre_close']:
         run_callback('on_pre_close', callback, lambda: callback.on_pre_close(v))
+    run_view_listener_callback(v, 'on_pre_close')
 
 
 def on_close(view_id):
     v = sublime.View(view_id)
 
+    run_view_listener_callback(v, 'on_close')
     detach_view(v)
 
     for callback in all_callbacks['on_close']:
@@ -456,6 +533,7 @@ def on_pre_save(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_pre_save']:
         run_callback('on_pre_save', callback, lambda: callback.on_pre_save(v))
+    run_view_listener_callback(v, 'on_pre_save')
 
 
 def on_pre_save_async(view_id):
@@ -465,12 +543,14 @@ def on_pre_save_async(view_id):
             callback.on_pre_save_async(v)
         except:
             traceback.print_exc()
+    run_async_view_listener_callback(v, 'on_pre_save_async')
 
 
 def on_post_save(view_id):
     v = sublime.View(view_id)
     for callback in all_callbacks['on_post_save']:
         run_callback('on_post_save', callback, lambda: callback.on_post_save(v))
+    run_view_listener_callback(v, 'on_post_save')
 
 
 def on_post_save_async(view_id):
@@ -480,6 +560,7 @@ def on_post_save_async(view_id):
             callback.on_post_save_async(v)
         except:
             traceback.print_exc()
+    run_async_view_listener_callback(v, 'on_post_save_async')
 
 
 def on_modified(view_id):
@@ -629,6 +710,18 @@ def on_hover(view_id, point, hover_zone):
 
 def on_text_command(view_id, name, args):
     v = sublime.View(view_id)
+
+    for vel in event_listeners_for_view(v):
+        if 'on_text_command' in vel.__class__.__dict__:
+            try:
+                res = vel.on_text_command(name, args)
+                if isinstance(res, tuple):
+                    return res
+                elif res:
+                    return (res, None)
+            except:
+                traceback.print_exc()
+
     for callback in all_callbacks['on_text_command']:
         try:
             res = callback.on_text_command(v, name, args)
@@ -665,6 +758,13 @@ def on_post_text_command(view_id, name, args):
         except:
             traceback.print_exc()
 
+    for vel in event_listeners_for_view(v):
+        if 'on_post_text_command' in vel.__class__.__dict__:
+            try:
+                vel.on_post_text_command(name, args)
+            except:
+                traceback.print_exc()
+
 
 def on_post_window_command(window_id, name, args):
     window = sublime.Window(window_id)
@@ -673,6 +773,121 @@ def on_post_window_command(window_id, name, args):
             callback.on_post_window_command(window, name, args)
         except:
             traceback.print_exc()
+
+
+class CommandInputHandler(object):
+    def name(self):
+        clsname = self.__class__.__name__
+        name = clsname[0].lower()
+        last_upper = False
+        for c in clsname[1:]:
+            if c.isupper() and not last_upper:
+                name += '_'
+                name += c.lower()
+            else:
+                name += c
+            last_upper = c.isupper()
+        if name.endswith("_input_handler"):
+            name = name[0:-14]
+        return name
+
+    def next_input(self, args):
+        return None
+
+    def placeholder(self):
+        return ""
+
+    def initial_text(self):
+        return ""
+
+    def preview(self, arg):
+        return ""
+
+    def validate(self, arg):
+        return True
+
+    def cancel(self):
+        pass
+
+    def confirm(self, arg):
+        pass
+
+    def create_input_handler_(self, args):
+        return self.next_input(args)
+
+    def preview_(self, v):
+        ret = self.preview(v)
+
+        if ret is None:
+            return ("", 0)
+        elif isinstance(ret, sublime.Html):
+            return (ret.data, 1)
+        else:
+            return (ret, 0)
+
+    def validate_(self, v):
+        return self.validate(v)
+
+    def cancel_(self):
+        self.cancel()
+
+    def confirm_(self, v):
+        self.confirm(v)
+
+
+class BackInputHandler(CommandInputHandler):
+    def name(self):
+        return "_Back"
+
+
+class TextInputHandler(CommandInputHandler):
+    def description(self, text):
+        return text
+
+    def setup_(self, args):
+        props = {
+            "initial_text": self.initial_text(),
+            "placeholder_text": self.placeholder(),
+            "type": "text",
+        }
+
+        return ([], props)
+
+    def description_(self, v, text):
+        return self.description(text)
+
+
+class ListInputHandler(CommandInputHandler):
+    def list_items(self):
+        return []
+
+    def description(self, v, text):
+        return text
+
+    def setup_(self, args):
+        items = self.list_items()
+
+        selected_item_index = -1
+
+        if isinstance(items, tuple):
+            items, selected_item_index = items
+
+        for i in range(len(items)):
+            it = items[i]
+            if isinstance(it, str):
+                items[i] = (it, it)
+
+        props = {
+            "initial_text": self.initial_text(),
+            "placeholder_text": self.placeholder(),
+            "selected": selected_item_index,
+            "type": "list",
+        }
+
+        return (items, props)
+
+    def description_(self, v, text):
+        return self.description(v, text)
 
 
 class Command(object):
@@ -772,14 +987,37 @@ class Command(object):
     def want_event(self):
         return False
 
+    def input(self, args):
+        return None
+
+    def input_description(self):
+        return ""
+
+    def create_input_handler_(self, args):
+        return self.input(args)
+
 
 class ApplicationCommand(Command):
     def run_(self, edit_token, args):
         args = self.filter_args(args)
-        if args:
-            return self.run(**args)
-        else:
-            return self.run()
+        try:
+            if args:
+                return self.run(**args)
+            else:
+                return self.run()
+        except (TypeError) as e:
+            if 'required positional argument' in str(e):
+                if sublime_api.can_accept_input(self.name(), args):
+                    sublime.active_window().run_command(
+                        'show_overlay',
+                        {
+                            'overlay': 'command_palette',
+                            'command': self.name(),
+                            'args': args
+                        }
+                    )
+                    return
+            raise
 
     def run(self):
         pass
@@ -791,10 +1029,25 @@ class WindowCommand(Command):
 
     def run_(self, edit_token, args):
         args = self.filter_args(args)
-        if args:
-            return self.run(**args)
-        else:
-            return self.run()
+        try:
+            if args:
+                return self.run(**args)
+            else:
+                return self.run()
+        except (TypeError) as e:
+            if 'required positional argument' in str(e):
+                if sublime_api.window_can_accept_input(self.window.id(), self.name(), args):
+                    sublime_api.window_run_command(
+                        self.window.id(),
+                        'show_overlay',
+                        {
+                            'overlay': 'command_palette',
+                            'command': self.name(),
+                            'args': args
+                        }
+                    )
+                    return
+            raise
 
     def run(self):
         pass
@@ -806,18 +1059,33 @@ class TextCommand(Command):
 
     def run_(self, edit_token, args):
         args = self.filter_args(args)
-        if args:
-            edit = self.view.begin_edit(edit_token, self.name(), args)
-            try:
-                return self.run(edit, **args)
-            finally:
-                self.view.end_edit(edit)
-        else:
-            edit = self.view.begin_edit(edit_token, self.name())
-            try:
-                return self.run(edit)
-            finally:
-                self.view.end_edit(edit)
+        try:
+            if args:
+                edit = self.view.begin_edit(edit_token, self.name(), args)
+                try:
+                    return self.run(edit, **args)
+                finally:
+                    self.view.end_edit(edit)
+            else:
+                edit = self.view.begin_edit(edit_token, self.name())
+                try:
+                    return self.run(edit)
+                finally:
+                    self.view.end_edit(edit)
+        except (TypeError) as e:
+            if 'required positional argument' in str(e):
+                if sublime_api.view_can_accept_input(self.view.id(), self.name(), args):
+                    sublime_api.window_run_command(
+                        sublime_api.view_window(self.view.id()),
+                        'show_overlay',
+                        {
+                            'overlay': 'command_palette',
+                            'command': self.name(),
+                            'args': args
+                        }
+                    )
+                    return
+            raise
 
     def run(self, edit):
         pass
@@ -866,8 +1134,8 @@ class ZipLoader(object):
         self._scan_zip()
 
     def has(self, fullname):
-        key = '.'.join(fullname.split('.')[1:])
-        if key in self.contents:
+        name, key = fullname.split('.', 1)
+        if name == self.name and key in self.contents:
             return True
 
         override_file = os.path.join(override_path, os.sep.join(fullname.split('.')) + '.py')
@@ -888,7 +1156,7 @@ class ZipLoader(object):
             if self.refreshed < time.time() - 5:
                 self._scan_zip()
 
-        source, source_path, mod_file, is_pkg = self._read_source(fullname)
+        source, source_path, is_pkg = self._read_source(fullname)
 
         if source is None:
             raise ImportError("No module named '%s'" % fullname)
@@ -904,7 +1172,7 @@ class ZipLoader(object):
             mod.__path__ = [self.zippath]
             mod.__loader__ = self
 
-        mod.__file__ = mod_file
+        mod.__file__ = source_path
 
         if is_pkg:
             mod.__package__ = mod.__name__
@@ -922,6 +1190,13 @@ class ZipLoader(object):
                 mod.__file__ = old_mod_file
             raise
 
+    def get_source(self, fullname):
+        name, key = fullname.split('.', 1)
+        if name != self.name:
+            return None
+        source, _, _ = self._read_source(fullname)
+        return source
+
     def _read_source(self, fullname):
         name_parts = fullname.split('.')
         override_basename = os.path.join(override_path, *name_parts)
@@ -931,32 +1206,31 @@ class ZipLoader(object):
         if os.path.isfile(override_py):
             try:
                 with open(override_py, 'r', encoding='utf-8') as f:
-                    return (f.read(), override_py, override_py, False)
+                    return (f.read(), override_py, False)
             except (Exception) as e:
                 print(override_py, 'could not be read:', e)
 
         if os.path.isfile(override_init):
             try:
                 with open(override_init, 'r', encoding='utf-8') as f:
-                    return (f.read(), override_init, override_init, True)
+                    return (f.read(), override_init, True)
             except (Exception) as e:
                 print(override_init, 'could not be read:', e)
 
         key = '.'.join(name_parts[1:])
         if key in self.contents:
             source = self.contents[key]
-            source_path = key + " in " + self.zippath
-            mod_file = os.path.join(self.zippath, self.filenames[key]).rstrip(os.sep)
+            source_path = os.path.join(self.zippath, self.filenames[key]).rstrip(os.sep)
             is_pkg = key in self.packages
-            return (source, source_path, mod_file, is_pkg)
+            return (source, source_path, is_pkg)
 
         # This allows .py overrides to exist in subfolders that:
         #  1. Do not exist in the .sublime-package file
         #  2. Do not contain an __init__.py
         if os.path.isdir(override_basename):
-            return ('', override_basename, override_basename, True)
+            return ('', override_basename, True)
 
-        return (None, None, None, False)
+        return (None, None, False)
 
     def _scan_zip(self):
         self.contents = {"": ""}

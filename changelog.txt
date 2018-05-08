@@ -11,6 +11,13 @@ ul {
     padding-left: 1.2rem;
 }
 li { margin: 2px; }
+ul.topic {
+    margin-top: 0;
+    padding-left: 1.5rem;
+}
+ul.topic ul {
+    margin: 0.2em 0;
+}
 h1 {
     font-size: 2.0rem;
     margin: 0;
@@ -19,6 +26,12 @@ h2 {
     color: #444;
     font-size: 1.4rem;
     margin: 1em 0 0.1em 0;
+}
+h3 {
+    color: #666;
+    font-size: 1.05rem;
+    margin: 1em 0 0.25em 0.5em;
+    font-weight: bold;
 }
 a {
     color: #000;
@@ -34,8 +47,156 @@ article { display: block; }
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>3.1 (Build 3170)</h2>
+<div class="release-date">7 May 2018</div>
+<div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-point-1">Announcement Post</a></div>
+
+<h3>Themes/UI</h3>
+<ul class="topic">
+    <li>Windows: Added support for Windows 10 (and 8.1) per-monitor DPI scaling</li>
+    <li>Improved overall High DPI support</li>
+    <li>Added support for 8k monitors and 300% DPI scale</li>
+    <li>Themes can now provide <tt>@3x</tt> versions of images for very high DPI monitors</li>
+    <li>Improved indent guide positions when using line padding</li>
+    <li>Rulers are drawn with stippled lines</li>
+    <li>Linux/Windows: Improved High DPI minimap rendering</li>
+    <li>Mac: Fixed occasional yellow or black windows when using a theme with a colored title bar</li>
+    <li>Mac: Double-clicking a themed title bar now performs the default system action</li>
+    <li>Mac: Fixed sizing of some dialog windows when a theme uses a themed title bar</li>
+    <li>Mac: Fixed gutter icons sometimes not drawing</li>
+</ul>
+
+<h3>Text Rendering</h3>
+<ul class="topic">
+    <li>Added ligature support for symbols</li>
+    <li>Added <tt>font_options</tt> for controlling ligatures and stylistic sets</li>
+    <li>Improved rendering and selection of emojis</li>
+    <li>Tab width is now properly measured for proportional fonts</li>
+    <li>Windows: DirectWrite is now used by default for all fonts</li>
+    <li>Windows: Support <tt>gray_antialias</tt> in conjunction with DirectWrite</li>
+    <li>Windows: improved DirectWrite anti-aliasing, adding support for system ClearType tuning</li>
+</ul>
+
+<h3>Goto Definition</h3>
+<ul class="topic">
+    <li>Added Goto References when hovering over a symbol</li>
+    <li>Added <tt>goto_reference</tt> command to the Goto menu</li>
+</ul>
+
+<h3>Color Schemes</h3>
+<ul class="topic">
+    <li>Added new color scheme format, <a href="http://www.sublimetext.com/docs/3/color_schemes.html">.sublime-color-scheme</a></li>
+    <li>Add <a href="http://www.sublimetext.com/docs/3/color_schemes.html#hashed_syntax_highlighting">Hashed Syntax Highlighting</a></li>
+    <li>Added the <i>Celeste</i> color scheme to showcase hashed syntax highlighting</li>
+    <li>Selections now render by default with true rounded corners</li>
+    <li>Added <a href="http://www.sublimetext.com/docs/3/color_schemes.html#global_settings-selection">color scheme settings</a> for selection border width, corner style and radius</li>
+    <li>Selection background and border now support alpha channels</li>
+    <li>Improved color scheme reloading</li>
+    <li>Added <i>Convert Color Scheme</i> command</li>
+    <li>Added support for the <tt>invisibles</tt> key in color schemes</li>
+    <li><tt>selection_foreground</tt> can now be specified on a per-scope basis</li>
+    <li>Color Schemes can specify <tt>bold</tt> and <tt>italic</tt> in the <tt>brackets_options</tt> key</li>
+    <li>Improved handling of <tt>invalid.deprecated</tt> scopes in default color schemes</li>
+</ul>
+
+<h3>Syntax Highlighting</h3>
+<ul class="topic">
+    <li>Add <tt><a href="http://www.sublimetext.com/docs/3/syntax.html#match_patterns">embed</a></tt> action to <tt>.sublime-syntax</tt> files for improved syntax nesting</li>
+    <li>Added <i>Git Formats</i> package for Git config files and use as <tt>core.editor</tt>, with thanks to <a href="https://github.com/y0ssar1an">Ryan Boehning</a> and <a href="https://github.com/deathaxe">deathaxe</a></li>
+    <li>Many syntax highlighting improvements, including significant improvements to:
+        <ul>
+            <li><i>JavaScript</i>, with thanks to <a href="https://github.com/Thom1729">Thomas Smith</a></li>
+            <li><i>ShellScript</i>, with thanks to <a href="https://github.com/rwols">Raoul Wols</a></li>
+            <li><i>Makefiles</i>, with thanks to <a href="https://github.com/rwols">Raoul Wols</a></li>
+            <li><i>Java</i>, with thanks to <a href="https://github.com/lastsecondsave">lastsecondsave</a></li>
+            <li><i>C#</i>, with thanks to <a href="https://github.com/keith-hall">keith-hall</a></li>
+            <li><i>Markdown</i>, with thanks to <a href="https://github.com/keith-hall">keith-hall</a></li>
+            <li><i>Python</i>, with thanks to <a href="https://github.com/FichteFoll">FichteFoll</a></li>
+        </ul>
+    </li>
+    <li>Added stand alone syntax test runner for Linux, allowing for <a href="https://github.com/sublimehq/Packages/blob/master/.travis.yml">CI testing</a></li>
+    <li>Various syntax definition errors now include the file name in the message</li>
+</ul>
+
+<h3>Command Palette</h3>
+<ul class="topic">
+    <li>New <i>Command Palette</i> implementation that can accept text input from users</li>
+    <li>Fuzzy matching can match terms out of order by space separating them</li>
+    <li>Added new commands <i>Arithmetic</i>, <i>Rename File</i> and <i>View Package File</i> to showcase new features</li>
+    <li>Keyboard shortcut hints are no longer cut off at 15 characters</li>
+</ul>
+
+<h3>Build Systems</h3>
+<ul class="topic">
+    <li>Improve cancellation handling</li>
+    <li>Use <tt>/usr/bin/env</tt> to locate bash</li>
+    <li>Fix multi-byte encodings sometimes triggering decoding errors</li>
+    <li>Improved <tt>exec</tt> build target handling of killing child processes</li>
+</ul>
+
+<h3>Files and Folders</h3>
+<ul class="topic">
+    <li>Improved handling of symlinks in the sidebar, including additions and removals</li>
+    <li>Symlinks no longer have an expand arrow in the sidebar, but have a <i>Reveal Link Source</i> context menu entry</li>
+    <li>Add support for <tt>binary_file_patterns</tt>, <tt>index_exclude_patterns</tt> and <tt>index_include_patterns</tt> to <tt>.sublime-project</tt> files</li>
+    <li><tt>index_exclude_patterns</tt> and <tt>index_include_patterns</tt> can now match full paths instead of just filename</li>
+    <li>Linux/Windows: File system notifications now account for symlinks (and Windows junctions)</li>
+    <li>Linux: file system notification now only requires a single inotify instance</li>
+    <li>Linux: Improved behavior when <tt>fs.inotify.max_user_watches</tt> is too low</li>
+    <li>Mac: Reduced the number of file stats operations</li>
+    <li>Mac: Added support for case-sensitive file systems</li>
+</ul>
+
+<h3>Input</h3>
+<ul class="topic">
+    <li>Fixed popup and auto complete windows not showing when the caret is at the leftmost position of a widget</li>
+    <li>Fix left arrow not working in the side bar</li>
+    <li>Fixed not being able to grab the scrollbar by clicking on the rightmost pixels of the window</li>
+    <li>Fix double clicking on the selection not setting input focus when <tt>drag_drop</tt> is enabled</li>
+    <li>Linux: Context menus no longer cause the editor control to be focused when closed</li>
+    <li>Windows: Fix pen input</li>
+</ul>
+
+<h3>Performance</h3>
+<ul class="topic">
+    <li>Significantly reduced memory usage related to syntax definitions - using up to 30% less total program memory</li>
+    <li>Improve idle CPU usage</li>
+    <li>Fix a bug where theme animations may continue even after a layer has been hidden, causing excessive CPU usage</li>
+    <li>Mac: Solved increased CPU usage on Macs when a GPU switch occurs while using a theme with a colored title bar</li>
+</ul>
+
+<h3>API</h3>
+<ul class="topic">
+    <li>Added <tt><a href="http://www.sublimetext.com/docs/3/api_reference.html#sublime_plugin.TextInputHandler">TextInputHandler</a></tt> and <tt><a href="http://www.sublimetext.com/docs/3/api_reference.html#sublime_plugin.ListInputHandler">ListInputHandler</a></tt> to interact with new <i>Command Palette</i> functionality</li>
+    <li>Added <tt><a href="http://www.sublimetext.com/docs/3/api_reference.html#sublime.View">View.style()</a></tt> and <tt><a href="http://www.sublimetext.com/docs/3/api_reference.html#sublime.View">View.style_for_scope()</a></tt></li>
+    <li>Added automatically generated scope names for use with the regions API: <tt>region.redish</tt>, <tt>region.orangish</tt>, <tt>region.yellowish</tt>, <tt>region.greenish</tt>, <tt>region.bluish</tt>, <tt>region.purplish</tt> and <tt>region.pinkish</tt></li>
+    <li>Improve <tt>View.find()</tt> and <tt>View.find_all()</tt> performance when doing literal matches</li>
+    <li>Expanded <tt><a href="http://www.sublimetext.com/docs/3/api_reference.html#sublime_plugin.ViewEventListener">ViewEventListener</a></tt> API</li>
+    <li>Fix <tt>EventListener.on_activated_async()</tt> not being called for views when the editor starts</li>
+    <li>Add <tt>ViewEventListener.on_activated()</tt> and <tt>ViewEventListener.on_activated_async()</tt> to be called for views when the editor starts</li>
+    <li>Improve tracebacks for Python in <tt>.sublime-package</tt> files</li>
+    <li><tt>shell_environment</tt> is now ensured to be loaded before <tt>plugin_loaded()</tt> is called on plugins</li>
+    <li>Plugin commands are now created before <tt>plugin_loaded()</tt> is run</li>
+    <li>Loaded plugins are now stored in <tt>__plugins__</tt> rather than <tt>plugins</tt></li>
+    <li>The Python <tt>ssl</tt> module will now negotiate TLS 1.2, 1.1 or 1.0 with the <tt>PROTOCOL_TLSv1</tt> constant</li>
+    <li>Updated Python environment with SQLite 3.22.0, and OpenSSL 1.0.2n</li>
+</ul>
+
+<h3>Miscellaneous</h3>
+<ul class="topic">
+    <li>Fixed being unable to load dictionary files larger than 16mb</li>
+    <li>Fixed an issue where out of memory conditions would trigger a buffer overflow instead of a clean crash</li>
+    <li>Word wrap is turned on by default for the console</li>
+    <li>Added <tt>Regex Replace Widget.sublime-settings</tt> and <tt>Console Input Widget.sublime-settings</tt></li>
+    <li>Fixed a number of bugs that would cause crashes</li>
+</ul>
+
+</article>
+
+<article>
 <h2>3.0 (Build 3143)</h2>
-<div class="release-date">September 2017</div>
+<div class="release-date">13 September 2017</div>
+<div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-point-0">Announcement Post</a></div>
 <ul>
     <li>Refreshed UI theme, including full high DPI support</li>
     <li>New icon</li>

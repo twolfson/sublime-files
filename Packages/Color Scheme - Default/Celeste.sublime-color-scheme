@@ -1,0 +1,192 @@
+{
+    "name": "Celeste",
+    "author": "Sublime HQ Pty Ltd",
+    "variables":
+    {
+        // These colors are part of the hashed range
+        // and should only be used in non-source
+        "purple": "hsla(260, 50%, 60%, 1)",
+        "blue": "hsla(200, 70%, 45%, 1)",
+        "teal": "hsla(170, 70%, 45%, 1)",
+        "green": "hsla(130, 70%, 45%, 1)",
+        // End of hashed range colors
+        "red": "hsla(0, 70%, 65%, 1)",
+        "orange": "hsla(25, 90%, 60%, 1)",
+        "dark_orange": "hsla(10, 90%, 60%, 1)",
+        "yellow": "hsla(50, 100%, 60%, 1)",
+        "brown": "hsla(30, 30%, 45%, 1)",
+        "dark_brown": "hsla(30, 30%, 30%, 1)",
+        "magenta": "hsla(335, 100%, 65%, 1)",
+        "light_gray": "#f6f6f6",
+        "dark_gray": "#333",
+        "black": "black"
+    },
+    "globals":
+    {
+        "foreground": "var(black)",
+        "background": "#fff",
+        "caret": "var(magenta)",
+        "selection": "color(var(dark_gray) a(0.08))",
+        "selection_border": "var(teal)",
+        "inactive_selection": "color(var(dark_gray) a(0.08))",
+        "line_highlight": "#eee",
+        "highlight": "var(magenta)",
+        "find_highlight": "var(yellow)",
+        "find_highlight_foreground": "var(dark_brown)",
+        "active_guide": "var(red)",
+        "stack_guide": "var(orange)",
+        "shadow": "#bbb",
+        "accent": "var(orange)",
+        "misspelling": "var(dark_orange)",
+        "fold_marker": "var(yellow)",
+    },
+    "rules":
+    [
+        {
+            "scope": "text",
+            "foreground": "#444"
+        },
+        {
+            "scope": "source - comment - string - keyword - punctuation - storage - entity - source.css",
+            "foreground": ["var(green)", "var(purple)"]
+        },
+        {
+            "scope": "comment",
+            "foreground": "#888",
+            "font_style": "italic"
+        },
+        {
+            "scope": "entity.name - entity.name.tag - entity.name.section",
+            "foreground": "var(orange)",
+            "background": "var(light_gray)",
+        },
+        {
+            "scope": "entity.other.inherited-class",
+            "foreground": "var(dark_orange)",
+            "background": "var(light_gray)",
+        },
+        {
+            "scope": "support.function.builtin, support.class.builtin, variable.language",
+            "foreground": "var(black)",
+            "font_style": "italic"
+        },
+        {
+            "scope": "keyword.operator",
+            "foreground": "#666",
+            "background": "#fff"
+        },
+        {
+            "scope": "keyword, constant.language",
+            "foreground": "var(black)",
+            "font_style": "italic"
+        },
+        {
+            "scope": "constant.numeric",
+            "foreground": "var(red)"
+        },
+        {
+            "scope": "constant.character",
+            "foreground": "var(dark_orange)"
+        },
+        {
+            "scope": "storage, support.type.sys-types",
+            "foreground": "var(black)",
+            "background": "#f3f3f3",
+            "font_style": "italic"
+        },
+        {
+            "scope": "string",
+            "foreground": "var(brown)",
+        },
+        {
+            "scope": "punctuation.definition.string",
+            "foreground": "var(dark_brown)"
+        },
+        {
+            "scope": "punctuation",
+            "foreground": "#666"
+        },
+        {
+            "scope": "meta.function-call variable.parameter",
+            "foreground": "var(dark_brown)"
+        },
+        {
+            "scope": "invalid.illegal",
+            "foreground": "white",
+            "background": "var(dark_orange)",
+        },
+        {
+            "scope": "invalid.deprecated",
+            "foreground": "white",
+            "background": "var(orange)",
+        },
+        // HTML
+        {
+            "scope": "entity.name.tag",
+            "foreground": "var(blue)"
+        },
+        // HTML/CSS
+        {
+            "scope": "entity.other.attribute-name",
+            "foreground": "var(teal)"
+        },
+        {
+            "scope": "entity.other.attribute-name.id",
+            "foreground": "var(orange)"
+        },
+        // CSS
+        {
+            "scope": "support.type.property-name",
+            "foreground": "var(purple)"
+        },
+        {
+            "scope": "support.type.vendor-prefix",
+            "foreground": "var(blue)"
+        },
+        {
+            "scope": "entity.other.pseudo-class",
+            "foreground": "var(green)"
+        },
+        // Markdown
+        {
+            "scope": "markup.heading.1 entity.name.section",
+            "foreground": "var(blue)",
+            "font_style": "bold"
+        },
+        {
+            "scope": "markup.heading.2 entity.name.section",
+            "foreground": "var(blue)"
+        },
+        {
+            "scope": "entity.name.section",
+            "foreground": "var(teal)"
+        },
+        {
+            "scope": "markup.italic",
+            "foreground": "var(black)",
+            "font_style": "italic"
+        },
+        {
+            "scope": "markup.bold",
+            "foreground": "var(black)",
+            "font_style": "bold"
+        },
+        {
+            "scope": "markup.list punctuation.definition.list_item",
+            "foreground": "var(dark_orange)"
+        },
+        {
+            "scope": "markup.raw",
+            "background": "var(light_gray)"
+        },
+        {
+            "scope": "markup.raw constant.other.language-name",
+            "foreground": "var(green)",
+            "font_style": "italic"
+        },
+        {
+            "scope": "meta.table.header - punctuation",
+            "font_style": "bold"
+        },
+    ]
+}

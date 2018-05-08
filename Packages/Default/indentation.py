@@ -143,7 +143,7 @@ class TabCommand(sublime_plugin.TextCommand):
             self.operation_regions = view.sel()
 
         sels = save_selections(view)
-        visible,  = save_selections(view, [view.visible_region()])
+        visible, = save_selections(view, [view.visible_region()])
         self.do(edit, **kw)
         restore_selections(view, sels)
         visible = region_from_stored_selection(view, visible)

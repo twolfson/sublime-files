@@ -1,0 +1,55 @@
+{
+    "name": "Sublime Widgets",
+    "variables":
+    {
+        "black": "hsl(0, 0%, 0%)",
+        "black2": "hsl(60, 2%, 11%)",
+        "blue": "hsl(204, 62%, 30%)",
+        "blue2": "hsl(201, 31%, 71%)",
+        "blue3": "hsl(216, 100%, 50%)",
+        "blue4": "hsl(209, 26%, 73%)",
+        "blue5": "hsl(214, 45%, 47%)",
+        "blue6": "hsl(160, 23%, 23%)",
+        "grey": "hsl(202, 7%, 68%)",
+        "grey2": "hsl(0, 0%, 75%)",
+        "orange": "hsl(29, 91%, 54%)",
+        "white": "hsl(0, 0%, 100%)"
+    },
+    "globals":
+    {
+        "foreground": "var(black2)",
+        "background": "var(white)",
+        "caret": "var(black)",
+        "invisibles": "var(grey2)",
+        "line_highlight": "color(var(black) alpha(0.071))",
+        "selection": "var(blue2)",
+        "selection_border": "var(blue4)",
+        "inactive_selection": "var(grey)"
+    },
+    "rules":
+    [
+        {
+            "name": "Comment",
+            "scope": "comment",
+            "foreground": "var(blue3)",
+            "font_style": "italic"
+        },
+        {
+            "name": "Keyword",
+            "scope": "keyword, storage",
+            "foreground": "var(blue5)"
+        },
+        {
+            "scope": "constant",
+            "foreground": "var(blue6)"
+        },
+        {
+            "scope": "string",
+            "foreground": "var(blue)"
+        },
+        {
+            "scope": "constant.character.escape",
+            "foreground": "var(orange)"
+        }
+    ]
+}

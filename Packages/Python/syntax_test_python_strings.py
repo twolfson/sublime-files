@@ -23,6 +23,11 @@ var = "\x00 \xaa \xAF \070 \r \n \t \\ \a \b \' \v \f \u0aF1 \UFe0a182f \N{SPACE
 #                                                            ^^^^^^^^^^ constant.character.escape.unicode
 #                                                                       ^^^^^^^^^ constant.character.escape.unicode
 
+invalid_escapes = "\.  \7 \-"
+#                  ^^ invalid.deprecated.character.escape.python
+#                      ^^ invalid.deprecated.character.escape.python
+#                         ^^ invalid.deprecated.character.escape.python
+
 conn.execute("SELECT * FROM foobar")
 #              ^ meta.string.python keyword.other.DML.sql
 
@@ -384,6 +389,47 @@ rB'''This is a \n (test|with), %s no unicode \uDEAD'''
 datetime.strptime('2011227', '%Y%V%u')
 #                            ^^^^^^^^ string.quoted.single.python
 #                             ^^^^^^ constant.other.placeholder.python
+datetime.strftime(datetime.now(), '%Y%V%uT')
+#                                 ^^^^^^^^^ string.quoted.single.python
+#                                  ^^^^^^ constant.other.placeholder.python
+#                                        ^ - constant.other.placeholder.python
+
+'{0:%Y%m%d}'.format(datetime.date.today())
+# ^^^^^^^^^^ string.quoted.single.python
+# ^^^^^^^^ constant.other.placeholder.python
+#   ^^^^^^ constant.other.format-spec.python
+'{0:%Y-%m-%d}'.format(datetime.date.today())
+# ^^^^^^^^^^^^ string.quoted.single.python
+# ^^^^^^^^^^ constant.other.placeholder.python
+#   ^^^^^^^^ constant.other.format-spec.python
+'{0:%Y-%m-%dT}'.format(datetime.date.today())
+# ^^^^^^^^^^^^ string.quoted.single.python
+# ^^^^^^^^^^^ constant.other.placeholder.python
+#   ^^^^^^^^^ constant.other.format-spec.python
+'{0:T}'.format(datetime.date.today())  # This is legal but uninteresting
+# ^^^^^ string.quoted.single.python
+'{0:%Y}-{0:%m}-{0:%d}'.format(datetime.date.today())
+# ^^^^^^^^^^^^^^^^^^^ string.quoted.single.python
+# ^^^^^ constant.other.placeholder.python
+#  ^^^ constant.other.format-spec.python
+#      ^ - constant.other.placeholder.python
+#       ^^^^^^ constant.other.placeholder.python
+#          ^^ constant.other.format-spec.python
+#             ^ - constant.other.placeholder.python
+#              ^^^^^^ constant.other.placeholder.python
+#                 ^^ constant.other.format-spec.python
+'{0:%Y}-{0:%m
+# ^^^^^^^^^^^ string.quoted.single.python
+# ^^^^^ constant.other.placeholder.python
+#  ^^^ constant.other.format-spec.python
+#      ^^^^ - constant.other.placeholder.python
+#            ^ invalid.illegal.unclosed-string.python
+'{0:%Y}-{0:%
+# ^^^^^^^^^^^ string.quoted.single.python
+# ^^^^^ constant.other.placeholder.python
+#  ^^^ constant.other.format-spec.python
+#      ^^^^^ - constant.other.placeholder.python
+#           ^ invalid.illegal.unclosed-string.python
 
 x = "hello \
 #   ^^^^^^^^^ string.quoted.double.python - invalid.illegal.unclosed-string.python, \
@@ -416,7 +462,7 @@ sql = Ur"SELECT `name` FROM `users` \
 #                              ^ punctuation.definition.string.end.python
 
 sql = b'just some \
-#     ^^^^^^^^^^^^^^ string.quoted.single.python - invalid.illegal.unclosed-string.python, \
+#      ^^^^^^^^^^^^^ string.quoted.single.python - invalid.illegal.unclosed-string.python, \
 #                 ^ punctuation.separator.continuation.line.python, \
     string'
 #^^^^^^^^^^ string.quoted.single
@@ -493,21 +539,27 @@ a=["aaaa{", "bbbb{"]
 #       ^ - constant.other.placeholder
 #        ^ punctuation.definition.string.end.python
 
+foo = "{text{" # Comment
+#      ^^^^^^ - constant.other.placeholder
+#            ^ punctuation.definition.string.end
+bar = "}}" # Comment
+#      ^^ constant.character.escape
+
 f"string"
 # <- storage.type.string
 #^^^^^^^^ string.quoted.double
 
  RF"""string"""
-#^^ storage.type.string
-#^^^^^^^^^^^^^^ meta.string.interpolated string.quoted.double.block
+#^^ storage.type.string - string
+#  ^^^^^^^^^^^^ meta.string.interpolated string.quoted.double.block
 
 F'''string'''
 # <- storage.type.string
 #^^^^^^^^^^^^ meta.string.interpolated string.quoted.single.block
 
  rf'string'
-#^^ storage.type.string
-#^^^^^^^^^^ meta.string.interpolated string.quoted.single
+#^^ storage.type.string - string
+#  ^^^^^^^^ meta.string.interpolated string.quoted.single
 
 rf'\r\n' f'\r\n'
 #  ^^^^ - constant
@@ -558,7 +610,8 @@ f"result: {value:{width}.{precision}}\n"
 #                        ^^^^^^^^^^^ meta.interpolation.python meta.interpolation.python
 #                                   ^^^ - meta.interpolation.python meta.interpolation.python
 rf"{value:{width!s:d}}"
-#^^^^^^^^^^^^^^^^^^^^^^ meta.string.interpolated
+# <- storage.type.string.python - string
+# ^^^^^^^^^^^^^^^^^^^^^ meta.string.interpolated
 #          ^^^^^ source source.python.embedded
 #               ^^ storage.modifier.conversion
 #                 ^^ constant.other.format-spec

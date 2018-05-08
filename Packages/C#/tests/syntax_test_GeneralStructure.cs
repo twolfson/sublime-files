@@ -148,6 +148,18 @@ namespace YourNamespace
 ///                                  ^ variable.parameter
 ///                                    ^ punctuation.terminator
 
+    public delegate FooBar YourDelegate (int a);
+///        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.delegate
+///        ^^^^^^^^ storage.type.delegate
+///                 ^^^^^^ support.type
+///                        ^^^^^^^^^^^^ variable.other.member.delegate
+///                                     ^^^^^^^ meta.delegate.parameters
+///                                     ^ punctuation.section.parameters.begin
+///                                      ^^^ storage.type
+///                                          ^ variable.parameter
+///                                           ^ punctuation.section.parameters.end
+///                                            ^ punctuation.terminator
+
     enum YourEnum
 /// ^^^^^^^^^^^^^ meta.enum
 /// ^ storage.type.enum
@@ -301,7 +313,7 @@ namespace TestNamespace.Test
 ///         ^ meta.method meta.block meta.block punctuation.section.block.end
 
             switch (foo) {
-///         ^ keyword.control
+///         ^^^^^^ keyword.control.flow.switch
 ///                ^^^^^ meta.group
 ///                ^ punctuation.section.group.begin
 ///                 ^^^ variable.other
@@ -351,6 +363,12 @@ namespace TestNamespace.Test
 ///                             ^ punctuation.section.group.end
 ///                              ^ punctuation.separator.case-statement
                     break;
+                case abc.def:
+///             ^^^^ keyword.control.switch.case
+///                  ^^^ variable.other
+///                     ^ punctuation.accessor.dot
+///                      ^^^ constant.other
+///                         ^ punctuation.separator.case-statement
                 default:
 ///             ^ keyword.control
 ///                    ^ punctuation.separator
@@ -1017,9 +1035,55 @@ namespace TestNamespace.Test
     abc:
 /// ^^^ entity.name.label
 ///    ^ punctuation.separator
+
+        switch (test[0])
+        {
+            case 'a':
+                result += 4;
+                goto case 'b';
+///             ^^^^ keyword.control.flow.goto
+///                  ^^^^ keyword.control.switch.case
+///                       ^^^ constant.character
+///                          ^ punctuation.terminator.statement
+            case 'b':
+///         ^^^^ keyword.control.switch.case - invalid
+///              ^^^ constant.character
+///                 ^ punctuation.separator.case-statement
+                result += 6;
+                break;
+            case 'c':
+                result += 8;
+                break;
+        }
+    
+    int foo;
+    int.TryParse(input, out foo);
+///                     ^^^ storage.modifier.argument
+///                         ^^^ variable.other - support.type
+    int.TryParse(input, out foo /* comment */);
+///                     ^^^ storage.modifier.argument
+///                         ^^^ variable.other - support.type
     
         "hello".OfType<char>().Where(c => c == 'l').Count());
 ///                                                        ^ invalid.illegal.stray.brace
+
+        var test = (Action)(() => "hello".Dump());
+///                 ^^^^^^ meta.cast support.type
+///                        ^ punctuation.section.group.begin
+///                         ^^ meta.function.anonymous meta.group
+///                            ^^ storage.type.function.lambda
+///                                             ^ punctuation.section.group.end
+        test = (Action)(() => {});
+///            ^^^^^^^^ meta.cast
+///                    ^ meta.group punctuation.section.group.begin
+///                     ^^^^^^^ meta.function.anonymous
+///                     ^ meta.group punctuation.section.group.begin
+///                      ^ meta.group punctuation.section.group.end
+///                        ^^ storage.type.function.lambda
+///                           ^ punctuation.section.block.begin
+///                            ^ punctuation.section.block.end
+///                             ^ meta.group punctuation.section.group.end
+        test.Invoke();
 
         // https://msdn.microsoft.com/en-us/library/txafckwd(v=vs.110).aspx
 ///        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.underline.link
@@ -1111,6 +1175,10 @@ namespace TestNamespace.Test
 ///                                 ^^^^^^^^^^^^^^^^^^^^^^ constant.other.placeholder - invalid
 ///                                            ^^^^ constant.character.escape
 ///                                                      ^ punctuation.definition.placeholder.end
+        formatted = string.Format(test, hello == true, world);
+///                                     ^^^^^ variable.other - variable.parameter
+///                                                    ^^^^^ variable.other - variable.parameter
+///                                           ^^ keyword.operator - keyword.operator.assignment
     }
 }
 ///<- punctuation.section.block.end
@@ -1127,4 +1195,16 @@ class Test
 ///                           ^ invalid.illegal.expected-close-paren
     }
 /// ^ - invalid.illegal.stray.brace
+}
+
+void Main () { // method outside a class, i.e. a LINQPad script
+///^ storage.type
+///  ^^^^ entity.name.function
+}
+/// <- punctuation.section.block.end
+
+public class AfterTopLevelMethod {
+///^^^ storage.modifier.access
+///    ^^^^^ storage.type.class
+///          ^^^^^^^^^^^^^^^^^^^ entity.name.class
 }

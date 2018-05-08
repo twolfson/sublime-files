@@ -86,7 +86,7 @@ def shrink_wrap_region(view, region):
         if not view.substr(a).isspace():
             break
 
-    for b in range(b-1, a, -1):
+    for b in range(b - 1, a, -1):
         if not view.substr(b).isspace():
             b += 1
             break

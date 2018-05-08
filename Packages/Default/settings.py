@@ -123,52 +123,46 @@ class EditSyntaxSettingsCommand(sublime_plugin.WindowCommand):
         return self.window.active_view() is not None
 
 
-class EditSettingsListener(sublime_plugin.EventListener):
+class EditSettingsListener(sublime_plugin.ViewEventListener):
     """
     Closes the base and user settings files together, and then closes the
     window if no other views are opened
     """
 
-    def on_modified(self, view):
+    @classmethod
+    def is_applicable(cls, settings):
+        return settings.get('edit_settings_view') is not None
+
+    def on_modified(self):
         """
         Prevents users from editing the base file
         """
 
-        view_settings = view.settings()
-
-        settings_view_type = view_settings.get('edit_settings_view')
+        view_settings = self.view.settings()
 
         # If any edits are made to the user version, we unmark it as a
         # scratch view so that the user is prompted to save any changes
-        if settings_view_type == 'user' and view.is_scratch():
-            file_region = sublime.Region(0, view.size())
-            if view_settings.get('edit_settings_default') != view.substr(file_region):
-                view.set_scratch(False)
+        if view_settings.get('edit_settings_view') == 'user' and self.view.is_scratch():
+            file_region = sublime.Region(0, self.view.size())
+            if view_settings.get('edit_settings_default') != self.view.substr(file_region):
+                self.view.set_scratch(False)
 
-    def on_pre_close(self, view):
+    def on_pre_close(self):
         """
         Grabs the window id before the view is actually removed
         """
 
-        view_settings = view.settings()
-
-        if not view_settings.get('edit_settings_view'):
+        if self.view.window() is None:
             return
 
-        if view.window() is None:
-            return
+        self.view.settings().set('window_id', self.view.window().id())
 
-        view_settings.set('window_id', view.window().id())
-
-    def on_close(self, view):
+    def on_close(self):
         """
         Closes the other settings view when one of the two is closed
         """
 
-        view_settings = view.settings()
-
-        if not view_settings.get('edit_settings_view'):
-            return
+        view_settings = self.view.settings()
 
         window_id = view_settings.get('window_id')
         window = None

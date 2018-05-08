@@ -39,7 +39,21 @@ class SelectColorSchemeCommand(sublime_plugin.WindowCommand):
         self.schemes = []
         names = []
         package_set = set()
-        for cs in sublime.find_resources('*.tmTheme'):
+
+        files = sublime.find_resources('*.tmTheme')
+        trimmed_names = set()
+        for f in files:
+            name, ext = os.path.splitext(os.path.basename(f))
+            trimmed_names.add(name)
+
+        # Add all the sublime-color-scheme files, but not the overrides
+        for f in sublime.find_resources('*.sublime-color-scheme'):
+            name, ext = os.path.splitext(os.path.basename(f))
+            if name not in trimmed_names:
+                trimmed_names.add(name)
+                files.append(f)
+
+        for cs in files:
             if self.current and cs == self.current:
                 initial_highlight = len(self.schemes)
             if len(cs.split('/', 2)) != 3:  # Not in a package
@@ -248,3 +262,29 @@ class SelectThemeCommand(sublime_plugin.WindowCommand):
                 return
             self.prefs.set('theme', self.themes[index])
         sublime.set_timeout(update_theme, 250)
+
+
+class ResourceNameInputHandler(sublime_plugin.ListInputHandler):
+    def name(self):
+        return "name"
+
+    def placeholder(self):
+        return "Name"
+
+    def list_items(self):
+        items = []
+        for f in sublime.find_resources(''):
+            if f.startswith("Packages/"):
+                items.append(f[len("Packages/"):])
+        return items
+
+
+class ViewResourceCommand(sublime_plugin.WindowCommand):
+    def run(self, name):
+        self.window.run_command("open_file", {"file": "${packages}/" + name})
+
+    def input(self, args):
+        if "name" not in args:
+            return ResourceNameInputHandler()
+        else:
+            return None

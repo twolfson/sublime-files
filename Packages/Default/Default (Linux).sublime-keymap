@@ -228,6 +228,7 @@
 	{ "keys": ["ctrl+g"], "command": "show_overlay", "args": {"overlay": "goto", "text": ":"} },
 	{ "keys": ["ctrl+;"], "command": "show_overlay", "args": {"overlay": "goto", "text": "#"} },
 	{ "keys": ["f12"], "command": "goto_definition" },
+	{ "keys": ["shift+f12"], "command": "goto_reference" },
 	{ "keys": ["ctrl+shift+r"], "command": "goto_symbol_in_project" },
 	{ "keys": ["alt+-"], "command": "jump_back" },
 	{ "keys": ["alt+shift+-"], "command": "jump_forward" },

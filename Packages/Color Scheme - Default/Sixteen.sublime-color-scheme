@@ -1,0 +1,282 @@
+{
+    "name": "Sixteen",
+    "author": "Sublime HQ Pty Ltd, Chris Kempson",
+    "variables":
+    {
+        "blue": "hsl(206, 70%, 55%)",
+        "blue2": "hsl(172, 32%, 64%)",
+        "grey": "hsl(0, 0%, 72%)",
+        "grey2": "hsl(0, 0%, 60%)",
+        "grey3": "hsl(0, 0%, 20%)",
+        "grey4": "hsl(0, 0%, 22%)",
+        "grey5": "hsl(0, 0%, 33%)",
+        "grey6": "hsl(0, 0%, 40%)",
+        "grey7": "hsl(0, 0%, 80%)",
+        "orange": "hsl(29, 85%, 60%)",
+        "orange2": "hsl(47, 90%, 55%)",
+        "pink": "hsl(314, 25%, 64%)",
+        "red": "hsl(2, 65%, 50%)",
+        "white": "hsl(0, 0%, 100%)",
+        "white2": "hsl(0, 0%, 97%)",
+        "white3": "hsl(0, 0%, 96%)",
+        "white4": "hsl(0, 0%, 95%)",
+        "white5": "hsl(0, 0%, 93%)",
+        "white6": "hsl(0, 0%, 87%)",
+        "yellow": "hsl(76, 50%, 50%)"
+    },
+    "globals":
+    {
+        "foreground": "var(grey5)",
+        "background": "var(white)",
+        "caret": "var(grey4)",
+        "line_highlight": "var(white4)",
+        "selection": "var(white4)",
+        "selection_border": "var(white6)",
+        "inactive_selection": "var(white5)",
+        "misspelling": "var(red)",
+        "shadow": "var(grey7)"
+    },
+    "rules":
+    [
+        {
+            "name": "Text",
+            "scope": "variable.parameter",
+            "foreground": "var(grey4)"
+        },
+        {
+            "name": "Comments",
+            "scope": "comment, punctuation.definition.comment",
+            "foreground": "var(grey)"
+        },
+        {
+            "name": "Punctuation",
+            "scope": "punctuation.definition",
+            "foreground": "var(grey6)"
+        },
+        {
+            "name": "Operators",
+            "scope": "keyword.operator",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Keywords",
+            "scope": "keyword, keyword.operator.word",
+            "foreground": "var(pink)"
+        },
+        {
+            "name": "Variables",
+            "scope": "variable",
+            "foreground": "var(red)"
+        },
+        {
+            "name": "Functions",
+            "scope": "entity.name.function",
+            "foreground": "var(blue)"
+        },
+        {
+            "name": "Classes",
+            "scope": "entity.name - (entity.name.section | entity.name.tag | entity.name.label)",
+            "foreground": "var(orange2)"
+        },
+        {
+            "name": "Storage",
+            "scope": "storage",
+            "foreground": "var(pink)"
+        },
+        {
+            "name": "Storage Type",
+            "scope": "storage.type",
+            "font_style": "italic"
+        },
+        {
+            "name": "Support Functions",
+            "scope": "support.function",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Support Classes",
+            "scope": "support.class",
+            "foreground": "var(blue2)",
+            "font_style": "italic"
+        },
+        {
+            "name": "Support Constants",
+            "scope": "support.constant",
+            "foreground": "var(orange)",
+            "font_style": "italic"
+        },
+        {
+            "name": "CSS Support Constants",
+            "scope": "source.css support.constant",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Strings, Inherited Class",
+            "scope": "string, entity.other.inherited-class",
+            "foreground": "var(yellow)"
+        },
+        {
+            "name": "Misc Punctuation",
+            "scope": "punctuation.separator, punctuation.terminator, punctuation.accessor",
+            "foreground": "var(grey2)"
+        },
+        {
+            "name": "Misc Punctuation",
+            "scope": "punctuation.section",
+            "foreground": "var(grey3)"
+        },
+        {
+            "name": "Strings Punctuation",
+            "scope": "string punctuation.definition.string",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Integers",
+            "scope": "constant.numeric",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Constants",
+            "scope": "constant",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Tags",
+            "scope": "entity.name.tag",
+            "foreground": "var(red)"
+        },
+        {
+            "name": "Attributes",
+            "scope": "entity.other.attribute-name",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Headings",
+            "scope": "markup.heading punctuation.definition.heading",
+            "foreground": "var(red)"
+        },
+        {
+            "name": "Bold",
+            "scope": "markup.bold",
+            "font_style": "bold"
+        },
+        {
+            "name": "Bold",
+            "scope": "punctuation.definition.bold",
+            "foreground": "var(orange2)"
+        },
+        {
+            "name": "Italic",
+            "scope": "markup.italic",
+            "font_style": "italic"
+        },
+        {
+            "name": "Italic",
+            "scope": "punctuation.definition.italic",
+            "foreground": "var(pink)"
+        },
+        {
+            "name": "Code",
+            "scope": "markup.raw",
+            "background": "var(white2)"
+        },
+        {
+            "name": "Code",
+            "scope": "markup.raw.inline",
+            "foreground": "var(yellow)",
+            "background": "var(white3)"
+        },
+        {
+            "name": "Strings Punctuation",
+            "scope": "markup.raw.inline punctuation.definition.raw",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Link Text",
+            "scope": "string.other.link, markup.underline.link",
+            "foreground": "var(blue)"
+        },
+        {
+            "name": "Lists",
+            "scope": "punctuation.definition.list_item, markup.list.numbered.bullet",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Quotes",
+            "scope": "punctuation.definition.blockquote",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Quotes",
+            "scope": "punctuation.definition.blockquote",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Link/Image Punctuation",
+            "scope": "punctuation.definition.image, punctuation.definition.link, punctuation.definition.metadata",
+            "foreground": "var(grey2)"
+        },
+        {
+            "name": "Inserted",
+            "scope": "markup.inserted",
+            "foreground": "var(yellow)"
+        },
+        {
+            "name": "Deleted",
+            "scope": "markup.deleted",
+            "foreground": "var(red)"
+        },
+        {
+            "name": "Changed",
+            "scope": "markup.changed",
+            "foreground": "var(orange)"
+        },
+        {
+            "name": "Colors",
+            "scope": "constant.other.color",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Regular Expressions",
+            "scope": "string.regexp",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Regular Expressions Operator",
+            "scope": "string.regexp keyword.operator",
+            "foreground": "var(pink)"
+        },
+        {
+            "name": "Escape Characters",
+            "scope": "constant.character.escape",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "YAML String",
+            "scope": "source.yaml string.unquoted",
+            "foreground": "var(grey5)"
+        },
+        {
+            "name": "Embedded",
+            "scope": "punctuation.section.embedded",
+            "foreground": "var(blue2)"
+        },
+        {
+            "name": "Embedded",
+            "scope": "variable.interpolation",
+            "foreground": "var(pink)"
+        },
+        {
+            "name": "Illegal",
+            "scope": "invalid.illegal",
+            "foreground": "var(white)",
+            "background": "var(red)"
+        },
+        {
+            "name": "Invalid deprecated",
+            "scope": "invalid.deprecated",
+            "foreground": "var(white)",
+            "background": "var(orange)"
+        }
+    ]
+}

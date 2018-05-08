@@ -246,6 +246,303 @@ $var->meth()[10];
 //   ^ comment.block - keyword.other.phpdoc
  */
 
+/**
+ * @api Methods: declares that elements are suitable for consumption by third parties.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @author Any: documents the author of the associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @category File, Class: groups a series of packages together.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @copyright Any: documents the copyright information for the associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @deprecated Any: indicates that the associated element is deprecated and can be removed in a future version.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @example Any: shows the code of a specified example file or, optionally, just a portion of it.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @filesource File: includes the source of the current file for use in the output.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @global Variable: informs phpDocumentor of a global variable or its usage.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @ignore Any: tells phpDocumentor that the associated element is not to be included in the documentation.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @internal Any: denotes that the associated elements is internal to this application or library and hides it by default.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @license File, Class: indicates which license is applicable for the associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @link Any: indicates a relation between the associated element and a page of a website.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @method Class: allows a class to know which ‘magic’ methods are callable.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @package File, Class: categorizes the associated element into a logical grouping or subdivision.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @param Method, Function: documents a single argument of a function or method.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @property Class: allows a class to know which ‘magic’ properties are present.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @property-read Class: allows a class to know which ‘magic’ properties are present that are read-only.
+//  ^^^^^^^^^^^^^ keyword.other.phpdoc
+ */
+
+/**
+ * @property-write Class: allows a class to know which ‘magic’ properties are present that are write-only.
+//  ^^^^^^^^^^^^^^ keyword.other.phpdoc
+ */
+
+/**
+ * @return Method, Function: documents the return value of functions or methods.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @see Any: indicates a reference from the associated element to a website or other elements.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @since Any: indicates at which version the associated element became available.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @source Any, except File: shows the source code of the associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @subpackage File, Class: categorizes the associated element into a logical grouping or subdivision.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @throws Method, Function: indicates whether the associated element could throw a specific type of exception.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @todo Any: indicates whether any development activity should still be executed on the associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @uses Any: indicates a reference to (and from) a single associated element.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @var Properties: class properties.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @version Any: indicates the current version of Structural Elements.
+//  ^ keyword.other.phpdoc
+ */
+
+/**
+ * @after
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @afterClass
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @backupGlobals
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @backupStaticAttributes
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @before
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @beforeClass
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @codeCoverageIgnore*
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @covers
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @coversDefaultClass
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @coversNothing
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @dataProvider
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @depends
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @doesNotPerformAssertions
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @expectedException
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @expectedExceptionCode
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @expectedExceptionMessage
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @expectedExceptionMessageRegExp
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @group
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @large
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @medium
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @preserveGlobalState
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @requires
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @runTestsInSeparateProcesses
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @runInSeparateProcess
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @small
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @test
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @testdox
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @testWith
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * @ticket
+//  ^ keyword.other.phpunit
+ */
+
+/**
+ * PHP comment from issue #1378
+ *
+ * @see
+ * @author
+ * @package
+ * @version
+ NOTE: Modified */
+//^^^^^^^^^^^^^^^^ comment.block - comment.block.documentation
+//              ^^ punctuation.definition.comment.end
+//                ^ - comment
+
     class Test1 extends stdClass implements Countable {}
 //  ^ storage.type.class.php
 //        ^ entity.name.class.php
@@ -354,7 +651,7 @@ func_call(true, 1, "string");
 //                         ^ punctuation.section.group.end
 //        ^^^^ constant.language
 //            ^ punctuation.separator.php
-//              ^ constant.numeric
+//              ^ constant.numeric.integer.decimal
 //               ^ punctuation.separator.php
 //                 ^^^^^^^^ string.quoted.double
 
@@ -377,24 +674,30 @@ $test = new Test1;
 //          ^ support.class.php
 
 $anon = new class{};
-//      ^^^^^^^^^^^ meta.class
 //      ^ keyword.other.new.php
 //          ^ storage.type.class.php
+//               ^^ meta.class.php
 //               ^^ meta.block.php
 //               ^ punctuation.section.block.php - meta.class meta.class
 //                ^ punctuation.section.block.php
 
-$anon = new class extends Test1 implements Countable {};
-//      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.class - meta.class meta.class
+$anon = new class($param1, $param2) extends Test1 implements Countable {};
 //      ^ keyword.other.new.php
 //          ^ storage.type.class.php
-//                ^ storage.modifier.extends.php
-//                        ^^^^^ meta.path
-//                         ^ entity.other.inherited-class.php
-//                              ^ storage.modifier.implements.php
-//                                         ^^^^^^^^^ meta.path
-//                                         ^ entity.other.inherited-class.php
-//                                                   ^^ meta.block.php
+//               ^^^^^^^^^^^^^^^^^^ meta.function-call.php
+//               ^ punctuation.section.group.begin.php
+//                ^ variable.other.php
+//                       ^ punctuation.separator.php
+//                         ^ variable.other.php
+//                                ^ punctuation.section.group.end.php
+//                                  ^ storage.modifier.extends.php
+//                                          ^^^^^ meta.path
+//                                           ^ entity.other.inherited-class.php
+//                                                ^ storage.modifier.implements.php
+//                                                           ^^^^^^^^^ meta.path
+//                                                           ^ entity.other.inherited-class.php
+//                                                                     ^^ meta.class.php
+//                                                                     ^^ meta.block.php
 
     function noReturnType(array $param1, int $param2) {}
 //  ^ storage.type.function.php
@@ -425,6 +728,26 @@ $anon = new class extends Test1 implements Countable {};
 //                                     ^ support.other.namespace.php
 //                                                 ^ support.class.php
 
+    function nullableReturnType(?int $param1): ?bool {}
+//  ^ storage.type.function.php
+//           ^ entity.name.function.php
+//                             ^ punctuation.section.group.begin.php
+//                              ^ storage.type.nullable.php
+//                               ^ meta.function.parameters
+//                                          ^ punctuation.section.group.end.php
+//                                             ^ storage.type.nullable.php
+//                                              ^ storage.type.php
+
+    function nullableObjectReturnType(?int $param1): ?object {}
+//  ^ storage.type.function.php
+//           ^ entity.name.function.php
+//                                   ^ punctuation.section.group.begin.php
+//                                    ^ storage.type.nullable.php
+//                                     ^ meta.function.parameters
+//                                                ^ punctuation.section.group.end.php
+//                                                   ^ storage.type.nullable.php
+//                                                    ^ storage.type.php
+
 $test = "\0 \12 \345g \x0f \u{a} \u{9999} \u{999}";
 //       ^^ constant.character.escape.octal.php
 //          ^^^ constant.character.escape.octal.php
@@ -452,7 +775,7 @@ $test = "\0 \12 \345g \x0f \u{a} \u{9999} \u{999}";
 //                                    ^^ variable.other
 //                                    ^ punctuation.definition.variable
 //                                      ^ punctuation.section.brackets.begin
-//                                       ^ constant.numeric
+//                                       ^ constant.numeric.integer.decimal
 //                                        ^ punctuation.section.brackets.end
 //                                                      ^^ variable.other
 //                                                      ^ punctuation.definition.variable
@@ -560,6 +883,20 @@ class B
         echo B::class;
 //              ^ constant.class
 
+        echo $this->pro1::FOO;
+//           ^^^^^ variable.language
+//                ^^ punctuation.accessor
+//                  ^^^^ variable.other.member
+//                      ^^ punctuation.accessor
+//                        ^^^ constant.other.class
+
+        echo $this->pro1::bar();
+//           ^^^^^ variable.language
+//                ^^ punctuation.accessor
+//                  ^^^^ variable.other.member
+//                      ^^ punctuation.accessor
+//                        ^^^ variable.function
+
         parent::abc($var, $var2, $var3);
 //      ^^^^^^ variable.language
 //            ^^ punctuation.accessor
@@ -592,6 +929,9 @@ try {
 //             ^^^^^^ support.other.namespace.php
 //                   ^ punctuation.separator.namespace.php
 //                    ^^^^^^^^^ support.class
+} catch (/* comment */ ExceptionExample $e) {
+//       ^^^^^^^^^^^^^ comment.block
+    echo 'Caught exception: ', $e->getMessage(), "\n";
 } catch (Exception $e) {
 //^ keyword.control.exception
 //       ^^^^^^^^^ meta.path.php
@@ -614,6 +954,21 @@ try {
 //               ^^^^^^^^^ support.class.exception.php
 //                         ^^ variable.other.php
     echo 'Caught exception: ', $e->getMessage(), "\n";
+} catch (\Custom\Exception1 | \Custom\Exception2 $e) {
+//^ keyword.control.exception
+//       ^^^^^^^^^^^^^^^^^ meta.path.php
+//       ^ punctuation.separator.namespace.php
+//        ^^^^^^ support.other.namespace.php
+//              ^ punctuation.separator.namespace.php
+//               ^^^^^^^^^^ support.class.exception.php
+//                          ^ punctuation.separator.catch.php
+//                            ^^^^^^^^^^^^^^^^^ meta.path.php
+//                            ^ punctuation.separator.namespace.php
+//                             ^^^^^^ support.other.namespace.php
+//                                   ^ punctuation.separator.namespace.php
+//                                    ^^^^^^^^^^ support.class.exception.php
+//                                               ^^ variable.other.php
+    echo 'Caught exception: ', $e->getMessage(), "\n";
 } finally {
 //^ keyword.control.exception
     echo "First finally.\n";
@@ -625,20 +980,60 @@ function generate()
 //  ^ keyword.control
 }
 
+function generate2()
+{
+    yield from generate();
+//  ^ keyword.control
+//        ^ keyword.control
+}
+
 $var = 0;
-//     ^ constant.numeric
+//     ^ constant.numeric.integer.decimal
 
 $var2 = -123.456e10;
-//       ^^^^^^^^^^ constant.numeric
+//       ^^^^^^^^^^ constant.numeric.float.decimal
+
+$var2 = -123.e10;
+//       ^^^^^^^ constant.numeric.float.decimal
+
+$var2 = -.123e10;
+//       ^^^^^^^ constant.numeric.float.decimal
+
+$var2 = -123e10;
+//       ^^^^^^ constant.numeric.float.decimal
 
 $var3 = 0x0f;
-//      ^^^^ constant.numeric
+//      ^^^^ constant.numeric.integer.hexadecimal
+//      ^^ punctuation.definition.numeric.hexadecimal
 
 $var4 = 0b0111;
-//      ^^^^^^ constant.numeric
+//      ^^^^^^ constant.numeric.integer.binary
+//      ^^ punctuation.definition.numeric.binary
 
   foo_bar:
 //^^^^^^^ entity.name.label.php - keyword.control.php
+
+if ((include 'vars.php') == TRUE) {
+//   ^^^^^^^ keyword.control.import.include.php
+//   ^^^^^^^^^^^^^^^^^^ meta.include.php
+//                     ^ - meta.include.php
+}
+
+// evaluated as include(('vars.php') == TRUE), i.e. include('')
+if (include('vars.php') == TRUE) {
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.include.php
+//                             ^ - meta.include.php
+}
+
+$a += .5;
+// ^^ keyword.operator.assignment.augmented.php
+//    ^^ constant.numeric
+
+$a .= 1;
+// ^^ keyword.operator.assignment.augmented.php
+
+if ($a !== $b);
+//     ^^^ keyword.operator.comparison.php
 
 if ():
 else:
@@ -711,13 +1106,75 @@ $sql = '
 ';
 // <- string.quoted.single punctuation.definition.string.end - meta.string-contents
 
-preg_replace('/(foo|bar)a{1,4}[a-z]*\'\n/m');
-//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.regexp.single-quoted
-//                                 ^ keyword.operator
+preg_replace('/[a-zSOME_CHAR]*+\'\n  $justTxt  \1  \\1/m');
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.single
+//            ^ punctuation.definition.string.regex-delimiter.begin
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.regexp
+//             ^ punctuation.definition.character-class.begin.regexp
+//              ^^^ constant.other.character-class.range.regexp
+//                 ^^^^^^^^^ constant.other.character-class.set.regexp
+//                          ^ punctuation.definition.character-class.end.regexp
+//                           ^^ keyword.operator.quantifier
+//                             ^^^^ constant.character.escape
+//                                   ^ keyword.control.anchor.regexp
+//                                             ^^ keyword.other.back-reference.regexp
+//                                                 ^^^ keyword.other.back-reference.regexp
+//                                                    ^ punctuation.definition.string.regex-delimiter.end
+//                                                     ^ meta.regex.modifier
+//                                                      ^ string.quoted.single
 
-preg_replace("/(foo|bar)a{1,4}[a-z]*\'\n/m");
-//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.regexp.double-quoted
-//                                 ^ keyword.operator
+preg_replace("/[a-zSOME_CHAR]*+\'\n  $vairble  \1  \\1/m");
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double
+//            ^ punctuation.definition.string.regex-delimiter.begin
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.regexp
+//             ^ punctuation.definition.character-class.begin.regexp
+//              ^^^ constant.other.character-class.range.regexp
+//                 ^^^^^^^^^ constant.other.character-class.set.regexp
+//                          ^ punctuation.definition.character-class.end.regexp
+//                           ^^ keyword.operator.quantifier
+//                             ^^^^ constant.character.escape
+//                                   ^ punctuation.definition.variable
+//                                             ^^ constant.character.escape
+//                                                 ^^ constant.character.escape
+//                                                    ^ punctuation.definition.string.regex-delimiter.end
+//                                                     ^ meta.regex.modifier
+//                                                      ^ string.quoted.double
+
+preg_replace("/^(?=foo)|(?>a|b|\s*)|(?im:toggle)(?#comment)$/uxS");
+//            ^ punctuation.definition.string.regex-delimiter.begin
+//             ^ keyword.control.anchor.regexp
+//               ^^ constant.other.assertion.regexp meta.assertion.look-ahead.regexp
+//                     ^ keyword.operator.or.regexp
+//                       ^^ constant.other.assertion.regexp meta.assertion.atomic-group.regexp
+//                          ^ keyword.operator.or.regexp
+//                            ^ keyword.operator.or.regexp
+//                             ^^ constant.character.character-class.regexp
+//                               ^ keyword.operator.quantifier.regexp
+//                                   ^^^^ keyword.other.option-toggle.regexp
+//                                              ^^^^^^^^^^^ comment.block
+//                                              ^ punctuation.definition.comment.begin.regexp
+//                                                        ^ punctuation.definition.comment.end.regexp
+//                                                         ^ keyword.control.anchor.regexp
+//                                                          ^ punctuation.definition.string.regex-delimiter.end
+//                                                           ^^^ meta.regex.modifier
+
+preg_replace('/(?P<name>foo|bar)\g{name}\k<name>/');
+//             ^ punctuation.definition.group.begin.regexp
+//              ^^ constant.other.assertion.regexp
+//                ^ punctuation.definition.group.capture.begin.regexp
+//                 ^^^^ entity.name.other.group.regexp
+//                         ^ keyword.operator.or.regexp
+//                             ^ punctuation.definition.group.end.regexp
+//                              ^^^ keyword.other.back-reference.named.regexp
+//                                 ^^^^ entity.name.other.group.regexp
+//                                     ^ keyword.other.back-reference.named.regexp
+//                                      ^^^ keyword.other.back-reference.named.regexp
+//                                         ^^^^ entity.name.other.group.regexp
+
+preg_replace("/a{,6}b{3,}c{3,6}/");
+//              ^^^^ keyword.operator.quantifier.regexp
+//                   ^^^^ keyword.operator.quantifier.regexp
+//                        ^^^^^ keyword.operator.quantifier.regexp
 
 echo <<<EOT
 //   ^^^^^^ punctuation.definition.string
@@ -730,7 +1187,7 @@ EOT;
 
 echo <<<'EOT'
 //   ^^^^^^^^ punctuation.definition.string
-//       ^^^ keyword.operator.heredoc
+//      ^^^^^ keyword.operator.nowdoc
 This is a test! $var
 //^^^^^^^^^^^^^^^^^^ string.unquoted.nowdoc
 //              ^^^^ - variable.other
@@ -749,6 +1206,8 @@ This is a test!
 //         ^^^^^^^^^ string.quoted.double
 HTML;
 // <- punctuation.section.embedded.end keyword.operator.heredoc
+//  ^ punctuation.terminator.expression
+//   ^ meta.heredoc-end
 
 echo <<< JAVASCRIPT
 //   ^^^^^^^^^^^^^^ punctuation.section.embedded.begin punctuation.definition.string
@@ -786,6 +1245,20 @@ SELECT * FROM users WHERE first_name = 'John'
 //                                     ^^^^^^ string.quoted.single
 SQL;
 // <- punctuation.section.embedded.end keyword.operator.heredoc
+
+
+echo <<<'SQL'
+//   ^^^^^^^^ punctuation.section.embedded.begin punctuation.definition.string
+//      ^^^^^ keyword.operator.nowdoc
+SELECT * FROM users WHERE first_name = 'John'\n
+//^^^^^^^^^^^^^^^^^^^^^^^^ meta.embedded.sql source.sql
+// <- keyword.other.DML
+//     ^ keyword.operator.star
+//                                     ^^^^^^ string.quoted.single
+//                                           ^^^ - constant.character.escape.php
+SQL;
+// <- punctuation.section.embedded.end
+
 
 
 class OutputsHtml {
@@ -950,6 +1423,17 @@ var_dump(new C(42));
 //           ^ meta.path support.class
 
 ?>
+
+<div attr-<?= $bar ?>-true></div>
+//   ^^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name
+//        ^^^ punctuation.section.embedded.begin
+//                 ^^ punctuation.section.embedded.end
+
+<option<?php if($condition): ?> selected<?php endif; ?>></option>
+//     ^^^^^ punctuation.section.embedded.begin
+//                           ^^ punctuation.section.embedded.end
+//                                      ^^^^^ punctuation.section.embedded.begin
+//                                                   ^^ punctuation.section.embedded.end
 
 <div class="test <?= $foo ?>"></div>
 //   ^^^^^^^^^^^^^^^^^^^^^^^^ meta.attribute-with-value.class.html

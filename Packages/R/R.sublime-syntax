@@ -11,7 +11,7 @@ file_extensions:
 scope: source.r
 
 variables:
-  var: '[a-zA-Z._][a-zA-Z0-9._]*'
+  var: '(?:[a-zA-Z._][a-zA-Z0-9._]*|`[^`]+`)'
 
 contexts:
   main:
@@ -137,7 +137,7 @@ contexts:
         - include: main
 
   function-declarations:
-    - match: ^\s*({{var}})\s*(<<?-|=)\s*(?=function\s*\()
+    - match: ({{var}})\s*(<<?-|=)\s*(?=function\s*\()
       scope: meta.function.r
       captures:
         1: entity.name.function.r
@@ -156,6 +156,7 @@ contexts:
       push:
         - meta_scope: meta.function.r
         - meta_content_scope: meta.function.parameters.r
+        - include: comments
         - match: '{{var}}'
           scope: variable.parameter.r
         - match: '(?==)'
@@ -179,7 +180,7 @@ contexts:
   function-parameters:
     - meta_scope: meta.function-call.r
     - meta_content_scope: meta.function-call.parameters.r
-    - match: '{{var}}(?=\s*=)'
+    - match: '{{var}}(?=\s*=[^=])'
       scope: variable.parameter.r
     - match: '(?==)'
       push:

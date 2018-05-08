@@ -6,6 +6,8 @@ import subprocess
 import sys
 import threading
 import time
+import codecs
+import signal
 
 import sublime
 import sublime_plugin
@@ -57,6 +59,11 @@ class AsyncProcess(object):
         for k, v in proc_env.items():
             proc_env[k] = os.path.expandvars(v)
 
+        if sys.platform == "win32":
+            preexec_fn = None
+        else:
+            preexec_fn = os.setsid
+
         if shell_cmd and sys.platform == "win32":
             # Use shell=True on Windows, so shell_cmd is passed through with the correct escaping
             self.proc = subprocess.Popen(
@@ -70,26 +77,29 @@ class AsyncProcess(object):
         elif shell_cmd and sys.platform == "darwin":
             # Use a login shell on OSX, otherwise the users expected env vars won't be setup
             self.proc = subprocess.Popen(
-                ["/bin/bash", "-l", "-c", shell_cmd],
+                ["/usr/bin/env", "bash", "-l", "-c", shell_cmd],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 startupinfo=startupinfo,
                 env=proc_env,
+                preexec_fn=preexec_fn,
                 shell=False)
         elif shell_cmd and sys.platform == "linux":
             # Explicitly use /bin/bash on Linux, to keep Linux and OSX as
             # similar as possible. A login shell is explicitly not used for
             # linux, as it's not required
             self.proc = subprocess.Popen(
-                ["/bin/bash", "-c", shell_cmd],
+                ["/usr/bin/env", "bash", "-c", shell_cmd],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 stdin=subprocess.PIPE,
                 startupinfo=startupinfo,
                 env=proc_env,
+                preexec_fn=preexec_fn,
                 shell=False)
         else:
+
             # Old style build system, just do what it asks
             self.proc = subprocess.Popen(
                 cmd,
@@ -98,16 +108,23 @@ class AsyncProcess(object):
                 stdin=subprocess.PIPE,
                 startupinfo=startupinfo,
                 env=proc_env,
+                preexec_fn=preexec_fn,
                 shell=shell)
 
         if path:
             os.environ["PATH"] = old_path
 
         if self.proc.stdout:
-            threading.Thread(target=self.read_stdout).start()
+            threading.Thread(
+                target=self.read_fileno,
+                args=(self.proc.stdout.fileno(), True)
+            ).start()
 
         if self.proc.stderr:
-            threading.Thread(target=self.read_stderr).start()
+            threading.Thread(
+                target=self.read_fileno,
+                args=(self.proc.stderr.fileno(), False)
+            ).start()
 
     def kill(self):
         if not self.killed:
@@ -118,9 +135,10 @@ class AsyncProcess(object):
                 startupinfo = subprocess.STARTUPINFO()
                 startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 subprocess.Popen(
-                    "taskkill /PID " + str(self.proc.pid),
+                    "taskkill /PID %d /T /F" % self.proc.pid,
                     startupinfo=startupinfo)
             else:
+                os.killpg(self.proc.pid, signal.SIGTERM)
                 self.proc.terminate()
             self.listener = None
 
@@ -130,28 +148,19 @@ class AsyncProcess(object):
     def exit_code(self):
         return self.proc.poll()
 
-    def read_stdout(self):
+    def read_fileno(self, fileno, execute_finished):
+        decoder_cls = codecs.getincrementaldecoder(self.listener.encoding)
+        decoder = decoder_cls('replace')
         while True:
-            data = os.read(self.proc.stdout.fileno(), 2**15)
+            data = decoder.decode(os.read(fileno, 2**16))
 
             if len(data) > 0:
                 if self.listener:
                     self.listener.on_data(self, data)
             else:
-                self.proc.stdout.close()
-                if self.listener:
+                os.close(fileno)
+                if execute_finished and self.listener:
                     self.listener.on_finished(self)
-                break
-
-    def read_stderr(self):
-        while True:
-            data = os.read(self.proc.stderr.fileno(), 2**15)
-
-            if len(data) > 0:
-                if self.listener:
-                    self.listener.on_data(self, data)
-            else:
-                self.proc.stderr.close()
                 break
 
 
@@ -194,12 +203,9 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             return
 
         # clear the text_queue
-        self.text_queue_lock.acquire()
-        try:
+        with self.text_queue_lock:
             self.text_queue.clear()
             self.text_queue_proc = None
-        finally:
-            self.text_queue_lock.release()
 
         if kill:
             if self.proc:
@@ -276,11 +282,8 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             # Forward kwargs to AsyncProcess
             self.proc = AsyncProcess(cmd, shell_cmd, merged_env, self, **kwargs)
 
-            self.text_queue_lock.acquire()
-            try:
+            with self.text_queue_lock:
                 self.text_queue_proc = self.proc
-            finally:
-                self.text_queue_lock.release()
 
         except Exception as e:
             self.append_string(None, str(e) + "\n")
@@ -295,15 +298,12 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             return True
 
     def append_string(self, proc, str):
-        self.text_queue_lock.acquire()
-
         was_empty = False
-        try:
-            if proc != self.text_queue_proc:
+        with self.text_queue_lock:
+            if proc != self.text_queue_proc and proc:
                 # a second call to exec has been made before the first one
                 # finished, ignore it instead of intermingling the output.
-                if proc:
-                    proc.kill()
+                proc.kill()
                 return
 
             if len(self.text_queue) == 0:
@@ -318,17 +318,12 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             else:
                 self.text_queue.append(str)
 
-        finally:
-            self.text_queue_lock.release()
-
         if was_empty:
             sublime.set_timeout(self.service_text_queue, 0)
 
     def service_text_queue(self):
-        self.text_queue_lock.acquire()
-
         is_empty = False
-        try:
+        with self.text_queue_lock:
             if len(self.text_queue) == 0:
                 # this can happen if a new build was started, which will clear
                 # the text_queue
@@ -336,8 +331,6 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
 
             characters = self.text_queue.popleft()
             is_empty = (len(self.text_queue) == 0)
-        finally:
-            self.text_queue_lock.release()
 
         self.output_view.run_command(
             'append',
@@ -377,17 +370,11 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             sublime.status_message("Build finished with %d errors" % len(errs))
 
     def on_data(self, proc, data):
-        try:
-            characters = data.decode(self.encoding)
-        except:
-            characters = "[Decode error - output not " + self.encoding + "]\n"
-            proc = None
-
         # Normalize newlines, Sublime Text always uses a single \n separator
         # in memory.
-        characters = characters.replace('\r\n', '\n').replace('\r', '\n')
+        data = data.replace('\r\n', '\n').replace('\r', '\n')
 
-        self.append_string(proc, characters)
+        self.append_string(proc, data)
 
     def on_finished(self, proc):
         sublime.set_timeout(functools.partial(self.finish, proc), 0)

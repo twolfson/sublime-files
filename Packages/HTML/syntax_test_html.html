@@ -11,7 +11,7 @@
         ## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.script.begin.html
         ## ^ entity.name.tag.script - source.js.embedded.html
         ##            ^ string.quoted.double.html - source.js.embedded.html
-        ##                              ^^^^ comment.block.html punctuation.definition.comment.html
+        ##                              ^^^^ comment.block.html punctuation.definition.comment.begin.html
             var foo = 100;
             var baz = function() {
                 ## <- entity.name.function.js
@@ -20,10 +20,45 @@
             (a --> b);
             ## ^^^ source.js.embedded.html meta.group.js keyword.operator
         --> </script>
-        ## <- comment.block.html punctuation.definition.comment.html
+        ## <- comment.block.html punctuation.definition.comment.end.html
         ##    ^^^^^^ entity.name.tag.script.html
         ##  ^^^^^^^^^ meta.tag.script.end.html - source.js.embedded.html
         ##           ^ - meta.tag
+
+        <script
+        type
+        =
+        text/javascript>
+            var foo = 100;
+        ##  ^^^^^^^^^^^^^^^ source.js.embedded
+        </script>
+
+        <script type = "text/html"> <!--
+        ## ^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.script.begin.html
+        ## ^ entity.name.tag.script - text.html.embedded.html
+        ##             ^ string.quoted.double.html - text.html.embedded.html
+        ##                          ^^^^ comment.block.html punctuation
+            <div></div>
+        ##  ^^^^^^^^^^^ text.html.basic text.html.embedded meta.tag.block.any
+            <script type=text/javascript>
+        ##  ^ text.html.basic text.html.embedded.html - source.js.embedded.html
+                function test() {}
+        ##  ^ text.html.basic text.html.embedded.html source.js.embedded.html
+            </script>
+        ##  ^^^^^^^^^ text.html.basic text.html.embedded.html meta.tag.script.end
+        </script>
+##     ^ text.html.basic text.html.embedded.html
+##      ^^^^^^^^^ text.html.basic - text.html.embedded.html meta.tag.script.end
+
+        <script
+        type
+        =
+        'other'
+        >
+            var foo = 100;
+        ##  ^^^^^^^^^^^^^^^ - source.js
+        </script>
+
         <style type="text/css">
         ## ^^^^^^^^^^^^^^^^^^^^ meta.tag.style.begin.html
         ## ^ entity.name.tag.style.html
@@ -32,6 +67,7 @@
         ##                     ^ - meta.tag
             h2 {
             ## <- entity.name.tag.css
+## <- source.css.embedded.html
                 font-family: "Arial";
                 ##             ^ string.quoted.double.css
             }
@@ -40,16 +76,51 @@
         ##<- meta.tag.style.end.html - source.css.embedded.html
         ##^^^^^^ meta.tag.style.end.html - source.css.embedded.html
         ##      ^ - meta.tag
+
+        <style
+        type
+        =
+        text/css>
+            div {}
+        ##  ^^^^^^ source.css.embedded
+        </style>
+
+        <style
+        type
+        =
+        text/csss>
+            div {}
+        ##  ^^^^^^ - source.css
+        </style>
+
         <style />
         ##       ^ - source.css.embedded.html
-        ## ^ meta.tag.inline.any.html entity.name.tag.inline.any.html
+        ## ^ meta.tag.style entity.name.tag.style
         <script />
         ##        ^ - source.js.embedded.html
-        ## ^ meta.tag.inline.any.html entity.name.tag.inline.any.html
+        ## ^ meta.tag.script entity.name.tag.script
     </head>
     <body>
         <!-- Comment -->
-        ## ^ comment.block.html
+##      ^^^^^^^^^^^^^^^^ comment.block.html
+##      ^^^^ punctuation.definition.comment.begin.html
+##                   ^^^ punctuation.definition.comment.end.html
+##          ^^^^^^^^^ - punctuation
+
+        <!----- hyphens - -- --- -->
+##      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.block - invalid.illegal.bad-comments-or-CDATA
+
+        <!-->-- hyphens <!-- --!> <!--->
+##      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.block
+##          ^ invalid.illegal.bad-comments-or-CDATA
+##                      ^^^^ invalid.illegal.bad-comments-or-CDATA
+##                           ^^^^ invalid.illegal.bad-comments-or-CDATA
+##                                ^^^ invalid.illegal.bad-comments-or-CDATA
+
+        <!--->- hyphens <!-   -!> <!-->
+##      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ comment.block
+##          ^^ invalid.illegal.bad-comments-or-CDATA
+##                      ^^^^^^^^^^^^^^^ - invalid.illegal.bad-comments-or-CDATA
 
         <div title=description></div>
         ##  ^ - meta.attribute-with-value
@@ -60,6 +131,21 @@
 <div
 title="description"></div>
 ## <- entity.other.attribute-name
+
+<div
+title = "description"></div>
+## <- entity.other.attribute-name
+##    ^ punctuation.separator.key-value.html
+##      ^^^^^^^^^^^^^ string
+
+<div title=
+    "description"></div>
+##  ^^^^^^^^^^^^^ string
+
+<div title
+    ="description"></div>
+##  ^ punctuation.separator.key-value
+##   ^^^^^^^^^^^^^ string
 
 <div title="description"
 class="foo"></div>
@@ -157,6 +243,22 @@ class="foo"></div>
         ##                                                         ^^^^^^^^^^^^^ entity.other.attribute-name.html
         ##                                                                       ^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name.html
 
+        <tag *([&\=></tag>
+        ##   ^^^^^^^ - invalid
+        ##   ^^^^^ entity.other.attribute-name
+        ##        ^ punctuation.separator.key-value
+
+        <tag    foo	bar></tag>Mind the tab character!
+        ##      ^^^ entity.other.attribute-name
+        ##         ^ - entity.other.attribute-name
+        ##          ^^^ entity.other.attribute-name
+
+        <tag foo=a bar=b></tag>
+        ##   ^^^ entity.other.attribute-name
+        ##       ^ string.unquoted
+        ##         ^^^ entity.other.attribute-name
+        ##             ^ string.unquoted
+
         <a disabled onclick="setTimeout(function(){}, 100)">Test</a>
         ##         ^ - meta.attribute-with-value.event
         ##          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.attribute-with-value.event
@@ -227,9 +329,35 @@ class="foo"></div>
         </table>
 
         &amp;
-        ## <- constant.character.entity
-        &
-        ## <- invalid.illegal
+##      ^^^^^ constant.character.entity.named
+##      ^ punctuation.definition.entity
+##          ^ punctuation.definition.entity
+
+        &#123;
+##      ^^^^^^ constant.character.entity.decimal
+##      ^^ punctuation.definition.entity
+##           ^ punctuation.definition.entity
+
+        &#x7f;
+##      ^^^^^^ constant.character.entity.hexadecimal
+##      ^^ punctuation.definition.entity
+##           ^ punctuation.definition.entity
+
+        &#X7F;
+##      ^^^^^^ constant.character.entity.hexadecimal
+##      ^^ punctuation.definition.entity
+##           ^ punctuation.definition.entity
+
+        &β;
+##      ^^^ - constant.character.entity
+
+        &#;
+##      ^^^ - constant.character.entity
+
+        &#x;
+##      ^^^^ - constant.character.entity
+
+
         <a href="http://google.com/?one=1&amp;two=2"></a>
         ##                               ^^^^^ constant.character.entity
         <a href="http://google.com/?one=1&two=2"></a>

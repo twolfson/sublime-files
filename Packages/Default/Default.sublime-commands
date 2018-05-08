@@ -1,5 +1,22 @@
 [
     {
+        "caption": "Rename File",
+        "command": "rename_file",
+    },
+    {
+        "caption": "Arithmetic",
+        "command": "arithmetic",
+    },
+    {
+        "caption": "View Package File",
+        "command": "view_resource",
+    },
+    {
+        "caption": "Convert Color Scheme",
+        "command": "convert_color_scheme",
+    },
+
+    {
         "caption": "Word Wrap: Toggle",
         "command": "toggle_setting",
         "args": {"setting": "word_wrap"}

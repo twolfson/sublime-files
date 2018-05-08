@@ -525,12 +525,20 @@ class Window(object):
         return self.template_settings_object
 
     def lookup_symbol_in_index(self, sym):
-        """ Finds all files and locations where sym in defined, using the symbol index """
+        """ Finds all files and locations where sym is defined, using the symbol index """
         return sublime_api.window_lookup_symbol(self.window_id, sym)
 
     def lookup_symbol_in_open_files(self, sym):
-        """ Finds all files and locations where sym in defined, searching through open files """
+        """ Finds all files and locations where sym is defined, searching through open files """
         return sublime_api.window_lookup_symbol_in_open_files(self.window_id, sym)
+
+    def lookup_references_in_index(self, sym):
+        """ Finds all files and locations where sym is referenced, using the symbol index """
+        return sublime_api.window_lookup_references(self.window_id, sym)
+
+    def lookup_references_in_open_files(self, sym):
+        """ Finds all files and locations where sym is referenced, searching through open files """
+        return sublime_api.window_lookup_references_in_open_files(self.window_id, sym)
 
     def extract_variables(self):
         return sublime_api.window_extract_variables(self.window_id)
@@ -881,6 +889,12 @@ class View(object):
     def find_by_selector(self, selector):
         return sublime_api.view_find_by_selector(self.view_id, selector)
 
+    def style(self):
+        return sublime_api.view_style(self.view_id)
+
+    def style_for_scope(self, scope):
+        return sublime_api.view_style_for_scope(self.view_id, scope)
+
     def indented_region(self, pt):
         return sublime_api.view_indented_region(self.view_id, pt)
 
@@ -1078,6 +1092,9 @@ class View(object):
     def indexed_symbols(self):
         return sublime_api.view_indexed_symbols(self.view_id)
 
+    def indexed_references(self):
+        return sublime_api.view_indexed_references(self.view_id)
+
     def set_status(self, key, value):
         sublime_api.view_set_status(self.view_id, key, value)
 
@@ -1205,3 +1222,13 @@ class PhantomSet(object):
                 self.view.erase_phantom_by_id(p.id)
 
         self.phantoms = new_phantoms
+
+
+class Html(object):
+    __slots__ = ['data']
+
+    def __init__(self, data):
+        self.data = data
+
+    def __str__(self):
+        return "Html(" + str(self.data) + ")"

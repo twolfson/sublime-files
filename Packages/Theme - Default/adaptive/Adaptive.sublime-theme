@@ -48,8 +48,8 @@
     {
         "class": "sidebar_tree",
         "row_padding": [16, 3, 16, 3],
-        "indent": 10,
-        "indent_offset": 16,
+        "indent": 12,
+        "indent_offset": 13,
         "indent_top_level": false,
         "dark_content": true,
         "spacer_rows": true
@@ -917,7 +917,8 @@
     {
         "class": "progress_gauge_control",
         "layer0.tint": [255, 255, 255, 0.35],
-        "layer0.opacity": 1.0
+        "layer0.opacity": 1.0,
+        "content_margin": [0, 6]
     },
     {
         "class": "progress_gauge_control",

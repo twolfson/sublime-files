@@ -154,7 +154,7 @@ def get_tag_to_attributes():
 
     # Extend `global_attributes` by the event handler attributes
     global_attributes.extend([
-        'onabort', 'onautocomplete', 'onautocompleteerror', 'onblur',
+        'onabort', 'onautocomplete', 'onautocompleteerror', 'onauxclick', 'onblur',
         'oncancel', 'oncanplay', 'oncanplaythrough', 'onchange', 'onclick',
         'onclose', 'oncontextmenu', 'oncuechange', 'ondblclick', 'ondrag',
         'ondragend', 'ondragenter', 'ondragexit', 'ondragleave', 'ondragover',
@@ -199,8 +199,8 @@ class HtmlTagCompletions(sublime_plugin.EventListener):
 
     def on_query_completions(self, view, prefix, locations):
         # Only trigger within HTML
-        if not view.match_selector(locations[0],
-           "text.html - source - string.quoted - meta.tag.style.end punctuation.definition.tag.begin"):
+        if not view.match_selector(locations[0], "text.html - (source - source text.html)"
+           " - string.quoted - meta.tag.style.end punctuation.definition.tag.begin"):
             return []
 
         # check if we are inside a tag

@@ -9,8 +9,8 @@
     {
         "class": "sidebar_tree",
         "row_padding": [16, 3, 16, 3],
-        "indent": 10,
-        "indent_offset": 16,
+        "indent": 12,
+        "indent_offset": 13,
         "indent_top_level": false,
         "dark_content": false,
         "spacer_rows": true
@@ -93,7 +93,7 @@
     },
     {
         "class": "disclosure_button_control",
-        "parents": [{"class": "tree_row", "attributes": ["expanded"]}],
+        "attributes": ["expanded"],
         "layer0.texture": "Theme - Default/common/light/disclosure_expanded.png",
     },
     {
