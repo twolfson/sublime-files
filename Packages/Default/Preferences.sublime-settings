@@ -36,6 +36,9 @@
     //        should render fonts similar to ClearType "natural quality" GDI
     //  - "subpixel_antialias": Force ClearType antialiasing when disabled
     //        at system level
+    // Mac-only options:
+    //  - "no_round": Don't round glyph widths for monospace fonts when
+    //        "font_size" is small.
     "font_options": [],
     // Font options for theme text. Valid options are the same as
     // "font_options", except "no_bold" and "no_italic" are not supported
@@ -170,13 +173,13 @@
     "line_padding_bottom": 0,
 
     // Set to false to disable scrolling past the end of the buffer.
-    // On OS X, this value is overridden in the platform specific settings, so
+    // On Mac, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
     "scroll_past_end": true,
 
     // This controls what happens when pressing up or down when on the first
     // or last line.
-    // On OS X, this value is overridden in the platform specific settings, so
+    // On Mac, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
     "move_to_limit_on_up_down": false,
 
@@ -286,7 +289,7 @@
 
     // If true, the selected text will be copied into the find panel when it's
     // shown.
-    // On OS X, this value is overridden in the platform specific settings, so
+    // On Mac, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
     "find_selected_text": true,
 
@@ -326,7 +329,7 @@
     // Draw divider lines between sections of the UI when using the Adaptive theme
     "adaptive_dividers": true,
 
-    // OS X only. Valid values are true, false, and "auto". Auto will enable
+    // Mac only. Valid values are true, false, and "auto". Auto will enable
     // the setting when running on a screen 2560 pixels or wider (i.e., a
     // Retina display). When this setting is enabled, OpenGL is used to
     // accelerate drawing. Sublime Text must be restarted for changes to take
@@ -344,6 +347,15 @@
 
     // Display line endings in the status bar
     "show_line_endings": false,
+
+    // Magnifies the entire user interface. Sublime Text must be restarted for
+    // this to take effect.
+    "ui_scale": 1.0,
+
+    // Linux only. Sets the app DPI scale - a decimal number such as 1.0, 1.5,
+    // 2.0, etc. A value of 0 auto-detects the DPI scale. Sublime Text must be
+    // restarted for this to take effect.
+    "dpi_scale": 0,
 
     //
     // Application Behavior Settings
@@ -363,7 +375,7 @@
     // Text will never start in full screen mode.
     "remember_full_screen": false,
 
-    // OS X only. If the user's default shell should be invoked to obtain the
+    // Mac only. If the user's default shell should be invoked to obtain the
     // user's customized environment variables. May be a boolean, or a string
     // of the path the shell to invoke. Sublime Text must be restarted for this
     // to take effect.
@@ -375,24 +387,24 @@
     // be shown.
     "always_prompt_for_file_reload": false,
 
-    // OS X only: When files are opened from finder, or by dragging onto the
+    // Mac only: When files are opened from finder, or by dragging onto the
     // dock icon, this controls if a new window is created or not.
     "open_files_in_new_window": true,
 
-    // OS X only: This controls if an empty window is created at startup or not.
+    // Mac only: This controls if an empty window is created at startup or not.
     "create_window_at_startup": true,
 
-    // OS X only: Show recent files on the Touch Bar.
+    // Mac only: Show recent files on the Touch Bar.
     "show_navigation_bar": true,
 
     // Set to true to close windows as soon as the last file is closed, unless
     // there's a folder open within the window.
-    // On OS X, this value is overridden in the platform specific settings, so
+    // On Mac, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
     "close_windows_when_empty": false,
 
     // Show the full path to files in the title bar.
-    // On OS X, this value is overridden in the platform specific settings, so
+    // On Mac, this value is overridden in the platform specific settings, so
     // you'll need to place this line in your user settings to override it.
     "show_full_path": true,
 

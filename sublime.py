@@ -874,6 +874,9 @@ class View(object):
     def meta_info(self, key, pt):
         return sublime_api.view_meta_info(self.view_id, key, pt)
 
+    def extract_tokens_with_scopes(self, r):
+        return sublime_api.view_extract_tokens_with_scopes(self.view_id, r.begin(), r.end())
+
     def extract_scope(self, pt):
         return sublime_api.view_extract_scope(self.view_id, pt)
 

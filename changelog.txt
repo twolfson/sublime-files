@@ -47,6 +47,17 @@ article { display: block; }
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>3.1.1 (Build 3176)</h2>
+<div class="release-date">14 May 2018</div>
+<ul>
+    <li>Various fixes from 3.1</li>
+    <li>Added <tt>ui_scale</tt> setting to scale the entire UI, <tt>dpi_scale</tt> is now Linux-only</li>
+    <li>Linux: Added workaround for a display driver issue, giving significant scrolling improvements for some environments</li>
+    <li>Indexing: Added more information in the <i>Indexing Status</i> window, and reduced CPU utilization in some scenarios</li>
+</ul>
+</article>
+
+<article>
 <h2>3.1 (Build 3170)</h2>
 <div class="release-date">7 May 2018</div>
 <div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-point-1">Announcement Post</a></div>

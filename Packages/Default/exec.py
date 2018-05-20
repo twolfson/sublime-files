@@ -158,7 +158,10 @@ class AsyncProcess(object):
                 if self.listener:
                     self.listener.on_data(self, data)
             else:
-                os.close(fileno)
+                try:
+                    os.close(fileno)
+                except OSError:
+                    pass
                 if execute_finished and self.listener:
                     self.listener.on_finished(self)
                 break
