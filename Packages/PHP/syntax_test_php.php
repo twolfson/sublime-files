@@ -663,6 +663,12 @@ $object->method(func_call());
 //              ^^^^^^^^^ variable.function
 //                       ^^ meta.group meta.group
 
+$object->property::method();
+//     ^^ punctuation.accessor.arrow
+//               ^^ punctuation.accessor.double-colon
+//                 ^^^^^^ meta.function-call.static variable.function
+//                       ^^ meta.group
+
 strval($foo);
 //^^^^^^^^^^ meta.function-call
 //^^^^ support.function.var - variable.function
@@ -909,10 +915,17 @@ class B
 //      ^^^^^ variable.other
 //      ^ punctuation.definition.variable
 
+        foreach (A::B() as $c => $d) {}
+        //        ^^ punctuation.accessor
+        //          ^ variable.function
+        //              ^^ keyword.operator.logical.php
+        //                    ^^ keyword.operator.key.php
+
         return new self();
 //                 ^^^^ variable.language
     }
 }
+
 
 try {
 // <- keyword.control.exception
@@ -1185,6 +1198,17 @@ This is a test! $var
 EOT;
 // <- keyword.operator.heredoc
 
+// PHP 7.3: Flexible Heredoc and Nowdoc Syntaxes
+// @see https://wiki.php.net/rfc/flexible_heredoc_nowdoc_syntaxes
+echo <<<EOT
+//   ^^^^^^ punctuation.definition.string
+//      ^^^ keyword.operator.heredoc
+    This is a test! $var
+//  ^^^^^^^^^^^^^^^^^^^^ string.unquoted.heredoc
+//                  ^^^^ variable.other
+    EOT;
+//  ^^^ keyword.operator.heredoc
+
 echo <<<'EOT'
 //   ^^^^^^^^ punctuation.definition.string
 //      ^^^^^ keyword.operator.nowdoc
@@ -1270,15 +1294,17 @@ class OutputsHtml {
         else {
 //           ^ meta.function meta.block punctuation.section.block.begin
             ?>
-//          ^^ punctuation.section.embedded.end
+//          ^^ meta.embedded.block punctuation.section.embedded.end - source.php
+//            ^ meta.embedded.block meta.html-newline-after-php - punctuation.section.embedded - source.php
             <span></span>
 //          ^^^^^^ meta.tag - source.php
             <?
-//          ^^ punctuation.section.embedded.begin
+//          ^^ meta.embedded.block punctuation.section.embedded.begin
         }
 //      ^ meta.function meta.block punctuation.section.block.end
         ?>
-//      ^^ punctuation.section.embedded.end - source.php
+//      ^^ meta.embedded.block punctuation.section.embedded.end - source.php
+//        ^ meta.embedded.block meta.html-newline-after-php - punctuation.section.embedded - source.php
 
         <div class="acf-gallery-side-info acf-cf<?php if (true) { echo ' class-name'; } ?>" id="myid"></div>
 //      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag
@@ -1298,10 +1324,11 @@ class OutputsHtml {
 //      ^^^ punctuation.section.embedded.begin - source.php
 //         ^^^^^^^^^^^^^^^ source.php
         ?>
-//      ^^ punctuation.section.embedded.end - source.php
+//      ^^ meta.embedded.line.nested punctuation.section.embedded.end - source.php
+//        ^ meta.embedded.line.nested meta.html-newline-after-php - punctuation.section.embedded - source.php
 
         <?php
-//      ^^^^^ punctuation.section.embedded.begin
+//      ^^^^^ meta.embedded.block punctuation.section.embedded.begin - source.php
     }
 }
 
@@ -1313,7 +1340,8 @@ function embedHtml() {
     else {
 //       ^ meta.function meta.block punctuation.section.block.begin
         ?>
-//      ^^ punctuation.section.embedded.end - source.php
+//      ^^ meta.embedded.block.php punctuation.section.embedded.end - source.php
+//        ^ meta.embedded.block.php meta.html-newline-after-php - punctuation.section.embedded.end
         <span></span>
 //      ^^^^^^ meta.tag - source.php
         <?
@@ -1324,6 +1352,8 @@ function embedHtml() {
     $myClass = new class {
         function foo() {
             ?>
+//          ^^ meta.embedded.block.php punctuation.section.embedded.end - source.php
+//            ^ meta.embedded.block.php meta.html-newline-after-php - punctuation.section.embedded.end
             <div></div>
 //          ^^^^^^^^^^^ meta.tag - source.php
             <?
@@ -1427,16 +1457,54 @@ var_dump(new C(42));
 <div><?php include 'image.svg' ?></div>
 //                             ^^ punctuation.section.embedded.end.php
 
-<div attr-<?= $bar ?>-true></div>
-//   ^^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name
+<div attr-<?= $bar ?>-true=va<? $baz ?>l?ue></div>
+//   ^^^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name
 //        ^^^ punctuation.section.embedded.begin
 //                 ^^ punctuation.section.embedded.end
+//                         ^^^^^^^^^^^^^^^^ string.unquoted
+//                           ^^ punctuation.section.embedded.begin.php
+//                                   ^^ punctuation.section.embedded.end.php
 
 <option<?php if($condition): ?> selected<?php endif; ?>></option>
 //     ^^^^^ punctuation.section.embedded.begin
 //                           ^^ punctuation.section.embedded.end
 //                                      ^^^^^ punctuation.section.embedded.begin
 //                                                   ^^ punctuation.section.embedded.end
+
+  <tag-<?php $bar ?>na<?php $baz ?>me att<?php $bar ?>rib=false />
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.custom.html
+//^ punctuation.definition.tag.begin.html
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ entity.name.tag.custom.html
+//     ^^^^^ punctuation.section.embedded.begin.php
+//     ^^^^^^^^^^^^^ meta.embedded.line.php
+//                ^^ punctuation.section.embedded.end
+//                    ^^^^^ punctuation.section.embedded.begin.php
+//                    ^^^^^^^^^^^^^ meta.embedded.line.php
+//                               ^^ punctuation.section.embedded.end
+//                                    ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.attribute-with-value.html
+//                                    ^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name.html
+//                                       ^^^^^ punctuation.section.embedded.begin.php
+//                                       ^^^^^^^^^^^^^ meta.embedded.line.php
+//                                                  ^^ punctuation.section.embedded.end
+//                                                              ^^ punctuation.definition.tag.end.html
+
+  <tag<?php $bar ?>na<?php $baz ?>me att<?php $bar ?>rib=false />
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.tag.other.html
+//^ punctuation.definition.tag.begin.html
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ entity.name.tag.other.html
+//    ^^^^^ punctuation.section.embedded.begin.php
+//    ^^^^^^^^^^^^^ meta.embedded.line.php
+//               ^^ punctuation.section.embedded.end
+//                   ^^^^^ punctuation.section.embedded.begin.php
+//                   ^^^^^^^^^^^^^ meta.embedded.line.php
+//                              ^^ punctuation.section.embedded.end
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.attribute-with-value.html
+//                                   ^^^^^^^^^^^^^^^^^^^ entity.other.attribute-name.html
+//                                      ^^^^^ punctuation.section.embedded.begin.php
+//                                      ^^^^^^^^^^^^^ meta.embedded.line.php
+//                                                 ^^ punctuation.section.embedded.end
+//                                                             ^^ punctuation.definition.tag.end.html
+
 
 <div class="test <?= $foo ?>"></div>
 //   ^^^^^^^^^^^^^^^^^^^^^^^^ meta.attribute-with-value.class.html

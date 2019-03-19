@@ -215,6 +215,12 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["f4"], "command": "next_result" },
 	{ "keys": ["shift+f4"], "command": "prev_result" },
 
+	{ "keys": ["ctrl+."], "command": "next_modification" },
+	{ "keys": ["ctrl+,"], "command": "prev_modification" },
+	{ "keys": ["super+k", "super+z"], "command": "revert_modification" },
+	{ "keys": ["super+k", "super+forward_slash"], "command": "toggle_inline_diff" },
+	{ "keys": ["super+k", "super+;"], "command": "toggle_inline_diff", "args": { "prefer_hide": true } },
+
 	{ "keys": ["f6"], "command": "toggle_setting", "args": {"setting": "spell_check"} },
 	{ "keys": ["ctrl+f6"], "command": "next_misspelling" },
 	{ "keys": ["ctrl+shift+f6"], "command": "prev_misspelling" },

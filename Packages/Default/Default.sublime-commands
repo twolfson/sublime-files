@@ -99,6 +99,11 @@
     { "caption": "File: New View into File", "command": "clone_file" },
     { "caption": "File: Close All", "command": "close_all" },
 
+    { "caption": "Sublime Merge: Open Repository", "command": "sublime_merge_open_repo" },
+    { "caption": "Sublime Merge: File History", "command": "sublime_merge_file_history" },
+    { "caption": "Sublime Merge: Folder History", "command": "sublime_merge_folder_history" },
+    { "caption": "Sublime Merge: Blame File", "command": "sublime_merge_blame_file" },
+
     { "caption": "HTML: Wrap Selection With Tag", "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/long-tag.sublime-snippet" } },
     { "caption": "HTML: Encode Special Characters", "command": "encode_html_entities" },
 

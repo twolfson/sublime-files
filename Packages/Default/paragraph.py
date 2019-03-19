@@ -102,7 +102,7 @@ def all_paragraphs_intersecting_selection(view, sr):
     return paragraphs
 
 
-class ExpandSelectionToParagraphCommand(sublime_plugin.TextCommand):
+class OldExpandSelectionToParagraphCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         regions = []
 
@@ -115,7 +115,7 @@ class ExpandSelectionToParagraphCommand(sublime_plugin.TextCommand):
             self.view.sel().add(r)
 
 
-class WrapLinesCommand(sublime_plugin.TextCommand):
+class OldWrapLinesCommand(sublime_plugin.TextCommand):
     def extract_prefix(self, sr):
         lines = self.view.split_by_newlines(sr)
         if len(lines) == 0:

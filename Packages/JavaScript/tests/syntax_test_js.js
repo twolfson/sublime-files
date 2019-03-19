@@ -27,6 +27,11 @@ import thing, {identifier as otherIdentifier}, * as otherName from "otherplace";
 import 'module';
 // ^^^^^^^^^^^^^ meta.import
 
+// Better highlighting while typing.
+import
+import;
+// <- keyword.control.import-export
+
 export { name1, name2 as name3 };
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.export
 //^ keyword.control.import-export
@@ -147,6 +152,11 @@ export { import1 as name1, import2 as name2, nameN } from "./othermod";
 //                                 ^ keyword.control.import-export
 //                                                   ^ keyword.control.import-export
 
+// Better highlighting while typing.
+export
+export;
+// <- keyword.control.import-export
+
 import * as
     alias from "module";
 // ^^^^^^^^^^^^^^^^^^^^^ meta.import.js
@@ -220,36 +230,36 @@ someFunction({
 //                ^ variable.other.readwrite
 });
 
-function foo() {
-// <- meta.function.declaration
- // <- meta.function.declaration
-  // <- meta.function.declaration
-// ^^^^^^^^^^^ meta.function.declaration - meta.function.declaration meta.function.declaration
-// ^ storage.type.function
-//        ^ entity.name.function
-//             ^ - meta.function.declaration
-//             ^ meta.block punctuation.section.block.begin
-}
-// <- meta.block punctuation.section.block.end
+    function foo() {
+//  ^^^^^^^^^^^^^^^^ meta.function - meta.function meta.function
+//  ^^^^^^^^^^^^^^ meta.function.declaration
+//  ^^^^^^^^ storage.type.function
+//           ^^^ entity.name.function
+//                ^^ - meta.function.declaration
+    }
+//  ^ meta.function meta.block
 
-var bar = function() {
-//  ^^^^^^^^^^^^^^^^ meta.function.declaration
-// <- storage.type
-//   ^ variable.other.readwrite entity.name.function
-//         ^ storage.type.function
-}
+    var bar = function() {
+//  ^^^ storage.type
+//      ^^^^^^^^^^^^^^^^^^ meta.function - meta.function meta.function
+//      ^^^^^^^^^^^^^^^^ meta.function.declaration
+//      ^^^ entity.name.function variable.other.readwrite
+//            ^^^^^^^^ storage.type.function
+    }
 
-baz = function*()
-// <- meta.function.declaration
- // <- meta.function.declaration
-  // <- meta.function.declaration
-// ^^^^^^^^^^^^^^ meta.function.declaration
-// <- variable.other.readwrite entity.name.function
-//     ^ storage.type.function
-//            ^ keyword.generator.asterisk
-{
+    baz = function*()
+//  ^^^^^^^^^^^^^^^^^ meta.function.declaration - meta.function meta.function
+//  ^^^ entity.name.function variable.other.readwrite
+//        ^^^^^^^^ storage.type.function
+//                ^ keyword.generator.asterisk
+    {
 
-}
+    }
+
+// Better highlighting when typing
+function
+function() {}
+// <- storage.type.function - entity.name.function
 
 if (true)
 // <- keyword.control.conditional
@@ -326,6 +336,15 @@ not_a_comment;
     let ಠ_ಠ;
 //      ^^^ variable.other.readwrite
 
+    function \u004axyz () {}; // Letter J
+//           ^^^^^^^^^ entity.name.function
+
+    function xyz\u004axyz () {};
+//           ^^^^^^^^^^^^ entity.name.function
+
+    function xyz\u{0ca0}xyz () {}; // Letter ಠ
+//           ^^^^^^^^^^^^^^ entity.name.function
+
     import$;export$;class$;throw$;break$;continue$;goto$;return$;debugger$;let$;const$;var$;
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ - keyword
 
@@ -362,7 +381,7 @@ var str2 = NaN;
 
 tag`Hello ${ a + b } world\nanother ${expression}.`;
 // <- variable.function.tagged-template.js
-// ^ punctuation.definition.string.template.begin.js
+// ^ punctuation.definition.string.begin.js
 //   ^ string.template.js
 //        ^ punctuation.definition.template-expression.begin.js
 //           ^ variable.other.readwrite.js
@@ -370,7 +389,7 @@ tag`Hello ${ a + b } world\nanother ${expression}.`;
 //               ^ meta.template.expression.js source.js.embedded.expression
 //                 ^ punctuation.definition.template-expression.end.js
 //                        ^ constant.character.escape.js
-//                                                ^ punctuation.definition.string.template.end.js
+//                                                ^ punctuation.definition.string.end.js
 
 tag `template`;
 // <- variable.function.tagged-template
@@ -379,6 +398,12 @@ tag `template`;
 x ? y // y is a template tag!
 `template` : z;
 //         ^ keyword.operator.ternary
+
+    1``
+    /a/;
+//  ^^^ - string
+//  ^ keyword.operator.arithmetic
+//    ^ keyword.operator.arithmetic
 
 mylabel:
 // ^ entity.name.label
@@ -573,7 +598,7 @@ function x() {}
 
 var $ = function(baz) {
 //  ^^^^^^^^^^^^^^^^^ meta.function.declaration
-//  ^ variable.other.dollar.only punctuation.dollar entity.name.function
+//  ^ entity.name.function variable.other.dollar.only punctuation.dollar
 }
 
 $()
@@ -615,6 +640,10 @@ do {
 // ^^^^ keyword.control.loop
 //      ^^^^^^^^ meta.group
 
+do // Incomplete statement
+    42;
+//  ^^ constant.numeric - meta.do-while
+
 for (var i = 0; i < 10; i++) {
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.for
 //   ^^^^^^^^^^^^^^^^^^^^^^ meta.group
@@ -625,12 +654,59 @@ for (var i = 0; i < 10; i++) {
 }
 // <- meta.block
 
-    for (const x of list) {}
+    for (; x in list;) {}
+//  ^^^^^^^^^^^^^^^^^^^^^ meta.for
 //  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^^^^ meta.group
+//       ^ punctuation.separator.expression
+//           ^^ keyword.operator
+//                  ^ punctuation.separator.expression
+
+    for (a[x in list];;) {}
+//  ^^^^^^^^^^^^^^^^^^^^^^^ meta.for
+//  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^^^^^^ meta.group
+//        ^^^^^^^^^^^ meta.brackets
+//           ^^ keyword.operator
+//                   ^ punctuation.separator.expression
+//                    ^ punctuation.separator.expression
+
+    for (;function () {}/a/g;) {}
+//                      ^ keyword.operator
+
+    for (const x in list) {}
+//  ^^^^^^^^^^^^^^^^^^^^^^^^ meta.for
+//  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^^^^^^^ meta.group
+//       ^^^^^ storage.type
+//               ^^ keyword.operator.word
+
+    for (const x of list) {}
+//  ^^^^^^^^^^^^^^^^^^^^^^^^ meta.for
+//  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^^^^^^^ meta.group
+//       ^^^^^ storage.type
+//               ^^ keyword.operator.word
+
+    for (x in list) {}
+//  ^^^^^^^^^^^^^^^^^^ meta.for
+//  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^ meta.group
+//         ^^ keyword.operator.word
+
+    for (x of list) {}
+//  ^^^^^^^^^^^^^^^^^^ meta.for
+//  ^^^ keyword.control.loop
+//      ^^^^^^^^^^^ meta.group
+//         ^^ keyword.operator.word
 
     for await (const x of list) {}
 //  ^^^ keyword.control.loop
 //      ^^^^^ keyword.control.loop
+
+for
+    42;
+//  ^^ constant.numeric - meta.for
 
 while (true)
 // ^^^^^^^^^ meta.while
@@ -662,10 +738,45 @@ while (true)
 //      ^^^^^ keyword.control.flow
 //            ^^^^^ keyword.control.flow
 
+    yield (parenthesized_expression);
+//  ^^^^^ keyword.control.flow
+
+    yield `template`;
+//  ^^^^^ keyword.control.flow
+
     break;
-//  ^^^^^^ meta.while meta.block
+//  ^^^^^ keyword.control.loop
+
+    break foo;
+//  ^^^^^ keyword.control.loop
+//        ^^^ variable.label
+
+    break
+    foo;
+//  ^^^ variable.other.readwrite - variable.label
+
+    break function;
+//        ^^^^^^^^ invalid.illegal.identifier variable.label
+
+    continue;
+//  ^^^^^^^^ keyword.control.loop
+
+    continue foo;
+//  ^^^^^^^^ keyword.control.loop
+//           ^^^ variable.label
+
+    continue
+    foo;
+//  ^^^ variable.other.readwrite - variable.label
+
+    goto;
+//  ^^^^ variable.other.readwrite - keyword
 }
 // <- meta.block
+
+while // Incomplete statement
+    42;
+//  ^^ constant.numeric - meta.while
 
 with (undefined) {
 // <- keyword.control.with
@@ -673,6 +784,10 @@ with (undefined) {
 //    ^^^^^^^^^ constant.language.undefined
     return;
 }
+
+with // Incomplete statement
+    42;
+//  ^^ constant.numeric - meta.while
 
 switch ($foo) {
 // ^^^^^^^^^^^^ meta.switch
@@ -702,6 +817,10 @@ switch ($foo) {
     default$
 //  ^^^^^^^^ - keyword
     ;
+
+    case 0: {}
+    case 1:
+//  ^^^^ keyword.control.switch
 }
 // <- meta.block punctuation.section.block.end
 
@@ -726,6 +845,10 @@ try {
 //  ^^^^^^^^^^^ meta.finally meta.block
 }
 // <- meta.block
+
+switch // Incomplete statement
+    42;
+//  ^^ constant.numeric - meta.switch
 
 class MyClass extends TheirClass {
 // <- storage.type.class
@@ -764,6 +887,20 @@ class MyClass extends TheirClass {
 //     ^ keyword.operator.assignment
 //       ^^ constant.numeric
 
+    f = a => b;
+//  ^^^^^^^^ meta.function.declaration
+//  ^ entity.name.function variable.other.readwrite
+//      ^ variable.parameter.function
+
+    g = function() {};
+//  ^^^^^^^^^^^^^^^^^ meta.function
+//  ^ entity.name.function variable.other.readwrite
+
+    #h = function() {};
+//  ^^^^^^^^^^^^^^^^^^ meta.function
+//  ^ punctuation.definition.variable
+//   ^ entity.name.function variable.other.readwrite
+
     static x = 42;
 //  ^^^^^^ storage.modifier.js
 //         ^ variable.other.readwrite
@@ -798,6 +935,15 @@ class MyClass extends TheirClass {
 //            ^ keyword.operator.assignment
 //              ^^ constant.numeric
 
+    static f = a => b;
+//         ^^^^^^^^ meta.function.declaration
+//         ^ entity.name.function variable.other.readwrite
+//             ^ variable.parameter.function
+
+    static g = function() {};
+//         ^^^^^^^^^^^^^^^^^ meta.function
+//         ^ entity.name.function variable.other.readwrite
+
     a, 'b' = 50, "c", [d] = 100, #e;
 //  ^ variable.other.readwrite
 //      ^ variable.other.readwrite
@@ -828,11 +974,11 @@ class MyClass extends TheirClass {
 //  ^^^^^^^^^^^^^^^ meta.function.declaration
     // ^ entity.name.function.constructor
     {
-//  ^ meta.class meta.block meta.block punctuation.section.block.begin
+//  ^ meta.class meta.block meta.function meta.block punctuation.section.block
         $.foo = "";
         super(el);
     }
-//  ^ meta.class meta.block meta.block punctuation.section.block.end
+//  ^ meta.class meta.block meta.function meta.block punctuation.section.block
 
     get foo()
 //  ^^^^^^^^^ meta.function.declaration
@@ -899,7 +1045,7 @@ class MyClass extends TheirClass {
     @foo.bar bar() {}
 //  ^^^^^^^^ meta.annotation
 //  ^ punctuation.definition.annotation
-//   ^^^ variable.other.object - variable.annotation
+//   ^^^ variable.other.readwrite - variable.annotation
 //       ^^^ variable.annotation
 //           ^^^ entity.name.function
 
@@ -917,6 +1063,9 @@ class MyClass extends TheirClass {
 
     async foo() {}
 //  ^^^^^ storage.type
+
+    *foo() {}
+//  ^ keyword.generator.asterisk
 
     static async foo() {}
 //         ^^^^^ storage.type
@@ -954,6 +1103,30 @@ Bar {}
 class Foo extends getSomeClass() {}
 //                ^^^^^^^^^^^^ meta.function-call variable.function - entity.other.inherited-class
 
+    (class extends Bar {});
+//         ^^^^^^^ storage.modifier.extends - entity.name.class
+
+    (class extends class {} {});
+//   ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.class
+//         ^^^^^^^ storage.modifier.extends
+//                 ^^^^^^^^ meta.class meta.class
+//                 ^^^^^ storage.type.class
+
+// Better highlighting while typing.
+class
+class
+// <- storage.type.class - entity.name.class
+
+    () => {}
+//  ^^^^^^^^ meta.function - meta.function meta.function
+//  ^^^^^ meta.function.declaration
+//  ^ punctuation.section.group.begin
+//   ^ punctuation.section.group.end
+//     ^^ storage.type.function.arrow
+//        ^^ meta.block
+//        ^ punctuation.section.block
+//         ^ punctuation.section.block
+
     @foo class Foo {}
 //  ^^^^ meta.annotation
 //  ^ punctuation.definition.annotation
@@ -963,7 +1136,7 @@ class Foo extends getSomeClass() {}
     @foo.bar class Foo {}
 //  ^^^^^^^^ meta.annotation
 //  ^ punctuation.definition.annotation
-//   ^^^ variable.other.object - variable.annotation
+//   ^^^ variable.other.readwrite - variable.annotation
 //       ^^^ variable.annotation
 //           ^^^^^ storage.type.class
 
@@ -982,6 +1155,7 @@ class Foo extends getSomeClass() {}
 
 const test = ({a, b, c=()=>({active:false}) }) => {};
 //    ^ entity.name.function
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function
 //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function.declaration
 //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.binding.destructuring
 //            ^ punctuation.section.block.begin
@@ -998,6 +1172,7 @@ const test = ({a, b, c=()=>({active:false}) }) => {};
 // We can't currently detect this properly, but we need to consume => properly
 ([a,
   b]) => { return x; }
+//    ^^^^^^^^^^^^^^^^ meta.function
 //    ^^ storage.type.function.arrow
 //         ^^^^^^ meta.block keyword.control.flow
 
@@ -1008,6 +1183,16 @@ const test = ({a, b, c=()=>({active:false}) }) => {};
 //     ^^^^^^^^^^^ meta.block - meta.object-literal
 //       ^^^^^^ keyword.control.flow
 );
+
+({
+    a = {},
+//    ^ keyword.operator.assignment
+//      ^^ punctuation.section.block
+//        ^ punctuation.separator.comma - keyword.operator.comma
+    b,
+//   ^ punctuation.separator.comma - keyword.operator.comma
+}) => null;
+// ^^ storage.type.function.arrow
 
 MyClass.foo = function() {}
 // ^^^^^^^^^^^^^^^^^^^^^ meta.function.declaration
@@ -1053,14 +1238,12 @@ Proto.prototype.getVar = () => this._var;
 //                           ^ storage.type.function.arrow
 
 Class3.prototype = function() {
-// ^^^^^^^^^^^^^ meta.prototype.declaration
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function.declaration
 // ^ support.class
 //       ^ support.constant.prototype
 }
 
 Proto.prototype.attr
-// ^^^^^^^^^^^^ meta.prototype.access
 // ^ support.class
 //     ^ support.constant.prototype
 //               ^ meta.property.object
@@ -1075,7 +1258,7 @@ Proto.prototype = {
 
 sources.DOM.status()
 sources.DOM
-// <- variable.other.object
+// <- variable.other.readwrite
     .status()
     // ^ meta.function-call.method variable.function
 
@@ -1089,6 +1272,29 @@ var anotherSingle = function(){a = param => param; return param2 => param2 * a}
 //                                                        ^ meta.function.declaration variable.parameter.function
 //                                                                           ^ meta.block meta.block variable.other.readwrite
 //                                                                            ^ meta.block punctuation.section.block.end
+
+var foo = ~{a:function(){}.a()}
+//  ^^^ meta.binding.name
+//  ^^^ variable.other.readwrite
+//      ^ keyword.operator.assignment
+//        ^ keyword.operator.bitwise
+//         ^ punctuation.section.block.begin
+//         ^^^^^^^^^^^^^^^^^^^^ meta.object-literal
+//          ^^^^^^^^^^^^ meta.function.declaration
+//          ^ entity.name.function
+//           ^ punctuation.separator.key-value
+//            ^^^^^^^^ storage.type.function
+//                    ^ punctuation.section.group.begin
+//                     ^ punctuation.section.group.end
+//                      ^ meta.block punctuation.section.block.begin
+//                       ^ meta.block punctuation.section.block.end
+//                        ^ meta.object-literal
+//                         ^^^ meta.function.declaration
+//                         ^ entity.name.function
+//                          ^ punctuation.section.group.begin
+//                           ^ punctuation.section.group.end
+//                            ^ punctuation.section.block.end
+//                             ^ - meta
 
 baz(foo(x => x('bar')));
 //                   ^ meta.function-call meta.function-call punctuation.section.group.end
@@ -1105,6 +1311,7 @@ func(a, b);
 //       ^ punctuation.section.group.end
 
 var instance = new Constructor(param1, param2)
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.constructor
 //                 ^^^^^^^^^^^ variable.type
 //                            ^^^^^^^^^^^^^^^^ meta.group
 //                            ^ punctuation.section.group.begin
@@ -1119,16 +1326,12 @@ var obj2 = new class Foo{}();
 
 this.func()
 // <- variable.language.this
-self.func()
-// <- variable.language.self
 arguments;
 // <- variable.language.arguments
 super.func();
 // <- variable.language.super
-foo.constructor;
-//  ^^^^^^^^^^^ variable.language.constructor
-foo.__proto__
-//  ^^^^^^^^^ variable.language.proto
+globalThis;
+// <- variable.language.global
 
 foo[bar];
 // ^^^^^ meta.brackets
@@ -1146,15 +1349,16 @@ var Constructor = function() {
 // Tests to ensure the new keyword is highlighted properly even when the
 // following element is not an identifier
 var abc = new ABC(
-//         ^ meta.instance.constructor keyword.operator.word.new
-//               ^ meta.instance.constructor meta.function-call.constructor
-//               ^ - meta.instance.constructor meta.instance.constructor
+//        ^^^ keyword.operator.word.new
+//            ^^^^ meta.function-call.constructor
+//        ^^^^^^^^ - meta.instance.constructor
     'my-name-is-abc',
     new (function () {
-//  ^ meta.instance.constructor meta.function-call.constructor meta.instance.constructor keyword.operator.word.new
-//      ^ meta.instance.constructor meta.function-call.constructor meta.instance.constructor meta.function-call.constructor meta.group
+//  ^^^ keyword.operator.word.new
+//  ^^^^^^^^^^^^^^^^^^ - meta.instance.constructor
+//      ^^^^^^^^^^^^^^ meta.function-call.constructor meta.function-call.constructor meta.group
         var foo = 1;
-//      ^ meta.instance.constructor meta.function-call.constructor meta.instance.constructor meta.function-call.constructor meta.group meta.block
+//      ^^^^^^^^^^^^ meta.function-call.constructor meta.function-call.constructor meta.group meta.block
     })
 );
 
@@ -1172,10 +1376,9 @@ function f() {
 }
 
 new Date().getTime()
-// ^^^^^^^ meta.instance.constructor
 //  ^^^^^^ meta.function-call.constructor
-//  ^^^^ support.class.builtin
-//        ^^^^^^^^^^ - meta.instance.constructor
+//  ^^^^ support.class
+//^^^^^^^^^^^^^^^^^^ - meta.instance.constructor
 
 new $();
 //  ^ variable.type.dollar.only punctuation.dollar
@@ -1288,6 +1491,14 @@ a = /\//u + 0;
 //       ^ constant.numeric
 //         ^ keyword.operator
 
+    x
+    in y;
+//  ^^ keyword.operator
+
+    x
+    instanceof y;
+//  ^^^^^^^^^^ keyword.operator
+
 var π = 3.141592653
 //  ^ variable.other.readwrite
 
@@ -1329,6 +1540,17 @@ var re = /^\/[^/]+/;
 //      ^ keyword.operator.arithmetic
  y      / ((x - 1) / -2);
 
+    1, 2;
+//   ^ keyword.operator.comma - punctuation
+
+    a;
+    [1, 2];
+//    ^ meta.sequence punctuation.separator.comma - meta.brackets - keyword
+
+    a
+    [1, 2];
+//    ^ meta.brackets keyword.operator.comma - meta.sequence - punctuation
+
 define(['common'], function(common) {
 //                 ^ meta.function.declaration
     var namedFunc = function() {
@@ -1344,15 +1566,16 @@ new FooBar(function(){
 })
 
 ['foo'].bar = function() {
-//      ^ meta.property.object entity.name.function
+//      ^^^ entity.name.function meta.property.object
 }
 
 ['foo'].$ = function() {
-//      ^ meta.property.object.dollar.only entity.name.function
+//      ^ entity.name.function meta.property.object.dollar.only punctuation.dollar
 }
 
 ['foo'].$bar = function() {
-//      ^ meta.property.object.dollar entity.name.function
+//      ^^^^ entity.name.function meta.property.object.dollar
+//      ^ punctuation.dollar
 }
 
 {
@@ -1402,12 +1625,12 @@ function test() {
 }
 
 $.each({})
-// <- variable.other.object.dollar.only punctuation.dollar
+// <- variable.other.dollar.only punctuation.dollar
 //     ^ meta.object-literal
 
 $varname.method()
-// <- variable.other.object.dollar punctuation.dollar - variable.other.object.dollar.only
-// ^ variable.other.object.dollar
+// <- variable.other.dollar punctuation.dollar - variable.object.dollar.only
+// ^ variable.other.dollar
 
 $.fn.new_plugin = function() {}
 // <- support.class.dollar.only punctuation.dollar
@@ -1421,6 +1644,9 @@ someFunction(() => [() => 'X']);
 
 string = 'invalid
 //               ^ invalid.illegal.newline
+
+string = 'invalid\ 
+//                 ^ invalid.illegal.newline
 
 hex = 0xFA.5;
 //         ^ invalid.illegal - constant.numeric
@@ -1450,20 +1676,9 @@ function optionalParam(b=0) {};
 //                      ^ keyword.operator.assignment
 //                        ^ punctuation.section.group.end
 
-var path = require('path');
-//  ^^^^ support.module.node
-
-foo = path.join(__dirname, bar);
-//              ^^^^^^^^^ support.type.object.node
-
-nodeClass = new Buffer();
-//              ^^^^^^ support.class.node
 
 var CONST;
 //  ^^^^^ variable.other.constant
-
-err = new Error();
-//        ^^^^^ support.class.error
 
 return;
 {a: 1};
@@ -1474,11 +1689,7 @@ return
 // ^ meta.block - meta.object-literal
 
 const abc = new Set
-console.log('abc');
-// ^^^^ support.type.object.console
-
-const abc = new Set
-if (true) console.log('abc');
+if (true) {};
 // <- keyword.control.conditional
 
 var o = {
@@ -1510,10 +1721,8 @@ var str = `Hello, ${name}!`;
 //                  ^^^^ source.js.embedded.expression variable.other.readwrite
 //                      ^ punctuation.definition.template-expression.end
 
-let str = navigator.userAgent.toLowerCase();
-//        ^^^^^^^^^ support.type.object
-
 function yy (a, b) {
+// ^^^^^^^^^^^^^^^^^ meta.function
 // ^^^^^^^^^^^^^^^ meta.function.declaration
 //       ^^ entity.name.function
 //          ^ punctuation.section.group.begin
@@ -1521,8 +1730,9 @@ function yy (a, b) {
 //            ^ punctuation.separator.parameter.function
 //              ^ variable.parameter.function
 //               ^ punctuation.section.group.end
-//                 ^ meta.block punctuation.section.block.begin - meta.function
+//                 ^ meta.block punctuation.section.block.begin
 }
+// <- meta.function meta.block punctuation.section.block
 
 // Integers
 
@@ -1533,10 +1743,19 @@ function yy (a, b) {
     0;
 //  ^ constant.numeric.decimal
 
-    123 .foo
+    123 .foo;
 //  ^^^ constant.numeric.decimal
 //      ^ punctuation.accessor
 //       ^^^ meta.property.object
+
+    +123;
+//  ^^^^ constant.numeric.decimal - keyword
+
+    -123;
+//  ^^^^ constant.numeric.decimal - keyword
+
+    + 123;
+//  ^ keyword.operator.arithmetic
 
     123xyz;
 //  ^^^^^^ invalid.illegal.numeric.decimal

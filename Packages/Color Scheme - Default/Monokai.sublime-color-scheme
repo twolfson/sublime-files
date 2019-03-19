@@ -27,7 +27,8 @@
     {
         "foreground": "var(white3)",
         "background": "var(black3)",
-        "caret": "var(white2)",
+        "caret": "color(var(white2) alpha(0.9))",
+        "block_caret": "color(var(white2) alpha(0.4))",
         "invisibles": "color(var(white3) alpha(0.35))",
         "line_highlight": "var(yellow4)",
         "selection": "var(grey)",
@@ -280,6 +281,27 @@
         {
             "scope": "message.error",
             "foreground": "var(red)"
-        }
+        },
+
+        {
+            "scope": "diff.deleted",
+            "background": "hsla(338, 50%, 56%, 0.15)",
+            "foreground_adjust": "l(+ 5%)"
+        },
+        {
+            "scope": "diff.deleted.char",
+            "background": "hsla(338, 65%, 56%, 0.30)",
+            "foreground_adjust": "l(+ 10%)"
+        },
+        {
+            "scope": "diff.inserted",
+            "background": "hsla(80, 50%, 53%, 0.15)",
+            "foreground_adjust": "l(+ 5%)"
+        },
+        {
+            "scope": "diff.inserted.char",
+            "background": "hsla(80, 65%, 53%, 0.30)",
+            "foreground_adjust": "l(+ 10%)"
+        },
     ]
 }

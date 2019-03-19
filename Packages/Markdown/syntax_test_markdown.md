@@ -1173,6 +1173,7 @@ __test!*test__ Issue 1163
 | <- punctuation.definition.raw.code-fence.begin
 |  ^^ constant.other.language-name
 for (var i = 0; i < 10; i++) {
+| ^ keyword.control.loop.js
     console.log(i);
 }
 ```
@@ -1513,8 +1514,10 @@ abc
 |           ^ punctuation.separator.table-cell
 | ^^^^ - punctuation.separator.table-cell
 | --- | --- |
-| baz | bim |
+| baz | bim <kbd>Ctrl+C</kbd> |
 | <- meta.block-level meta.table punctuation.separator.table-cell
+|           ^^^^^ meta.tag.inline.any
+|                             ^ punctuation.separator.table-cell
 
 | <- - meta.block-level - meta.table
 
@@ -1827,14 +1830,14 @@ okay
 http://spec.commonmark.org/0.28/#example-148
 
 <!DOCTYPE html>
-| ^^^^^^^ meta.disable-markdown meta.tag.sgml.html meta.tag.sgml.doctype.html entity.name.tag.doctype.html
+| ^^^^^^^ meta.disable-markdown meta.tag.sgml.doctype.html keyword.declaration.doctype.html
 okay
 | <- - meta.disable-markdown
 
 http://spec.commonmark.org/0.28/#example-149
 
 <![CDATA[
-| ^^^^^^^^ meta.disable-markdown meta.tag.sgml.html constant.other.inline-data.html
+| ^^^^^^^^ meta.disable-markdown meta.tag.sgml.cdata.html
 function matchwo(a,b)
 {
   if (a < b && a < 0) then {
@@ -1846,7 +1849,7 @@ function matchwo(a,b)
   }
 }
 ]]>
-|^ meta.disable-markdown meta.tag.sgml.html constant.other.inline-data.html
+|^ meta.disable-markdown meta.tag.sgml.cdata.html
 okay
 | <- - meta.disable-markdown
 
@@ -1892,7 +1895,7 @@ FROM TableName
 |  ^^^^^^ constant.other.language-name
 def function():
     pass
-|   ^^^^ keyword.control.flow.python
+|   ^^^^ keyword.control.flow.pass.python
 unclosed_paren = (
 |                ^ meta.group.python punctuation.section.group.begin.python
 ```
@@ -1936,3 +1939,26 @@ echo This is a smiley :-\) \(I have to escape the parentheses, though!\)
 |                       ^^ constant.character.escape
 ```
 | <- meta.code-fence.definition.end.shell-script punctuation.definition.raw.code-fence.end
+
+```     bash
+| <- punctuation.definition.raw.code-fence.begin
+|  ^^^^^ meta.code-fence.definition.begin.shell-script.markdown-gfm
+|       ^^^^ constant.other.language-name
+# test
+| ^^^^^ source.shell comment.line.number-sign
+```
+| <- meta.code-fence.definition.end.shell-script punctuation.definition.raw.code-fence.end
+
+~~~~    ruby startline=3 $%@#$
+| <- punctuation.definition.raw.code-fence.begin
+|   ^^^^ meta.code-fence.definition.begin.ruby.markdown-gfm
+|       ^^^^ constant.other.language-name
+|           ^^^^^^^^^^^^^^^^^^ meta.code-fence.definition.begin.ruby.markdown-gfm
+def foo(x)
+  return 3
+end
+~~~~~~~
+| <- meta.code-fence.definition.end.ruby punctuation.definition.raw.code-fence.end
+
+\~/.bashrc
+|^ constant.character.escape

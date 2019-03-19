@@ -303,6 +303,27 @@
         {
             "scope": "message.error",
             "foreground": "var(red)"
-        }
+        },
+
+        {
+            "scope": "diff.deleted",
+            "background": "hsl(0, 60%, 93%)",
+            "foreground_adjust": "l(- 20%)"
+        },
+        {
+            "scope": "diff.deleted.char",
+            "background": "hsl(0, 60%, 85%)",
+            "foreground_adjust": "l(- 30%)"
+        },
+        {
+            "scope": "diff.inserted",
+            "background": "hsl(114, 60%, 93%)",
+            "foreground_adjust": "l(- 20%)"
+        },
+        {
+            "scope": "diff.inserted.char",
+            "background": "hsl(114, 60%, 85%)",
+            "foreground_adjust": "l(- 30%)"
+        },
     ]
 }

@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=480, user-scalable=yes">
     <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i|Roboto+Mono:400,700" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/sublime_v3.css">
+    <link rel="stylesheet" type="text/css" href="/sublime_v3.css?d=190313">
     <link rel="icon" href="/favicon.ico">
     <link rel="icon" size="64x64" href="/favicon.ico">
     <link rel="icon" sizes="192x192" href="/images/icon.png">
@@ -52,9 +52,10 @@
             <nav>
                 <a href="/3">Download</a>
                 <a href="/buy?v=3.0">Buy</a>
+                <a href="/support">Support</a>
+                <span class="vr"></span>
                 <a href="/blog/">News</a>
                 <a href="https://forum.sublimetext.com">Forum</a>
-                <a href="/support">Support</a>
             </nav>
         </section>
     </header>
@@ -121,7 +122,9 @@
 </main>
     <footer>
         <section>
-            © Sublime HQ Pty Ltd
+            © <a href="https://www.sublimehq.com">Sublime HQ Pty Ltd</a>
+
+            <p>Woollahra, Sydney.
         </section>
     </footer>
     <!--[if lt IE 9]>

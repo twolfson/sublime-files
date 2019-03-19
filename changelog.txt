@@ -47,6 +47,137 @@ article { display: block; }
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>3.2 (Build 3200)</h2>
+<div class="release-date">13 March 2019</div>
+<div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-3-point-2">Announcement Post</a></div>
+
+<h3>NEW: Git Integration</h3>
+<ul class="topic">
+    <li>Files and folders in the sidebar will now display badges to indicate Git status</li>
+    <li>Ignored files and folders are visually de-emphasized</li>
+    <li>The current Git branch and number of modifications is displayed in the status bar</li>
+    <li>Commands have been added to open a repository, see file or folder history, or blame a file in <a href="https://www.sublimemerge.com">Sublime Merge</a></li>
+    <li>Themes may customize the display of sidebar badges and status bar information</li>
+    <li>The setting <tt>show_git_status</tt> allows disabling Git integration</li>
+    <li>All file reads are done through a custom, high-performance Git library written for <a href="https://www.sublimemerge.com">Sublime Merge</a></li>
+    <li><a href="https://www.sublimetext.com/docs/3/git_integration.html">Read the documentation</a></li>
+</ul>
+
+<h3>NEW: Incremental Diff</h3>
+<ul class="topic">
+    <li>All changes to a document are now represented by dedicated markers in the gutter</li>
+    <li>Diff markers show added, modified and deleted lines</li>
+    <li>The setting <tt>mini_diff</tt> controls incremental diff behavior</li>
+    <li>In coordination with the new Git functionality, diffs can be calculated against HEAD or the index</li>
+    <li>The <tt>git_diff_target</tt> setting controls base document source</li>
+    <li>API methods <tt>View.set_reference_document()</tt> and <tt>View.reset_reference_document()</tt> allow controlling the diff</li>
+    <li>
+        The following diff-related commands were added:
+        <ul>
+            <li>Next Modification</li>
+            <li>Previous Modification</li>
+            <li>Revert Modification</li>
+        </ul>
+    </li>
+    <li>Full inline diffs of each change can be displayed via the right-click context menu, or keyboard shortcuts</li>
+    <li>Inline diff presentation can be changed by customizing a color scheme</li>
+    <li><a href="https://www.sublimetext.com/docs/3/inline_diffs.html">Read the documentation</a></li>
+</ul>
+
+<h3>Editor Control</h3>
+<ul class="topic">
+    <li>Added <tt>block_caret</tt> setting</li>
+    <li>Improve positioning and sizing of gutter icons in some situations</li>
+    <li>Fixed <tt>draw_minimap_border</tt> setting not working</li>
+    <li>Linux: Improved input method (IM) support - fcitx, ibus, etc</li>
+    <li>Linux: Fixed a crash when using <tt>GTK_IM_MODULE=xim</tt></li>
+    <li>Linux: Tweaked behavior of up/down when on the first and last lines of a file to better match platform conventions</li>
+    <li>Windows: Improved IME support</li>
+</ul>
+
+<h3>Themes/UI</h3>
+<ul class="topic">
+    <li>
+        Enhanced the <tt>.sublime-theme</tt> format:
+        <ul>
+            <li>Added variables support and associated revised JSON format with <tt>variables</tt> key</li>
+            <li>Added <tt>extends</tt> keyword to have one theme derive from another</li>
+            <li>Colors may be specified via CSS syntax</li>
+        </ul>
+    </li>
+    <li>Improved performance with large numbers of rules in a <tt>.sublime-theme</tt></li>
+    <li>Linux: Moved to GTK3</li>
+    <li>Linux: Various high DPI fixes</li>
+    <li>Mac: Added Mojave support</li>
+    <li>Mac: Add full support for macOS native tabs</li>
+    <li>Mac: Ensure context menus are shown without scrolling</li>
+    <li>Mac: Error message dialogs can now be closed with the escape key</li>
+    <li>Mac: Improved window placement</li>
+    <li>Mac: Improved resize performance</li>
+    <li>Windows: Fixed minimized and maximized state not restoring</li>
+    <li>Windows: Fixed a bug where auto complete entries would contain an ellipsis when not required</li>
+</ul>
+
+<h3>Text Rendering</h3>
+<ul class="topic">
+    <li>Support for Unicode 11.0</li>
+    <li>Improved rendering of combining characters</li>
+    <li>Fixed a caret positioning bug when non-trivial graphemes are present</li>
+    <li>Fixed some cases of incorrect glyph positions on Windows and Mac</li>
+    <li>Linux: Color glyphs are now drawn properly on light backgrounds</li>
+    <li>Windows: Fixed a rendering issue with certain combining characters</li>
+    <li>Windows: Fixed some fonts having an incorrect baseline</li>
+</ul>
+
+<h3>Color Schemes</h3>
+<ul class="topic">
+    <li>Added <tt>block_caret</tt> key to use in conjunction with block carets</li>
+    <li><tt>caret</tt> values now respect alpha as expected, rather than pre-blending against the background color</li>
+    <li>Added the <tt>foreground_adjust</tt> property to rules with a <tt>background</tt>. Accepts CSS color mod adjusters to manipulate the saturation, lightness or opacity of the foreground color.</li>
+</ul>
+
+<h3>Syntax Highlighting</h3>
+<ul class="topic">
+    <li>Many syntax highlighting improvements, including significant improvements to:
+        <ul>
+            <li><i>Clojure</i>, with thanks to <a href="https://github.com/mitranim">Nelo Mitranim</a></li>
+            <li><i>D</i></li>
+            <li><i>Go</i>, with thanks to <a href="https://github.com/mitranim">Nelo Mitranim</a></li>
+            <li><i>Lua</i>, with thanks to <a href="https://github.com/Thom1729">Thomas Smith</a></li>
+        </ul>
+    </li>
+    <li>Fixed a crash that could occur when nesting embed patterns in <tt>.sublime-syntax</tt> files</li>
+    <li>Syntax Tests: Allow syntax test files to have a UTF-8 BOM</li>
+</ul>
+
+<h3>Files and Folders</h3>
+<ul class="topic">
+    <li>Improve performance of file watching for ignored paths on Windows and Mac</li>
+    <li>Windows: Fixed Open File treating paths as case-sensitive</li>
+    <li>Windows: Properly unlock directories after contained files are closed</li>
+</ul>
+
+<h3>API</h3>
+<ul class="topic">
+    <li>Added <tt>View.set_reference_document()</tt> and <tt>View.reset_reference_document()</tt> to control diff generation</li>
+    <li>Phantoms are now drawn correctly in conjunction with <tt>draw_centered</tt></li>
+    <li>Various minor improvements related to plugin module loading and unloading</li>
+    <li>Added support for <tt>hwb()</tt> colors to minihtml</li>
+    <li>Added a custom <tt>min-contrast()</tt> adjuster for the CSS color mod function in minihtml</li>
+    <li>Mac: Fixed a <tt>plugin_host</tt> crash when running a process that itself crashes</li>
+</ul>
+
+<h3>Miscellaneous</h3>
+<ul class="topic">
+    <li>Fixed a <i>Goto Symbol in Project</i> performance regression</li>
+    <li>F21..F24 keys can now be bound</li>
+    <li>Assorted minor fixes and stability improvements</li>
+    <li>Linux: Improved behavior of <tt>--wait</tt> command line argument when Sublime Text isn't currently running</li>
+</ul>
+
+</article>
+
+<article>
 <h2>3.1.1 (Build 3176)</h2>
 <div class="release-date">14 May 2018</div>
 <ul>

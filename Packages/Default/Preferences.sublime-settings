@@ -62,6 +62,12 @@
     // Hides the fold buttons unless the mouse is over the gutter
     "fade_fold_buttons": true,
 
+    // Indicate modified lines in the gutter
+    // - true: Enables modified line indicators on all files
+    // - "auto": Enables modified line indicators on tracked files within Git
+    // - false: Disables modified line indicators
+    "mini_diff": true,
+
     // Columns in which to display vertical rulers
     "rulers": [],
 
@@ -140,6 +146,10 @@
     "caret_extra_top": 2,
     "caret_extra_bottom": 2,
     "caret_extra_width": 1,
+
+    // When enabled, the caret will be drawn as a rectangle, using the width
+    // of the current character
+    "block_caret": false,
 
     // Set to false to disable underlining the brackets surrounding the caret
     "match_brackets": true,
@@ -336,6 +346,11 @@
     // effect.
     "gpu_window_buffer": "auto",
 
+    // Mac only. Controls use of macOS tabs in 10.12 and newer. Each native tab
+    // contains an entire project, thus allowing multiple projects in a single
+    // window. Valid values are "system", "preferred" and "disabled".
+    "native_tabs": "system",
+
     // Valid values are "system", "enabled" and "disabled"
     "overlay_scroll_bars": "system",
 
@@ -351,11 +366,6 @@
     // Magnifies the entire user interface. Sublime Text must be restarted for
     // this to take effect.
     "ui_scale": 1.0,
-
-    // Linux only. Sets the app DPI scale - a decimal number such as 1.0, 1.5,
-    // 2.0, etc. A value of 0 auto-detects the DPI scale. Sublime Text must be
-    // restarted for this to take effect.
-    "dpi_scale": 0,
 
     //
     // Application Behavior Settings
@@ -414,6 +424,16 @@
 
     // Shows build errors just under the line on which they occur.
     "show_errors_inline": true,
+
+    // Shows git repository information next to files in sidebar and in
+    // the status bar. Sublime Text has to be restarted for this to take
+    // effect.
+    "show_git_status": true,
+
+    // This setting determines whether tracked Git files should be diffed
+    // against the index or HEAD.
+    // Valid values are "index" or "head"
+    "git_diff_target": "index",
 
     // Preview file contents when clicking on a file in the side bar. Double
     // clicking or editing the preview will open the file and assign it a tab.

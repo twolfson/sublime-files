@@ -188,5 +188,26 @@
             "scope": "meta.table.header - punctuation",
             "font_style": "bold"
         },
+
+        {
+            "scope": "diff.deleted",
+            "background": "hsl(0, 70%, 93%)",
+            "foreground_adjust": "l(- 20%)"
+        },
+        {
+            "scope": "diff.deleted.char",
+            "background": "hsl(0, 70%, 85%)",
+            "foreground_adjust": "l(- 30%)"
+        },
+        {
+            "scope": "diff.inserted",
+            "background": "hsl(130, 70%, 93%)",
+            "foreground_adjust": "l(- 20%)"
+        },
+        {
+            "scope": "diff.inserted.char",
+            "background": "hsl(130, 70%, 85%)",
+            "foreground_adjust": "l(- 30%)"
+        },
     ]
 }

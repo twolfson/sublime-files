@@ -13,6 +13,8 @@ import sublime_api
 
 api_ready = False
 
+deferred_plugin_loadeds = []
+
 application_command_classes = []
 window_command_classes = []
 text_command_classes = []
@@ -65,10 +67,17 @@ profile = {}
 
 def unload_module(module):
     if "plugin_unloaded" in module.__dict__:
-        module.plugin_unloaded()
+        try:
+            module.plugin_unloaded()
+        except:
+            traceback.print_exc()
+
     # Check unload_handler too, for backwards compat
     if "unload_handler" in module.__dict__:
-        module.unload_handler()
+        try:
+            module.unload_handler()
+        except:
+            traceback.print_exc()
 
     # Unload the old plugins
     if "__plugins__" in module.__dict__:
@@ -115,6 +124,10 @@ def reload_plugin(modulename):
     else:
         m = importlib.import_module(modulename)
 
+    load_module(m)
+
+
+def load_module(m):
     module_plugins = []
     on_activated_targets = []
     vel_on_activated_classes = []
@@ -211,6 +224,9 @@ def reload_plugin(modulename):
                     except:
                         traceback.print_exc()
 
+    elif "plugin_loaded" in m.__dict__:
+        deferred_plugin_loadeds.append(m.plugin_loaded)
+
 
 def synthesize_on_activated_async():
     if not api_ready:
@@ -277,12 +293,12 @@ def on_api_ready():
     global api_ready
     api_ready = True
 
-    for m in list(sys.modules.values()):
-        if "plugin_loaded" in m.__dict__:
-            try:
-                m.plugin_loaded()
-            except:
-                traceback.print_exc()
+    for plc in deferred_plugin_loadeds:
+        try:
+            plc()
+        except:
+            traceback.print_exc()
+    deferred_plugin_loadeds.clear()
 
     # Create ViewEventListener instances
     if len(view_event_listener_classes) > 0:

@@ -764,6 +764,12 @@ class View(object):
     def set_name(self, name):
         sublime_api.view_set_name(self.view_id, name)
 
+    def reset_reference_document(self):
+        sublime_api.view_reset_reference_document(self.view_id)
+
+    def set_reference_document(self, reference):
+        sublime_api.view_set_reference_document(self.view_id, reference)
+
     def is_loading(self):
         return sublime_api.view_is_loading(self.view_id)
 
