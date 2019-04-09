@@ -635,7 +635,7 @@ class ViEval(sublime_plugin.TextCommand):
             clip_empty_selection_to_line_contents(self.view)
 
         # Ensure the selection is visible
-        self.view.show(self.view.sel())
+        self.view.show(self.view.sel(), show_surrounds=False)
 
 
 class EnterInsertMode(sublime_plugin.TextCommand):

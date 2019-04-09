@@ -46,6 +46,30 @@ article { display: block; }
 
 <h1>Stable Channel Changelog</h1>
 
+
+<article class="current">
+<h2>3.2.1 (Build 3207)</h2>
+<div class="release-date">6 April 2019</div>
+<ul>
+    <li>Various syntax highlighting improvements</li>
+    <li>Git: Git repositories at the top level of a users home directory are ignored for performance reasons. This can be changed via the <tt>allow_git_home_dir</tt> setting.</li>
+    <li>Git: Improved performance with a large number of git repositories in the side bar</li>
+    <li>Git: Fixed UTF8 BOMs not being handled correctly in <tt>.gitignore</tt> files</li>
+    <li>Fixed a crash in the Git repository handling</li>
+    <li>Improved file indexing behavior in some scenarios</li>
+    <li>Improved scrolling logic in some scenarios</li>
+    <li>Fixed block carets changing the way text selection works</li>
+    <li>Fixed <tt>swap_line_up</tt> and <tt>swap_line_down</tt> transforming tabs into spaces</li>
+    <li>Mac: Added a workaround for a MacOS issue with DisplayLink adapters</li>
+    <li>Lixed: Fixed compatibility with old Linux distributions</li>
+    <li>Linux: Improved high dpi handling under KDE</li>
+    <li>Linux: Tweaked the way text scaling is handled</li>
+    <li>Linux: Fixed incorrect file ownership in the deb packages</li>
+    <li>API: Fixed an incompatibility with SublimeREPL</li>
+    <li>API: Fixed regression with phantoms interfering with home/end behavior</li>
+</ul>
+</article>
+
 <article class="current">
 <h2>3.2 (Build 3200)</h2>
 <div class="release-date">13 March 2019</div>

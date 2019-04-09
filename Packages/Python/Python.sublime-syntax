@@ -32,7 +32,7 @@ variables:
   identifier: '\b[[:alpha:]_]{{identifier_continue}}*\b'
   identifier_constant: '\b(?:[\p{Lu}_][\p{Lu}_\d]*)?[\p{Lu}]{2,}[\p{Lu}_\d]*\b'  # require 2 consecutive upper-case letters
   digitpart: (?:\d(?:_?\d)*)
-  path: '({{identifier}} *\. *)*{{identifier}}'
+  path: '({{identifier}}[ ]*\.[ ]*)*{{identifier}}'
   sql_indicator: \s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|REPLACE|ALTER|WITH)\b
   illegal_names: (?:and|as|assert|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|not|or|pass|raise|return|try|while|with|yield)
   format_spec: |-
@@ -1003,7 +1003,7 @@ contexts:
         - match: ','
           scope: punctuation.separator.mapping.python
           set: inside-dictionary
-    - match: (?=for)
+    - match: (?=for\b)
       push:
         - match: (?=\})
           pop: true
@@ -1016,7 +1016,7 @@ contexts:
       push:
         - clear_scopes: 1
         - meta_content_scope: meta.mapping.value.python
-        - match: (?=\s*(\}|,|for))
+        - match: (?=\s*(\}|,|for\b))
           pop: true
         - include: expressions
 

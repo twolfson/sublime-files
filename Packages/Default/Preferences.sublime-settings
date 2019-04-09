@@ -364,8 +364,10 @@
     "show_line_endings": false,
 
     // Magnifies the entire user interface. Sublime Text must be restarted for
-    // this to take effect.
-    "ui_scale": 1.0,
+    // this to take effect. 1.0 is normal scale, 0.0 allows for auto-detection
+    // based on text scale with older Linux configurations that don't fully
+    // support GTK display scaling.
+    "ui_scale": 0.0,
 
     //
     // Application Behavior Settings
@@ -429,6 +431,11 @@
     // the status bar. Sublime Text has to be restarted for this to take
     // effect.
     "show_git_status": true,
+
+    // Enables showing git status for a git repository in the user's home
+    // directory. This is disabled by default since it is typically accidental
+    // and can cause heavy CPU usage related to file system watches.
+    "allow_git_home_dir": false,
 
     // This setting determines whether tracked Git files should be diffed
     // against the index or HEAD.
