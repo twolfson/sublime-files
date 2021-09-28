@@ -48,7 +48,7 @@ In accordance with Sublime Text's EULA, all files except for `.foundryrc`, `.git
 
 Here are the specific lines regarding that ownership:
 
-[Copyright lines](EULA#L53-L54)
+[Copyright lines](EULA#L106-L107)
 
 With respect to the excepted files (`.foundryrc`, `.gitignore`, `CHANGELOG.md`, `README.md`, `UNLICENSE`, `delete-sublime.sh`, `download-eula.sh`, `extract-sublime.sh`, `release.sh`), those are released to the Public Domain by Todd Wolfson under the [UNLICENSE][].
 
