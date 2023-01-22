@@ -1,7 +1,76 @@
 # SYNTAX TEST "Packages/R/R.sublime-syntax"
 
 # comment
-# ^^^^^^^ comment.line.number-sign.r
+# ^^^^^^^^ comment.line.number-sign.r
+
+# no section ---
+# ^^^^^^^^^^^^^^^ comment.line.number-sign.r - entity
+
+# section 1 ----
+#^ comment.line.number-sign.r - entity
+# ^^^^^^^^^ entity.name.section.r
+#          ^^^^^^ comment.line.number-sign.r - entity
+
+## section 1.1 ----
+#^^ comment.line.number-sign.r - entity
+#  ^^^^^^^^^^^ entity.name.section.r
+#             ^^^^^^ comment.line.number-sign.r - entity
+
+  #### section 1.1.1 ----
+#^ - comment
+# ^^^^^ comment.line.number-sign.r - entity
+#      ^^^^^^^^^^^^^ entity.name.section.r
+#                   ^^^^^^ comment.line.number-sign.r - entity
+
+# no section ===
+# ^^^^^^^^^^^^^^ comment.line.number-sign.r - entity
+
+# section 2 ====
+#^ comment.line.number-sign.r - entity
+# ^^^^^^^^^ entity.name.section.r
+#          ^^^^^^ comment.line.number-sign.r - entity
+
+## section 2.1 ====
+#^^ comment.line.number-sign.r - entity
+#  ^^^^^^^^^^^ entity.name.section.r
+#             ^^^^^^ comment.line.number-sign.r - entity
+
+#### section 2.1.1 ====
+#^^^^ comment.line.number-sign.r - entity
+#    ^^^^^^^^^^^^^ entity.name.section.r
+#                 ^^^^^^ comment.line.number-sign.r - entity
+
+######
+# <- comment.line.number-sign.r punctuation.definition.comment.r - entity
+#^^^^^ comment.line.number-sign.r punctuation.definition.comment.r - entity
+#     ^ comment.line.number-sign.r - entity - punctuation
+
+# # ####
+# <- comment.line.number-sign.r punctuation.definition.comment.r - entity
+#^ comment.line.number-sign.r - entity - punctuation
+# ^ comment.line.number-sign.r entity.name.section.r
+#  ^^^^^^ comment.line.number-sign.r - entity - punctuation
+
+# no section ###
+# ^^^^^^^^^^^^^^^ comment.line.number-sign.r - entity
+
+# no section -=#=-
+# ^^^^^^^^^^^^^^^^^ comment.line.number-sign.r - entity
+
+# section 3 ####
+#^ comment.line.number-sign.r - entity
+# ^^^^^^^^^ entity.name.section.r
+#          ^^^^^^ comment.line.number-sign.r - entity
+
+## section 3.1 ####
+#^^ comment.line.number-sign.r - entity
+#  ^^^^^^^^^^^ entity.name.section.r
+#             ^^^^^^ comment.line.number-sign.r - entity
+
+#### section 3.1.1 ####
+#^^^^ comment.line.number-sign.r - entity
+#    ^^^^^^^^^^^^^ entity.name.section.r
+#                 ^^^^^^ comment.line.number-sign.r - entity
 
 # constants
 pi
@@ -35,65 +104,197 @@ Inf
 NaN
 # <- constant.language.r
 
-  12L
-# ^^^ constant.numeric.integer.decimal.r
+# complex imaginary
 
-  12
-# ^^ constant.numeric.float.decimal.r
+  0x1afi
+# ^^ meta.number.imaginary.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.imaginary.hexadecimal.r constant.numeric.value.r
+#      ^ meta.number.imaginary.hexadecimal.r constant.numeric.suffix.r
 
-  0x1afL
-# ^^^^^^ constant.numeric.integer.hexadecimal.r
+  0X1afi 0X1afI
+# ^^ meta.number.imaginary.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.imaginary.hexadecimal.r constant.numeric.value.r
+#      ^ meta.number.imaginary.hexadecimal.r constant.numeric.suffix.r
+#        ^^ meta.number.imaginary.hexadecimal.r constant.numeric.base.r
+#          ^^^ meta.number.imaginary.hexadecimal.r constant.numeric.value.r
+#             ^ meta.number.imaginary.hexadecimal.r invalid.illegal.numeric.r
+
+  12i 12I
+# ^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+#     ^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#       ^ meta.number.imaginary.decimal.r invalid.illegal.numeric.r
+
+  12.i 12.I
+# ^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#    ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+#      ^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#        ^ punctuation.separator.decimal.r
+#         ^ meta.number.imaginary.decimal.r invalid.illegal.numeric.r
+
+  .345i
+# ^ punctuation.separator.decimal.r
+# ^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#     ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+
+  12.34e-12i
+# ^^^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#          ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+
+  12.34E-12i
+# ^^^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#          ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+
+  12.34e+12i
+# ^^^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#          ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+
+  12.34E+12i
+# ^^^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#          ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+
+  12.3456i 12.3456I
+# ^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#        ^ meta.number.imaginary.decimal.r constant.numeric.suffix.r
+#          ^^^^^^^ meta.number.imaginary.decimal.r constant.numeric.value.r
+#            ^ punctuation.separator.decimal.r
+#                 ^ meta.number.imaginary.decimal.r invalid.illegal.numeric.r
+
+# integers
+
+  0x1afL 0x1afl 0x1afx
+# ^^ meta.number.integer.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.integer.hexadecimal.r constant.numeric.value.r
+#      ^ meta.number.integer.hexadecimal.r constant.numeric.suffix.r
+#        ^^ meta.number.integer.hexadecimal.r constant.numeric.base.r
+#          ^^^ meta.number.integer.hexadecimal.r constant.numeric.value.r
+#             ^ meta.number.integer.hexadecimal.r invalid.illegal.numeric.r
+#               ^^^^^^ - constant
 
   0X1afL
-# ^^^^^^ constant.numeric.integer.hexadecimal.r
+# ^^ meta.number.integer.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.integer.hexadecimal.r constant.numeric.value.r
+#      ^ meta.number.integer.hexadecimal.r constant.numeric.suffix.r
+
+  12L 12l
+# ^^ meta.number.integer.decimal.r constant.numeric.value.r
+#   ^ meta.number.integer.decimal.r constant.numeric.suffix.r
+#     ^^ meta.number.integer.decimal.r constant.numeric.value.r
+#       ^ meta.number.integer.decimal.r invalid.illegal.numeric.r
+
+  12.L
+# ^^^ meta.number.integer.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#    ^ meta.number.integer.decimal.r constant.numeric.suffix.r
+
+  12.000L
+# ^^^^^^ meta.number.integer.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
+#       ^ meta.number.integer.decimal.r constant.numeric.suffix.r
+
+# floats
 
   0x1af
-# ^^^^^ constant.numeric.float.hexadecimal.r
+# ^^ meta.number.float.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.float.hexadecimal.r constant.numeric.value.r
 
   0X1af
-# ^^^^^ constant.numeric.float.hexadecimal.r
+# ^^ meta.number.float.hexadecimal.r constant.numeric.base.r
+#   ^^^ meta.number.float.hexadecimal.r constant.numeric.value.r
 
-  99.99e-12
-# ^^^^^^^^^ constant.numeric.float.decimal.r
+  12
+# ^^ meta.number.float.decimal.r constant.numeric.value.r
 
-  99.99E-12
-# ^^^^^^^^^ constant.numeric.float.decimal.r
+  12.
+# ^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
-  99.99e+12
-# ^^^^^^^^^ constant.numeric.float.decimal.r
+  .3456
+# ^ punctuation.separator.decimal.r
+# ^^^^^ meta.number.float.decimal.r constant.numeric.value.r
 
-  99.99E+12
-# ^^^^^^^^^ constant.numeric.float.decimal.r
+  12.3456
+# ^^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
-  99.9999
-# ^^^^^^^ constant.numeric.float.decimal.r
+  12.34e-12
+# ^^^^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
- .9999
-# ^^^^ constant.numeric.float.decimal.r
+  12.34E-12
+# ^^^^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
-  12i
-# ^^^ constant.numeric.imaginary.decimal.r
+  12.34e+12
+# ^^^^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
-  0x1afi
-# ^^^^^^ constant.numeric.imaginary.hexadecimal.r
+  12.34E+12
+# ^^^^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
+#   ^ punctuation.separator.decimal.r
 
-  0x1afi
-# ^^^^^^ constant.numeric.imaginary.hexadecimal.r
+  12e34
+# ^^^^^ meta.number.float.decimal.r constant.numeric.value.r
 
-  99.99e-12i
-# ^^^^^^^^^^ constant.numeric.imaginary.decimal.r
+  12e-34
+# ^^^^^^ meta.number.float.decimal.r constant.numeric.value.r
 
-  99.99E-12i
-# ^^^^^^^^^^ constant.numeric.imaginary.decimal.r
+  %*% %/% %% %o% %x% %:% %+%
+# ^^^ keyword.operator.arithmetic.r
+#     ^^^ keyword.operator.arithmetic.r
+#         ^^ keyword.operator.arithmetic.r
+#            ^^^ keyword.operator.arithmetic.r
+#                ^^^ keyword.operator.arithmetic.r
+#                    ^^^ keyword.operator.other.r
+#                        ^^^ keyword.operator.other.r
 
-  99.99e+12i
-# ^^^^^^^^^^ constant.numeric.imaginary.decimal.r
+  ** * - + / ^
+# ^^ keyword.operator.arithmetic.r
+#    ^ keyword.operator.arithmetic.r
+#      ^ keyword.operator.arithmetic.r
+#        ^ keyword.operator.arithmetic.r
+#          ^ keyword.operator.arithmetic.r
+#            ^ keyword.operator.arithmetic.r
 
-  99.99E+12i
-# ^^^^^^^^^^ constant.numeric.imaginary.decimal.r
+  <<- <- = -> ->> |>
+# ^^^ keyword.operator.assignment.r
+#     ^^ keyword.operator.assignment.r
+#        ^ keyword.operator.assignment.r
+#          ^^ keyword.operator.assignment.r
+#             ^^^ keyword.operator.assignment.r
+#                 ^^ keyword.operator.assignment.redirection.r
 
-  99.9999i
-# ^^^^^^^^ constant.numeric.imaginary.decimal.r
+  == != <= >= <> < > && & || | !
+# ^^ keyword.operator.comparison.r
+#    ^^ keyword.operator.comparison.r
+#       ^^ keyword.operator.comparison.r
+#          ^^ keyword.operator.comparison.r
+#             ^^ keyword.operator.comparison.r
+#                ^ keyword.operator.comparison.r
+#                  ^ keyword.operator.comparison.r
+#                    ^^ keyword.operator.logical.r
+#                       ^ keyword.operator.logical.r
+#                         ^^ keyword.operator.logical.r
+#                            ^ keyword.operator.logical.r
+#                              ^ keyword.operator.logical.r
+
+  %:% := ::: ::
+# ^^^ keyword.operator.other.r
+#     ^^ keyword.operator.other.r
+#        ^^^ punctuation.accessor.colons.r
+#            ^^ punctuation.accessor.colons.r
+
+  ... : ~ @
+# ^^^ keyword.other.r
+#     ^ keyword.other.r
+#       ^ keyword.other.r
+#         ^ keyword.other.r
 
   foo.99 <- 1
 #    ^^^ - constant.numeric
@@ -114,14 +315,105 @@ x <- 'abc'
 "\n\r"
 #^^^^ constant.character.escape.r
 
+r"(\foo)"
+#<- storage.type.string.r
+#^^ string.quoted.double.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.double.r punctuation.definition.string.end.r
+
+r"[\foo]"
+#<- storage.type.string.r
+#^^ string.quoted.double.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.double.r punctuation.definition.string.end.r
+
+r"{\foo}"
+#<- storage.type.string.r
+#^^ string.quoted.double.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.double.r punctuation.definition.string.end.r
+
+r"-(\foo)-"
+#<- storage.type.string.r
+#^^^ string.quoted.double.r punctuation.definition.string.begin.r
+#   ^ -constant.character.escape.r
+#       ^^^ string.quoted.double.r punctuation.definition.string.end.r
+
+r"--[\foo]--"
+#<- storage.type.string.r
+#^^^^ string.quoted.double.r punctuation.definition.string.begin.r
+#    ^ -constant.character.escape.r
+#        ^^^^ string.quoted.double.r punctuation.definition.string.end.r
+
+r"---{\foo}---"
+#<- storage.type.string.r
+#^^^^^ string.quoted.double.r punctuation.definition.string.begin.r
+#     ^ -constant.character.escape.r
+#         ^^^^^ string.quoted.double.r punctuation.definition.string.end.r
+
+
+R'(\foo)'
+#<- storage.type.string.r
+#^^ string.quoted.single.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.single.r punctuation.definition.string.end.r
+
+R'[\foo]'
+#<- storage.type.string.r
+#^^ string.quoted.single.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.single.r punctuation.definition.string.end.r
+
+R'{\foo}'
+#<- storage.type.string.r
+#^^ string.quoted.single.r punctuation.definition.string.begin.r
+#  ^ -constant.character.escape.r
+#      ^^ string.quoted.single.r punctuation.definition.string.end.r
+
+R'-(\foo)-'
+#<- storage.type.string.r
+#^^^ string.quoted.single.r punctuation.definition.string.begin.r
+#   ^ -constant.character.escape.r
+#       ^^^ string.quoted.single.r punctuation.definition.string.end.r
+
+R'--[\foo]--'
+#<- storage.type.string.r
+#^^^^ string.quoted.single.r punctuation.definition.string.begin.r
+#    ^ -constant.character.escape.r
+#        ^^^^ string.quoted.single.r punctuation.definition.string.end.r
+
+R'---{\foo}---'
+#<- storage.type.string.r
+#^^^^^ string.quoted.single.r punctuation.definition.string.begin.r
+#     ^ -constant.character.escape.r
+#         ^^^^^ string.quoted.single.r punctuation.definition.string.end.r
+
+
+if (1) {} else {return()}
+#<- keyword.control.conditional.if.r
+#         ^^^^ keyword.control.conditional.else.r
+#               ^^^^^^ keyword.control.flow.return.r
+
+
 for (i in 1:10) {
-# <- keyword.control.r
+# <- keyword.control.loop.for.r
 #   ^ punctuation.section.parens.begin.r
-#      ^^ keyword.control.r
+#      ^^ keyword.operator.word.r
 #             ^ punctuation.section.parens.end.r
 #               ^ punctuation.section.braces.begin.r
 }
 # <- punctuation.section.braces.end.r
+
+
+repeat {next}
+#^^^^^ keyword.control.loop.repeat.r
+#       ^^^^ keyword.control.flow.continue.r
+
+
+while (1) {break}
+#^^^^ keyword.control.loop.while.r
+#          ^^^^^ keyword.control.flow.break.r
+
 
 foo[bar]
 #  ^ punctuation.section.brackets.single.begin.r
@@ -140,16 +432,19 @@ foo[[bar]]
 foo[1:10]
 #    ^ meta.item-access.r meta.item-access.arguments.r keyword.other.r
 
+
 f = function(x, y){ }
-#^^^^^^^^^^^^^^^^^ meta.function.r
+# <- meta.function.identifier.r
+#^ meta.function.identifier.r - meta.function.r
+# ^^^^^^^^^^ meta.function.r - meta.function.parameters.r
 # <- entity.name.function.r
 # ^ keyword.operator.assignment.r
-#   ^^^^^^^^ keyword.control.r
-#           ^ punctuation.section.parens.begin.r
-#            ^^^^ meta.function.parameters.r
+#   ^^^^^^^^ keyword.declaration.function.r
+#           ^ punctuation.section.parameters.begin.r
+#            ^^^^ meta.function.parameters.r - meta.function.r
 #            ^ variable.parameter.r
 #             ^ punctuation.separator.parameters.r
-#                ^ punctuation.section.parens.end.r
+#                ^ punctuation.section.parameters.end.r
 #                 ^ punctuation.section.braces.begin.r
 #                   ^ punctuation.section.braces.end.r
 
@@ -157,43 +452,58 @@ function(x = "string", y = 2) {}
 #        ^ variable.parameter.r
 #            ^^^^^^^^ meta.function.parameters.r string.quoted.double.r
 #                      ^ variable.parameter.r
-#                          ^ meta.function.parameters.r constant.numeric.float.decimal.r
+#                          ^ meta.function.parameters.r meta.number.float.decimal.r constant.numeric.value.r
 
 foo(200, x = function(x) {x + y})
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.r
+#^^ meta.function-call.identifier.r - meta.function-call.arguments.r
 # <- variable.function.r
-#  ^ punctuation.section.parens.begin.r
-#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.parameters.r
-#   ^^^ constant.numeric.float.decimal.r
+#  ^ punctuation.section.arguments.begin.r
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments.r - meta.function-call.identifier.r
+#   ^^^ meta.function-call.arguments.r meta.number.float.decimal.r constant.numeric.value.r
 #        ^ variable.parameter.r
 #          ^ keyword.operator.assignment.r
-#            ^^^^^^^^^^^ meta.function.r
-#                               ^ punctuation.section.parens.end.r
+#            ^^^^^^^^ meta.function.r keyword.declaration.function.r - meta.function.parameters.r
+#                    ^^^ meta.function.parameters.r
+#                               ^ punctuation.section.arguments.end.r
 
 .foo(200, x = function(x) {x + y})
-# <- meta.function-call.r
-#^^^^^^^^^^^^^^^^^^^^^ meta.function-call.r
+# <- meta.function-call.identifier.r
+#^^^ meta.function-call.identifier.r - meta.function-call.arguments.r
 # <- variable.function.r
-#   ^ punctuation.section.parens.begin.r
-#    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.parameters.r
-#    ^^^ constant.numeric.float.decimal.r
+#   ^ punctuation.section.arguments.begin.r
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.arguments.r - meta.function-call.identifier.r
+#    ^^^ meta.number.float.decimal.r constant.numeric.value.r
 #         ^ variable.parameter.r
 #           ^ keyword.operator.assignment.r
-#             ^^^^^^^^^^^ meta.function.r
-#                                ^ punctuation.section.parens.end.r
+#             ^^^^^^^^ meta.function.r - meta.function.parameters.r
+#                     ^^^ meta.function.parameters.r
+#                                ^ punctuation.section.arguments.end.r
 
 
 print.foo()
 #^^^^^^^^ variable.function.r
 
   plot()
-# ^^^^^^ meta.function-call.r
+# ^^^^ meta.function-call.identifier.r - meta.function-call.arguments.r
+#     ^^ meta.function-call.arguments.r - meta.function-call.identifier.r
 # ^^^^ support.function.r
 
 #' @param xyz abcde
-#^^^^^^^^^^^^^^^^^^ comment.line.roxygen.r
+#^^^^^^^^^^^^^^^^^^ comment.line.documentation.r
 #  ^^^^^^ keyword.other.r
 #         ^^^ variable.parameter.r
+
+
+    #' @param xyz abcde
+#   ^^^^^^^^^^^^^^^^^^^ comment.line.documentation.r
+#      ^^^^^^ keyword.other.r
+#             ^^^ variable.parameter.r
+
+
+#' "@param xyz abcde"
+#  ^^^^^^^^^ comment.line.documentation.r
+#   ^^^^^^ -keyword.other.r
+
 
 
 # issue #1019
@@ -208,7 +518,7 @@ foo[[bar[1]]] #
 # issue #1120
 sum(x == 1)
 #   ^^^^^^ - variable.parameter.r
-#     ^^ meta.function-call.r meta.function-call.parameters.r keyword.operator.assignment.r
+#     ^^ keyword.operator.comparison.r
 
 function(
   x = 1, # this should be comment
@@ -235,3 +545,9 @@ a[[1, 2]]
 
 foo:::bar
 #  ^^^ punctuation.accessor.colons.r
+
+
+foo$update()
+#  ^ keyword.accessor.dollar.r
+#   ^^^^^^ meta.function-call.identifier.r variable.function.r
+#   ^^^^^^ - support.function.r

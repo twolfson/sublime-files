@@ -1,6 +1,4 @@
-import sublime
 import sublime_plugin
-import sublime_api
 
 
 MAX_COLUMNS = 2
@@ -31,17 +29,6 @@ def assign_cells(num_panes, max_columns):
             row = i - (max_columns - 1)
             cells.append([num_cols - 1, row, num_cols, row + 1])
     return cells
-
-
-def move_sheets(window, src_group, dst_group):
-    sheets = window.sheets_in_group(src_group)
-    transient = window.transient_sheet_in_group(src_group)
-
-    for i in range(len(sheets)):
-        window.set_sheet_index(sheets[i], dst_group, i)
-
-    if transient is not None:
-        window.set_sheet_index(transient, dst_group, -1)
 
 
 def num_sheets_in_group_including_transient(window, group):
@@ -91,7 +78,9 @@ class NewPaneCommand(sublime_plugin.WindowCommand):
 
         # Move all the sheets so the new pane is created in the correct location
         for i in reversed(range(0, num_panes - cur_index - 1)):
-            move_sheets(window, cur_index + i + 1, cur_index + i + 2)
+            current_selection = window.selected_sheets_in_group(cur_index + i + 1)
+            window.move_sheets_to_group(window.sheets_in_group(cur_index + i + 1), cur_index + i + 2, select=False)
+            window.select_sheets(current_selection)
 
         if move_sheet:
             transient = window.transient_sheet_in_group(cur_index)
@@ -99,16 +88,11 @@ class NewPaneCommand(sublime_plugin.WindowCommand):
                 # transient sheets may only be moved to index -1
                 window.set_sheet_index(cur_sheet, cur_index + 1, -1)
             else:
-                window.set_sheet_index(cur_sheet, cur_index + 1, 0)
-
-            if num_sheets_in_group_including_transient(window, cur_index) == 0:
-                window.focus_group(cur_index)
-                window.new_file(sublime.TRANSIENT)
-
-            window.focus_group(cur_index + 1)
+                selected_sheets = window.selected_sheets_in_group(cur_index)
+                window.move_sheets_to_group(selected_sheets, cur_index + 1)
+                window.focus_sheet(cur_sheet)
         else:
-            window.focus_group(cur_index + 1)
-            window.new_file(sublime.TRANSIENT)
+            window.focus_group(cur_index)
 
     def run(self, move=True):
         max_columns = self.window.template_settings().get('max_columns', MAX_COLUMNS)
@@ -125,7 +109,9 @@ class ClosePaneCommand(sublime_plugin.WindowCommand):
             return
 
         for i in range(idx, window.num_groups()):
-            move_sheets(window, i, i - 1)
+            current_selection = window.selected_sheets_in_group(i)
+            window.move_sheets_to_group(window.sheets_in_group(i), i - 1)
+            window.select_sheets(current_selection)
 
         rows = layout["rows"]
         cols = layout["cols"]
@@ -156,7 +142,9 @@ class ClosePaneCommand(sublime_plugin.WindowCommand):
         if new_idx < 0:
             new_idx = 0
         window.focus_group(new_idx)
-        window.focus_sheet(selected_sheet)
+
+        if not selected_sheet.is_transient():
+            window.focus_sheet(selected_sheet)
 
     def run(self, group=-1):
         if group < 0:
@@ -177,40 +165,33 @@ def is_automatic_layout(window):
     return True
 
 
-class AutomaticPaneCloser(sublime_plugin.EventListener):
-    def on_activated(self, view):
-        # Check for empty groups here, to handle tabs being dragged out of their
-        # group
-        sublime.set_timeout(lambda: self.on_close(view), 0)
+class CloseTransient(sublime_plugin.WindowCommand):
+    def close_pane(self):
+        if not is_automatic_layout(self.window):
+            return False
 
-    def on_close(self, view):
-        window = sublime.active_window()
+        group = self.window.active_group()
 
-        if not is_automatic_layout(window):
-            return
+        sheet = self.window.transient_sheet_in_group(group)
 
-        if sublime_api.window_is_dragging(window.id()):
-            return
+        if sheet is None:
+            return False
 
-        # Only close panes when closing the transient sheet
+        view = sheet.view()
         if view.size() != 0 or view.file_name() is not None:
-            return
+            return False
+        # Active pane contains other sheets. Run close command instead.
+        if len(self.window.sheets_in_group(group)) != 0:
+            return False
 
-        # Maintain the focused group, which is required if the group being
-        # closed is not focused (perhaps sheet was closed with the mouse)
-        focused_group = window.active_group()
+        self.window.run_command('close_pane', {'group': group})
 
-        for i in reversed(range(window.num_groups())):
-            if num_sheets_in_group_including_transient(window, i) == 0:
-                if i == focused_group:
-                    focused_group = -1
-                elif i < focused_group:
-                    focused_group -= 1
+        return True
 
-                window.run_command('close_pane', {'group': i})
-                if focused_group >= 0:
-                    window.focus_group(focused_group)
-                break
+    def run(self):
+        # Attempt to close an empty pane
+        if not self.close_pane():
+            self.window.run_command('close')
 
 
 class FocusNeighboringGroup(sublime_plugin.WindowCommand):

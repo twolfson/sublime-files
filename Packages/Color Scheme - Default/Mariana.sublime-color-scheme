@@ -5,8 +5,9 @@
     {
         "black": "hsl(0, 0%, 0%)",
         "blue": "hsl(210, 50%, 60%)",
-        "blue2": "hsl(209, 13%, 35%)",
-        "blue3": "hsl(210, 15%, 24%)",
+        "blue-vibrant": "hsl(210, 60%, 60%)",
+        "blue2": "hsla(210, 13%, 40%, 0.7)",
+        "blue3": "hsl(210, 15%, 22%)",
         "blue4": "hsl(210, 13%, 45%)",
         "blue5": "hsl(180, 36%, 54%)",
         "blue6": "hsl(221, 12%, 69%)",
@@ -26,6 +27,7 @@
     {
         "foreground": "var(white3)",
         "background": "var(blue3)",
+        "accent": "var(blue-vibrant)",
         "caret": "var(orange)",
         "line_highlight": "var(blue2)",
         "selection": "var(blue2)",
@@ -59,13 +61,19 @@
         },
         {
             "name": "Punctuation",
-            "scope": "punctuation.definition",
+            "scope": "punctuation.definition - punctuation.definition.numeric.base",
             "foreground": "var(blue5)"
         },
         {
             "name": "Number",
             "scope": "constant.numeric",
             "foreground": "var(orange)"
+        },
+        {
+            "name": "Number Suffix",
+            "scope": "storage.type.numeric",
+            "foreground": "var(pink)",
+            "font_style": "italic"
         },
         {
             "name": "Built-in constant",
@@ -143,7 +151,7 @@
             "name": "Inherited class",
             "scope": "entity.other.inherited-class",
             "foreground": "var(blue5)",
-            "font_style": "italic underline"
+            "font_style": "italic"
         },
         {
             "name": "Function argument",
@@ -242,9 +250,29 @@
             "font_style": "italic"
         },
         {
+            "name": "markup underline",
+            "scope": "markup.underline",
+            "font_style": "underline"
+        },
+        {
             "name": "markup bold/italic",
             "scope": "markup.italic markup.bold | markup.bold markup.italic",
             "font_style": "bold italic"
+        },
+        {
+            "name": "markup bold/underline",
+            "scope": "markup.underline markup.bold | markup.bold markup.underline",
+            "font_style": "bold underline"
+        },
+        {
+            "name": "markup italic/underline",
+            "scope": "markup.underline markup.italic | markup.italic markup.underline",
+            "font_style": "italic underline"
+        },
+        {
+            "name": "markup bold/italic/underline",
+            "scope": "markup.bold markup.italic markup.underline | markup.bold markup.underline markup.italic | markup.italic markup.bold markup.underline | markup.italic markup.underline markup.bold | markup.underline markup.bold markup.italic | markup.underline markup.italic markup.bold",
+            "font_style": "bold italic underline"
         },
         {
             "name": "markup hr",

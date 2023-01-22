@@ -70,7 +70,7 @@ class YankCommand(sublime_plugin.TextCommand):
         kill_ring.seal()
         text = kill_ring.top()
 
-        lines = text.splitlines()
+        lines = text.split('\n')
 
         regions = [r for r in self.view.sel()]
         regions.reverse()

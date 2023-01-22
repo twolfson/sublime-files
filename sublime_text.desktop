@@ -10,14 +10,14 @@ MimeType=text/plain;
 Icon=sublime-text
 Categories=TextEditor;Development;
 StartupNotify=true
-Actions=Window;Document;
+Actions=new-window;new-file;
 
-[Desktop Action Window]
+[Desktop Action new-window]
 Name=New Window
-Exec=/opt/sublime_text/sublime_text -n
+Exec=/opt/sublime_text/sublime_text --launch-or-new-window
 OnlyShowIn=Unity;
 
-[Desktop Action Document]
+[Desktop Action new-file]
 Name=New File
 Exec=/opt/sublime_text/sublime_text --command new_file
 OnlyShowIn=Unity;

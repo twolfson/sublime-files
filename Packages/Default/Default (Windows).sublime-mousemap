@@ -26,11 +26,6 @@
 		"press_command": "drag_select",
 		"press_args": {"additive": true, "extend": true}
 	},
-	{
-		"button": "button1", "modifiers": ["shift", "alt"],
-		"press_command": "drag_select",
-		"press_args": {"subtractive": true, "extend": true}
-	},
 
 	// Drag select by words
 	{
@@ -64,6 +59,18 @@
 		"button": "button1", "count": 3, "modifiers": ["alt"],
 		"press_command": "drag_select",
 		"press_args": {"by": "lines", "subtractive": true}
+	},
+
+	// Alt + Shift + Mouse 1 column select
+	{
+		"button": "button1", "modifiers": ["alt", "shift"],
+		"press_command": "drag_select",
+		"press_args": {"by": "columns"}
+	},
+	{
+		"button": "button1", "modifiers": ["ctrl", "alt", "shift"],
+		"press_command": "drag_select",
+		"press_args": {"by": "columns", "additive": true}
 	},
 
 	// Shift + Mouse 2 Column select

@@ -6,6 +6,7 @@ import os
 class FileNameInputHandler(sublime_plugin.TextInputHandler):
     def __init__(self, view):
         self.view = view
+        self.file_name = os.path.basename(self.view.file_name() or self.view.name())
 
     def name(self):
         return "new_name"
@@ -14,13 +15,11 @@ class FileNameInputHandler(sublime_plugin.TextInputHandler):
         return "New File Name"
 
     def initial_text(self):
-        old = self.view.file_name()
+        return self.file_name
 
-        if old is None:
-            return self.view.name()
-        else:
-            branch, leaf = os.path.split(old)
-            return leaf
+    def initial_selection(self):
+        name = os.path.splitext(self.file_name)[0]
+        return [(0, len(name))]
 
     def validate(self, name):
         if self.view.file_name() is None:

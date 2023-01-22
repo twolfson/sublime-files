@@ -77,7 +77,7 @@ class NewSyntaxCommand(sublime_plugin.WindowCommand):
             R"""
             %YAML 1.2
             ---
-            # See http://www.sublimetext.com/docs/3/syntax.html
+            # See http://www.sublimetext.com/docs/syntax.html
             file_extensions:
               - ec
             scope: source.example-c

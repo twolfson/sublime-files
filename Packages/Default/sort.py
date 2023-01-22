@@ -95,30 +95,31 @@ def shrink_wrap_region(view, region):
 
 
 def shrinkwrap_and_expand_non_empty_selections_to_entire_line(v):
-    sw = shrink_wrap_region
     regions = []
 
     for sel in v.sel():
         if not sel.empty():
-            regions.append(v.line(sw(v, v.line(sel))))
+            regions.append(v.line(shrink_wrap_region(v, v.line(sel))))
             v.sel().subtract(sel)
 
     for r in regions:
         v.sel().add(r)
 
+    return [s for s in v.sel() if not s.empty()]
+
 
 def permute_lines(f, v, e):
-    shrinkwrap_and_expand_non_empty_selections_to_entire_line(v)
+    regions = shrinkwrap_and_expand_non_empty_selections_to_entire_line(v)
 
-    regions = [s for s in v.sel() if not s.empty()]
     if not regions:
-        regions = [sublime.Region(0, v.size())]
+        v.sel().add(sublime.Region(0, v.size()))
+        regions = shrinkwrap_and_expand_non_empty_selections_to_entire_line(v)
 
     regions.sort(reverse=True)
 
     for r in regions:
         txt = v.substr(r)
-        lines = txt.splitlines()
+        lines = txt.split('\n')
         lines = f(lines)
 
         v.replace(e, r, u"\n".join(lines))

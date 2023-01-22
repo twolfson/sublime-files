@@ -5,13 +5,11 @@
 	<key>name</key>
 	<string>Symbol List</string>
 	<key>scope</key>
-	<string>entity.name.function, entity.name.type, meta.toc-list</string>
+	<string>entity.name.function, entity.name.type, entity.name.class, entity.name.enum, entity.name.namespace, entity.name.filename, meta.toc-list</string>
 	<key>settings</key>
 	<dict>
 		<key>showInSymbolList</key>
 		<string>1</string>
 	</dict>
-	<key>uuid</key>
-	<string>0A0DA1FC-59DE-4FD9-9A2C-63C6811A3C39</string>
 </dict>
 </plist>

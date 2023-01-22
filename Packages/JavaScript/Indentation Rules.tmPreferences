@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+	<key>scope</key>
+	<string>source.js, source.ts, source.jsx, source.tsx</string>
+	<key>settings</key>
+	<dict>
+		<key>decreaseIndentPattern</key>
+		<string><![CDATA[(?x)
+			# line beginning with whitespace or block comments
+			^ (.*\*/)? \s*
+			(?:
+			# dedent closing braces
+			  \}
+			# detent `case ... :`
+			| case\b
+			# detent `default:`
+			| default\b
+			)
+		]]></string>
+
+		<key>increaseIndentPattern</key>
+		<string><![CDATA[(?x)
+			# line beginning with whitespace or block comments
+			^ (.*\*/)? \s*
+			(?:
+			# indent after opening braces (may be followed by whitespace or comments)
+			# but exclude lines such as `extern "C" {`
+			  .* \{ (?: \s* /\*.*\*/ )* \s* (?: //.* )? $
+			# indent after `case ... :`
+			| case\b
+			# indent after `default:`
+			| default\b
+			)
+		]]></string>
+
+		<key>bracketIndentNextLinePattern</key>
+		<string><![CDATA[(?x)
+			# line beginning with whitespace or block comments
+			^ (.*\*/)? (?<comment_or_whitespace> (?: \s* (?<block_comment> /\*.*\*/ ) )* \s* )
+			(?:
+			# indent after:
+			# - `else`
+			  else
+			# indent after:
+			# - `else if (...)`
+			# - `if (...)`
+			# - `while (...)`
+			| (?: (?: else \g<comment_or_whitespace> )? if | while )
+			  \b
+			  # before a ;
+			  [^;]*
+			# indent after `for`
+			| for\b .*
+			)
+			$
+		]]></string>
+
+		<key>unIndentedLinePattern</key>
+		<string><![CDATA[(?x)
+			^\s*
+			(?:
+			# standalone begin or end of block comments
+			#   ST doesn't apply `Indentation Rules - Comments`, because
+			#   comment scope doesn't cover the whole line. So they need
+			#   to be excluded from indentation engine here.
+			  // | /\*(?!.*\*/) | .*\*/
+			)
+		]]></string>
+
+		<key>indentSquareBrackets</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

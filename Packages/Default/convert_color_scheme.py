@@ -1,4 +1,5 @@
 import json
+import os
 import plistlib
 import re
 from collections import OrderedDict
@@ -229,6 +230,7 @@ class ConvertColorSchemeCommand(sublime_plugin.WindowCommand):
         ('tagsForeground', 'tags_foreground'),
         ('popupCss', 'popup_css'),
         ('phantomCss', 'phantom_css'),
+        ('sheetCss', 'sheet_css'),
     ])
 
     non_color_settings = [
@@ -248,8 +250,9 @@ class ConvertColorSchemeCommand(sublime_plugin.WindowCommand):
         if not view:
             return
         fname = view.file_name()
-        if not fname or not fname.endswith('.tmTheme'):
+        if not fname or os.path.splitext(fname)[1] not in ('.tmTheme', '.hidden-tmTheme'):
             return
+        hidden = fname.endswith('.hidden-tmTheme')
         tm_theme = view.substr(sublime.Region(0, view.size()))
         plist = plistlib.readPlistFromBytes(tm_theme.encode("utf-8"))
 
@@ -319,7 +322,7 @@ class ConvertColorSchemeCommand(sublime_plugin.WindowCommand):
         new_view.settings().set('syntax', 'Packages/JavaScript/JSON.sublime-syntax')
         new_view.run_command('append', {'characters': sublime_color_scheme})
         new_view.set_viewport_position((0, 0))
-        new_view.set_name(scheme['name'] + '.sublime-color-scheme')
+        new_view.set_name(scheme['name'] + ('.hidden-color-scheme' if hidden else '.sublime-color-scheme'))
 
     def resolve(self, use_vars, colors, value):
         """
@@ -338,13 +341,17 @@ class ConvertColorSchemeCommand(sublime_plugin.WindowCommand):
             A string containing a CSS color, variable or function
         """
 
-        if not use_vars:
+        if not use_vars or not value:
             return value
 
         if value in X11_COLORS:
             value = X11_COLORS[value]
 
-        return colors.lookup(HSLA.from_hex(value))
+        try:
+            color = HSLA.from_hex(value)
+        except ValueError:
+            color = HSLA(0, 0, 0)
+        return colors.lookup(color)
 
     def input(self, args):
         if 'use_variables' not in args:
@@ -356,4 +363,4 @@ class ConvertColorSchemeCommand(sublime_plugin.WindowCommand):
         if not view:
             return False
         fname = view.file_name()
-        return fname is not None and fname.endswith('.tmTheme')
+        return fname is not None and os.path.splitext(fname)[1] in ('.tmTheme', '.hidden-tmTheme')

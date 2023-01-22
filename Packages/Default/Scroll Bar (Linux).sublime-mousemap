@@ -1,0 +1,26 @@
+[
+	{
+		"button": "button1",
+		"press_command": "scroll_drag",
+	},
+	{
+		"button": "button1", "modifiers": ["shift"],
+		"press_command": "scroll_step",
+		"press_args": { "follow_mouse": false, "delay": 1000, "interval": 200 },
+	},
+	{
+		"button": "button2",
+		"press_command": "scroll_adjust",
+		"press_args": {
+			"acceleration_dead_zone": 15,
+			"acceleration_area": 200,
+			"min_speed": 200,
+			"max_speed": 5000,
+		},
+	},
+	{
+		"button": "button3",
+		"press_command": "scroll_step",
+		"press_args": { "follow_mouse": false, "delay": 1000, "interval": 200 },
+	},
+]

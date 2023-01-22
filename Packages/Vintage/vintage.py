@@ -124,7 +124,7 @@ class InputStateTracker(sublime_plugin.EventListener):
         # it can lead to the impression that too much is undone at once
         view.run_command('unmark_undo_groups_for_gluing')
 
-    def on_post_save(self, view):
+    def on_pre_save(self, view):
         # Ensure that insert mode actions will no longer be grouped, so it's
         # always possible to undo back to the last saved state
         view.run_command('unmark_undo_groups_for_gluing')

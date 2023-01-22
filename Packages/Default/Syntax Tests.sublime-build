@@ -1,19 +1,19 @@
 {
-    "target": "run_syntax_tests",
-    "file_patterns": ["syntax_test*", "*.sublime-syntax", "*.tmLanguage"],
+	"target": "run_syntax_tests",
+	"file_patterns": ["syntax_test*", "*.sublime-syntax", "*.tmLanguage"],
 
-    "variants": [
-        {
-            "name": "All Syntaxes",
-            "find_all": true
-        },
-        {
-            "name": "Performance",
-            "target": "profile_syntax_definition"
-        },
-        {
-            "name": "Regex Compatibility",
-            "target": "syntax_definition_compatibility"
-        }
-    ]
+	"variants": [
+		{
+			"name": "All Syntaxes",
+			"find_all": true
+		},
+		{
+			"name": "Performance",
+			"target": "profile_syntax_definition"
+		},
+		{
+			"name": "Regex Compatibility",
+			"target": "syntax_definition_compatibility"
+		}
+	]
 }

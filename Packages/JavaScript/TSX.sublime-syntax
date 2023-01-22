@@ -1,0 +1,68 @@
+%YAML 1.2
+---
+name: TSX
+scope: source.tsx
+version: 2
+
+extends:
+  - JSX.sublime-syntax
+  - TypeScript.sublime-syntax
+
+file_extensions:
+  - tsx
+
+first_line_match: |-
+  (?xi:
+    ^ \s* // .*? -\*- .*? \btsx\b .*? -\*-  # editorconfig
+  )
+
+contexts:
+  branch-possible-arrow-function:
+    - meta_prepend: true
+
+    - match: (?=<)
+      set: jsx-tag
+
+  jsx-tag-hack: []
+
+  jsx-tag-name:
+    - meta_include_prototype: false
+    - match: ''
+      set:
+        - jsx-tag-name-meta
+        - tsx-tag-generic-arguments
+        - jsx-tag-name-end
+        - jsx-tag-name-component-possibly-native
+
+  tsx-tag-generic-arguments:
+    - include: ts-generic-type-arguments
+    - include: else-pop
+
+  jsx-tag-attributes-top:
+    - meta_scope: meta.tag.js
+    - match: '/'
+      scope: punctuation.definition.tag.begin.js
+      set:
+        - jsx-meta-unmatched-tag
+        - jsx-expect-tag-end
+        - jsx-tag-name
+
+    - match: (?=\S)
+      set:
+        - jsx-tag-attributes
+        - tsx-tag-check
+        - jsx-tag-name
+
+  tsx-tag-check:
+    - match: 'extends{{jsx_identifier_break}}'
+      scope: entity.other.attribute-name.js
+      set:
+        - match: (?=[>=])
+          pop: 1
+        - match: (?=\S)
+          fail: arrow-function
+
+    - match: (?=[/>{]|{{identifier_start}})
+      pop: 1
+    - match: (?=\S)
+      fail: arrow-function
