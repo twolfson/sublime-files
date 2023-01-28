@@ -28,7 +28,7 @@ def needs_yaml_quoting(s):
 
 
 def quote(s):
-    if "\\" in s or '"' in s:
+    if s.count("'") <= len(s) / 2:
         return "'" + s.replace("'", "''") + "'"
     else:
         return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
@@ -52,7 +52,7 @@ def to_yaml(val, start_block_on_newline=False, indent=0):
 
     if indent == 0:
         out += "%YAML 1.2\n---\n"
-        out += "# http://www.sublimetext.com/docs/3/syntax.html\n"
+        out += "# http://www.sublimetext.com/docs/syntax.html\n"
 
     if isinstance(val, list):
         if len(val) == 0:
@@ -381,6 +381,8 @@ def convert(fname):
 
     if "hidden" in l:
         syn["hidden"] = l["hidden"]
+    elif fname.endswith('.hidden-tmLanguage'):
+        syn["hidden"] = True
 
     syn["contexts"] = contexts
 
@@ -459,13 +461,15 @@ try:
             return "New Syntax from " + os.path.basename(syn) + "…"
 
         def syntax_info(self, view):
-            syn = view.settings().get('syntax')
-            if syn.endswith('.tmLanguage'):
-                return syn
+            extensions = ['.tmLanguage', '.hidden-tmLanguage']
 
             fname = view.file_name()
-            if fname and fname.endswith('.tmLanguage'):
+            if fname and os.path.splitext(fname)[1] in extensions:
                 return fname
+
+            syn = view.settings().get('syntax')
+            if os.path.splitext(syn)[1] in extensions:
+                return syn
 
             return None
 

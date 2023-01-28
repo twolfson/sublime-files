@@ -6,7 +6,8 @@
     <string>
         meta.function-call variable.function,
         meta.function-call support.function,
-        meta.method-call variable.function
+        meta.method-call variable.function,
+        entity.other.inherited-class
     </string>
     <key>settings</key>
     <dict>

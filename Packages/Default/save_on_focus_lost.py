@@ -12,4 +12,4 @@ class SaveOnFocusLost(sublime_plugin.EventListener):
 
         # The check for os.path.exists ensures that deleted files won't be resurrected
         if view.settings().get('save_on_focus_lost') is True and os.path.exists(fname):
-            view.run_command('save')
+            view.run_command('save', {'quiet': True, 'async': True})

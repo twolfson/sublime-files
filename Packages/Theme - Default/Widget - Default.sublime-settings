@@ -1,4 +1,6 @@
 {
 	"color_scheme": "Widget - Default.hidden-color-scheme",
-	"draw_shadows": false
+	"draw_shadows": false,
+	"caret_extra_top": 1,
+	"caret_extra_bottom": 1,
 }

@@ -1,4 +1,4 @@
 {
-    // This file ensures that C++ gets priority for .h files
-    "extensions": ["h"]
+	// This overrides "file_extensions" in C.sublime-syntax 
+	"extensions": ["h"]
 }

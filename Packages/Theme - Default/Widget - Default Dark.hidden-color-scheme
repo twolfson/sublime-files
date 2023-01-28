@@ -1,0 +1,68 @@
+{
+	"name": "Sublime Widgets Dark",
+	"variables":
+	{
+		"white": "hsl(0, 0%, 90%)",
+		"dark_grey": "hsl(215, 10%, 30%)",
+		"medium_grey": "#aaaaaa",
+		"orange": "hsl(32, 93%, 66%)",
+		"green": "hsl(114, 31%, 68%)",
+		"teal": "hsl(180, 36%, 54%)",
+		"blue": "hsl(210, 50%, 60%)",
+		"red": "hsl(357, 79%, 65%)",
+		"purple": "hsl(300, 30%, 68%)"
+	},
+	"globals":
+	{
+		"foreground": "var(white)",
+		"background": "var(dark_grey)",
+		"caret": "var(orange)",
+		"invisibles": "color(var(white) a(0.5))",
+		"selection": "color(var(white) a(0.2))",
+		"selection_border": "transparent",
+		"inactive_selection": "color(var(white) a(0.10))",
+		"inactive_selection_border": "transparent",
+		"bracket_contents_options": "stippled_underline",
+	},
+	"rules":
+	[
+		{
+			"name": "Comment",
+			"scope": "comment",
+			"foreground": "var(medium_grey)",
+			"font_style": "italic"
+		},
+		{
+			"name": "Keyword",
+			"scope": "keyword, storage",
+			"foreground": "var(blue)"
+		},
+		{
+			"name": "Support",
+			"scope": "support.constant",
+			"foreground": "var(teal)",
+			"font_style": "italic"
+		},
+		{
+			"name": "Keyword",
+			"scope": "keyword.operator",
+			"foreground": "var(red)"
+		},
+		{
+			"scope": "constant",
+			"foreground": "var(orange)"
+		},
+		{
+			"scope": "string",
+			"foreground": "var(green)"
+		},
+		{
+			"scope": "constant.character.escape",
+			"foreground": "var(purple)"
+		},
+		{
+			"scope": "punctuation",
+			"foreground": "var(medium_grey)"
+		}
+	]
+}

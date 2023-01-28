@@ -19,7 +19,7 @@
         "white": "hsl(0, 0%, 100%)",
         "white2": "hsl(0, 0%, 97%)",
         "white3": "hsl(0, 0%, 96%)",
-        "white4": "hsl(0, 0%, 95%)",
+        "white4": "hsla(0, 0%, 93%, 0.7)",
         "white5": "hsl(0, 0%, 93%)",
         "white6": "hsl(0, 0%, 87%)",
         "yellow": "hsl(76, 50%, 50%)"
@@ -34,7 +34,8 @@
         "selection_border": "var(white6)",
         "inactive_selection": "var(white5)",
         "misspelling": "var(red)",
-        "shadow": "var(grey7)"
+        "shadow": "var(grey7)",
+        "scroll_selected_highlight": "var(orange2)",
     },
     "rules":
     [
@@ -50,7 +51,7 @@
         },
         {
             "name": "Punctuation",
-            "scope": "punctuation.definition",
+            "scope": "punctuation.definition - punctuation.definition.numeric.base",
             "foreground": "var(grey6)"
         },
         {
@@ -131,9 +132,15 @@
             "foreground": "var(blue2)"
         },
         {
-            "name": "Integers",
+            "name": "Number",
             "scope": "constant.numeric",
             "foreground": "var(orange)"
+        },
+        {
+            "name": "Number suffix",
+            "scope": "storage.type.numeric",
+            "foreground": "var(pink)",
+            "font_style": "italic"
         },
         {
             "name": "Constants",
@@ -157,18 +164,43 @@
         },
         {
             "name": "Bold",
-            "scope": "markup.bold",
-            "font_style": "bold"
+            "scope": "punctuation.definition.bold",
+            "foreground": "var(orange2)"
         },
         {
             "name": "Bold",
-            "scope": "punctuation.definition.bold",
-            "foreground": "var(orange2)"
+            "scope": "markup.bold",
+            "font_style": "bold"
         },
         {
             "name": "Italic",
             "scope": "markup.italic",
             "font_style": "italic"
+        },
+        {
+            "name": "markup underline",
+            "scope": "markup.underline",
+            "font_style": "underline"
+        },
+        {
+            "name": "markup bold/italic",
+            "scope": "markup.italic markup.bold | markup.bold markup.italic",
+            "font_style": "bold italic"
+        },
+        {
+            "name": "markup bold/underline",
+            "scope": "markup.underline markup.bold | markup.bold markup.underline",
+            "font_style": "bold underline"
+        },
+        {
+            "name": "markup italic/underline",
+            "scope": "markup.underline markup.italic | markup.italic markup.underline",
+            "font_style": "italic underline"
+        },
+        {
+            "name": "markup bold/italic/underline",
+            "scope": "markup.bold markup.italic markup.underline | markup.bold markup.underline markup.italic | markup.italic markup.bold markup.underline | markup.italic markup.underline markup.bold | markup.underline markup.bold markup.italic | markup.underline markup.italic markup.bold",
+            "font_style": "bold italic underline"
         },
         {
             "name": "Italic",

@@ -1,5 +1,6 @@
 import string
 import functools
+import unicodedata
 
 import sublime
 import sublime_plugin
@@ -64,6 +65,10 @@ class SetUnsavedViewName(sublime_plugin.EventListener):
         first_line = view.substr(line)
 
         first_line = first_line.strip(self.dropped_chars)
+
+        # Filter non-printable characters. Without this the save dialog on
+        # windows fails to open.
+        first_line = ''.join(c for c in first_line if unicodedata.category(c)[0] != 'C')
 
         self.setting_name = True
         view.set_name(first_line)

@@ -38,10 +38,15 @@ class RunSyntaxTestsCommand(sublime_plugin.WindowCommand):
             if is_syntax(relative_path):
                 tests = []
                 for t in sublime.find_resources('syntax_test*'):
-                    first_line = sublime.load_resource(t).splitlines()[0]
+                    lines = sublime.load_resource(t).splitlines()
+                    if len(lines) == 0:
+                        continue
+                    first_line = lines[0]
+
                     match = re.match('^.*SYNTAX TEST "(.*?)"', first_line)
                     if not match:
                         continue
+
                     syntax = match.group(1)
                     if syntax == relative_path or syntax == file_name:
                         tests.append(t)

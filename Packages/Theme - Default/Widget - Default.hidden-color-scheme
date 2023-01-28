@@ -1,55 +1,67 @@
 {
-    "name": "Sublime Widgets",
-    "variables":
-    {
-        "black": "hsl(0, 0%, 0%)",
-        "black2": "hsl(60, 2%, 11%)",
-        "blue": "hsl(204, 62%, 30%)",
-        "blue2": "hsl(201, 31%, 71%)",
-        "blue3": "hsl(216, 100%, 50%)",
-        "blue4": "hsl(209, 26%, 73%)",
-        "blue5": "hsl(214, 45%, 47%)",
-        "blue6": "hsl(160, 23%, 23%)",
-        "grey": "hsl(202, 7%, 68%)",
-        "grey2": "hsl(0, 0%, 75%)",
-        "orange": "hsl(29, 91%, 54%)",
-        "white": "hsl(0, 0%, 100%)"
-    },
-    "globals":
-    {
-        "foreground": "var(black2)",
-        "background": "var(white)",
-        "caret": "var(black)",
-        "invisibles": "var(grey2)",
-        "line_highlight": "color(var(black) alpha(0.071))",
-        "selection": "var(blue2)",
-        "selection_border": "var(blue4)",
-        "inactive_selection": "var(grey)"
-    },
-    "rules":
-    [
-        {
-            "name": "Comment",
-            "scope": "comment",
-            "foreground": "var(blue3)",
-            "font_style": "italic"
-        },
-        {
-            "name": "Keyword",
-            "scope": "keyword, storage",
-            "foreground": "var(blue5)"
-        },
-        {
-            "scope": "constant",
-            "foreground": "var(blue6)"
-        },
-        {
-            "scope": "string",
-            "foreground": "var(blue)"
-        },
-        {
-            "scope": "constant.character.escape",
-            "foreground": "var(orange)"
-        }
-    ]
+	"name": "Sublime Widgets",
+	"variables":
+	{
+		"white": "#ffffff",
+		"dark_grey": "#222222",
+		"medium_grey": "#888888",
+		"orange": "hsl(32, 95%, 50%)",
+		"green": "hsl(95, 50%, 45%)",
+		"blue": "hsl(210, 40%, 45%)",
+		"red": "hsl(350, 60%, 45%)",
+		"purple": "hsl(275, 50%, 45%)"
+	},
+	"globals":
+	{
+		"foreground": "var(dark_grey)",
+		"background": "var(white)",
+		"caret": "color(var(dark_grey) a(0.8))",
+		"invisibles": "color(var(dark_grey) a(0.5))",
+		"selection": "color(var(dark_grey) a(0.2))",
+		"selection_border": "color(var(dark_grey) a(0.1))",
+		"inactive_selection": "color(var(dark_grey) a(0.15))",
+		"inactive_selection_border": "transparent",
+		"bracket_contents_options": "stippled_underline",
+	},
+	"rules":
+	[
+		{
+			"name": "Comment",
+			"scope": "comment",
+			"foreground": "var(medium_grey)",
+			"font_style": "italic"
+		},
+		{
+			"name": "Keyword",
+			"scope": "keyword, storage",
+			"foreground": "var(blue)"
+		},
+		{
+			"name": "Support",
+			"scope": "support.constant",
+			"foreground": "var(blue)",
+			"font_style": "italic"
+		},
+		{
+			"name": "Keyword",
+			"scope": "keyword.operator",
+			"foreground": "var(red)"
+		},
+		{
+			"scope": "constant",
+			"foreground": "var(orange)"
+		},
+		{
+			"scope": "string",
+			"foreground": "var(green)"
+		},
+		{
+			"scope": "constant.character.escape",
+			"foreground": "var(purple)"
+		},
+		{
+			"scope": "punctuation",
+			"foreground": "var(medium_grey)"
+		}
+	]
 }

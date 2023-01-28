@@ -5,6 +5,8 @@ import threading
 from urllib.error import URLError
 from urllib.request import build_opener, install_opener, ProxyHandler, urlopen
 
+import certifi
+
 import sublime
 import sublime_api
 import sublime_plugin
@@ -98,8 +100,8 @@ class InstallPackageControlCommand(sublime_plugin.ApplicationCommand):
         install_opener(build_opener(ProxyHandler()))
 
         try:
-            package_data = urlopen(secure_url).read()
-            sig_data = urlopen(secure_sig_url).read()
+            package_data = urlopen(secure_url, cafile=certifi.where()).read()
+            sig_data = urlopen(secure_sig_url, cafile=certifi.where()).read()
         except (URLError) as e:
             print('%sHTTPS error encountered, falling back to HTTP - %s' % (self.error_prefix, str(e)))
             try:

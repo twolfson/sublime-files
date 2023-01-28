@@ -6,105 +6,434 @@ jump backwards and forwards
 
 import sublime
 import sublime_plugin
-import unittest
+
+import sys
+import time
 
 
-class JumpHistory():
+if sys.version_info[:2] == (3, 3):
+    import traceback
+
+    importer = "unknown"
+    for entry in reversed(traceback.extract_stack()[:-1]):
+        if entry[0].startswith("<frozen importlib"):
+            continue
+        importer = entry[0]
+        break
+    print("error: Default.history_list was imported on Python 3.3 by \"%s\"" % importer)
+
+
+class JumpRecord:
+    __slots__ = ['key', 'view', 'sheets']
+
+    def __init__(self, key, view, selections, sheets):
+        # The View.get_regions() key to retrieve the selections
+        self.key = key
+        # The sublime.View to focus
+        self.view = view
+        # A set of sublime.Sheet objects to be selected
+        self.sheets = sheets
+
+        view.add_regions(key, selections)
+
+    def __repr__(self):
+        return 'JumpRecord(%r, %r, %r, %r)' % (
+            self.key,
+            self.view,
+            self.selections,
+            self.sheets
+        )
+
+    def __del__(self):
+        self.view.erase_regions(self.key)
+
+    def update(self, view, selections, sheets):
+        """
+        Update the record with new details
+
+        :param view:
+            The new sublime.View for the record
+
+        :param selections:
+            A list of sublime.Region objects to set the selections to
+
+        :param sheets:
+            A set of sublime.Sheet objects for the selected sheets
+        """
+
+        view.add_regions(self.key, selections)
+        if self.view != view:
+            self.view.erase_regions(self.key)
+            self.view = view
+        self.sheets = sheets
+
+    @property
+    def selections(self):
+        """
+        The selections are not stored in this object since modifications to
+        the view will cause the regions to be moved. By storing the regions in
+        the text buffer, it will deal with shifting them around.
+
+        :return:
+            A list of sublime.Region objects representing the selections
+        """
+
+        return self.view.get_regions(self.key)
+
+
+def _log(message):
+    """
+    Prints a log to the console, prefixed by the plugin name
+
+    :param message:
+        A str of the message to print
+    """
+
+    print("history_list: %s" % message)
+
+
+class JumpHistory:
     """
     Stores the current jump history
     """
 
+    LOG = False
     LIST_LIMIT = 120
-    LIST_TRIMMED_SIZE = 100
+    TIME_BETWEEN_RECORDING = 1
+    TIME_AFTER_ACTIVATE = 0.1
 
     def __init__(self):
+        # A stack of JumpRecord objects
         self.history_list = []
 
-        # current_item point to newest item of the queue, which is at the back of the
-        # list. To make appending easier current_item is a negative index
-        # current_item would be -1 to point to the newest item and -len to point to oldest
-        self.current_item = 0
+        # The string name of the command the user most recently executed
+        self.current_command = ""
+        # If self.current_command was different from the preceeding command
+        self.different_command = False
+
+        # A float unix timestamp of when self.history_list was last modified
+        self.last_change_time = 0
+        # If the last modification to self.history_list was from on_activated()
+        self.last_was_activation = False
+
+        # A negative integer index in self.history_list of where the user is
+        # located. This allows them to jump forward and backward.
+        self.current_item = -1
+
+        # Used to generate the region names where the selection is stored
         self.key_counter = 0
 
-    def push_selection(self, view):
+    def push_selection(self, view, selection=None, is_activation=False):
         """
-        Push the current selection of the view into this history.
-        If we push a selection into history while current item is not pointing
-        to head, anything before the current item is erased
-        """
-        region_list = list(view.sel())
+        Possibly records the current selections in the view to the history.
+        Will skip recording if the current state of the view would result in
+        history entries the user would find confusing.
 
-        if region_list == []:
+        :param view:
+            A sublime.View object
+
+        :param selection:
+            None to use the view's current selection, otherwise a list of
+            sublime.Region objects to use as the selections to record
+
+        :param is_activation:
+            A bool - if the push event is triggered by on_activated()
+        """
+
+        if (self.current_command == "jump_back" or
+                self.current_command == "jump_forward" or
+                self.current_command == "soft_undo" or
+                self.current_command == "soft_redo" or
+                self.current_command == "undo" or
+                self.current_command == "redo_or_repeat" or
+                self.current_command == "redo"):
+            self.current_command = ":empty"
             return
 
-        # we have just performed a jump back and then move again
-        # delete every item after the current item
-        self.clear_history_after_current()
+        # We need the view to be loaded in order to interact with regions
+        # and the selection
+        if view.is_loading():
+            kwargs = {
+                "selection": selection,
+                "is_activation": is_activation
+            }
+            sublime.set_timeout(
+                lambda: self.push_selection(view, **kwargs), 100)
+            return
 
-        # check the newest entry is not the same as selection
+        if selection is not None:
+            cur_sel = selection
+
+        else:
+            cur_sel = list(view.sel())
+            to_ignore = view.get_regions('jump_ignore_selection')
+            if to_ignore:
+                view.erase_regions('jump_ignore_selection')
+            if to_ignore == cur_sel:
+                if self.LOG:
+                    _log("ignoring selection %r" % cur_sel)
+                return
+
+        sheets = set()
+        window = view.window()
+        if window:
+            sheets = set(window.selected_sheets())
+
+        temp_item = self.current_item
         if self.history_list != []:
-            first_view, first_key = self.history_list[-1]
-            if first_view.view_id == view.view_id:
-                first_sel = view.get_regions(first_key)
-                if first_sel == region_list:
-                    return
+
+            while True:
+                record = self.history_list[temp_item]
+                prev_sel = record.selections
+                if prev_sel or temp_item <= -len(self.history_list):
+                    break
+                temp_item -= 1
+
+            # Don't record duplicate history records
+            if prev_sel and record.view == view and prev_sel == cur_sel:
+                return
+
+            # There are two situations in which we overwrite the previous
+            # record:
+            #  1. When a command is repeated in quick succession. This
+            #     prevents lots of records when editing.
+            #  2. When the last item was from on_activate, we don't want to
+            #     mark that as a real record, otherwise things like
+            #     Goto Definition result in two records the user has to jump
+            #     back through.
+            change = time.time() - self.last_change_time
+
+            just_activated = change <= self.TIME_AFTER_ACTIVATE \
+                and self.last_was_activation
+            duplicate_command = change <= self.TIME_BETWEEN_RECORDING \
+                and not self.different_command and record.view == view
+
+            if just_activated or duplicate_command:
+                record.update(view, cur_sel, sheets)
+                if self.LOG:
+                    _log("updated record %d to %r" % (temp_item, record))
+                self.last_change_time = time.time()
+                self.last_was_activation = False if just_activated \
+                    else is_activation
+                return
+
+        if self.current_item != -1:
+            delete_index = self.current_item + 1
+            del self.history_list[delete_index:]
+            self.current_item = -1
+            if self.LOG:
+                _log("removed newest %d records, pointer = -1" % abs(delete_index))
 
         key = self.generate_key()
-        view.add_regions(key, region_list)
+        self.history_list.append(JumpRecord(key, view, cur_sel, sheets))
+        if self.LOG:
+            _log("adding %r" % self.history_list[-1])
 
-        # set the new selection as the current item, as a tuple (view_id, key)
-        self.history_list.append((view, key))
-        self.trim_selections()
+        if len(self.history_list) > self.LIST_LIMIT:
+            # We remove more than one at a time so we don't call this every time
+            old_len = len(self.history_list)
+            new_len = old_len - int(self.LIST_LIMIT / 3)
+            if self.LOG:
+                _log("removed oldest %d records, pointer = %d" % (old_len - new_len, self.current_item))
+            del self.history_list[:new_len]
 
-    def jump_back(self, active_view):
+        self.last_change_time = time.time()
+        self.last_was_activation = is_activation
+
+        # This ensures the start of a drag_select gets a unique entry, but
+        # then all subsequent selections get merged into a single entry
+        if self.current_command == "post:drag_select":
+            self.different_command = False
+        elif self.current_command == 'drag_select':
+            self.current_command = "post:drag_select"
+            self.different_command = True
+
+    def jump_back(self, in_widget):
         """
-        Return the view and selection list to jump back to
-        Jump back in history. If the current_item is -1, it also pushes the
-        active view sel() into the history.
+        Returns info about where the user should jump back to, modifying the
+        index of the current item.
+
+        :param in_widget:
+            A bool indicating if the focus is currently on a widget. In this
+            case we don't move the current_item, just jump to it.
+
+        :return:
+            A 3-element tuple:
+            0: sublime.View - the view to focus on
+            1: a list of sublime.Region objects to use as the selection
+            2: a set of sublime.Sheet objects that should be selected
         """
-        if self.current_item == 0:
-            # we got no head, add one so we can jump back there
-            # note that the push might not add anything if the region
-            # is empty or if the region is the same as the previous
-            # one, but we still increment current item. This is such
-            # that the newest item is always the newest location
-            self.push_selection(active_view)
-            self.current_item = -1
 
-        if self.current_item == -len(self.history_list):
-            # already pointing to the oldest
-            return None, []
+        temp_item = self.current_item
 
-        # get the next (older) selection
-        self.current_item -= 1
-        view, key = self.history_list[self.current_item]
-        return view, view.get_regions(key)
+        cur_record = self.history_list[temp_item]
+        cur_sel = cur_record.selections
 
-    def jump_forward(self, active_view):
-        if self.history_list == []:
-            return None, []
-        # already pointing to the front
-        if self.current_item >= -1:
-            return None, []
-        # get the top selection
-        # print(self.current_item)
-        self.current_item += 1
-        view, key = self.history_list[self.current_item]
-        return view, view.get_regions(key)
+        while True:
+            if temp_item == -len(self.history_list):
+                return None, [], []
 
-    def remove_view(self, view_id):
-        i = 0
-        # use negative indices since current_item is negative
-        # remove any selection that has the same view id
-        # adjust the current_item, iterate from the back
-        while (i > -len(self.history_list)):
-            i -= 1
-            if self.history_list[i][0].view_id == view_id:
+            if not in_widget:
+                temp_item -= 1
+            record = self.history_list[temp_item]
+            record_sel = record.selections
+            if in_widget:
+                break
+
+            if record_sel and (cur_record.view != record.view or
+                               cur_sel != record_sel):
+                if not cur_sel:
+                    cur_sel = record_sel
+                else:
+                    break
+
+        self.current_item = temp_item
+        if self.LOG:
+            _log("setting pointer = %d" % self.current_item)
+
+        return record.view, record_sel, record.sheets
+
+    def jump_forward(self, in_widget):
+        """
+        Returns info about where the user should jump forward to, modifying
+        the index of the current item.
+
+        :param in_widget:
+            A bool indicating if the focus is currently on a widget. In this
+            case we don't move the current_item, just jump to it.
+
+        :return:
+            A 3-element tuple:
+            0: sublime.View - the view to focus on
+            1: a list of sublime.Region objects to use as the selection
+            2: a set of sublime.Sheet objects that should be selected
+        """
+
+        temp_item = self.current_item
+
+        cur_record = self.history_list[temp_item]
+        cur_sel = cur_record.selections
+
+        while True:
+            if temp_item == -1:
+                return None, [], []
+
+            if not in_widget:
+                temp_item += 1
+            record = self.history_list[temp_item]
+            record_sel = record.selections
+            if in_widget:
+                break
+
+            if record_sel and (cur_record.view != record.view or
+                               cur_sel != record_sel):
+                if not cur_sel:
+                    cur_sel = record_sel
+                else:
+                    break
+
+        self.current_item = temp_item
+        if self.LOG:
+            _log("setting pointer = %d" % self.current_item)
+
+        return record.view, record_sel, record.sheets
+
+    def set_current_item(self, index):
+        """
+        Modifies the index of the current item in the history list
+
+        :param index:
+            A negative integer, with -1 being the last item
+        """
+
+        self.current_item = index
+        if self.LOG:
+            _log("setting pointer = %d" % self.current_item)
+
+    def record_command(self, command):
+        """
+        Records a command being run, used to determine when changes to the
+        selection should be recorded
+
+        :param command:
+            A string of the command that was run. The string ":text_modified"
+            should be passed when the buffer is modified. This is used in
+            combination with the last command to ignore recording undo/redo
+            changes.
+        """
+
+        self.different_command = self.current_command != command
+
+        # We don't track text modifications when they occur due to
+        # the undo/redo stack. Otherwise we'd end up pusing new
+        # selections, and undo/redo is handled by
+        # JumpHistoryUpdater.on_post_text_command().
+        if (command == ":text_modified" and
+                (self.current_command == "soft_undo" or
+                 self.current_command == "soft_redo" or
+                 self.current_command == "undo" or
+                 self.current_command == "redo_or_repeat" or
+                 self.current_command == "redo")):
+            return
+
+        self.current_command = command
+
+    def reorient_current_item(self, view):
+        """
+        Find the index of the item in the history list that matches the
+        current view state, and update the current_item with that
+
+        :param view:
+            The sublime.View object to use when finding the correct current
+            item in the history list
+        """
+
+        cur_sel = list(view.sel())
+        for i in range(-1, -len(self.history_list) - 1, -1):
+
+            while True:
+                record = self.history_list[i]
+                record_sel = record.selections
+                if record_sel or i <= -len(self.history_list):
+                    break
+                i -= 1
+
+            if record_sel and record.view == view and record_sel == cur_sel:
+                self.current_item = i
+                if self.LOG:
+                    _log("set pointer = %d" % self.current_item)
+                return
+
+    def remove_view(self, view):
+        """
+        Purges all history list items referring to a specific view
+
+        :param view:
+            The sublime.View being removed
+        """
+
+        sheet = view.sheet()
+        removed = 0
+        for i in range(-len(self.history_list), 0):
+            record = self.history_list[i]
+            if record.view == view:
                 del self.history_list[i]
-                if self.current_item <= i:
+                removed += 1
+                if self.current_item < i:
                     self.current_item += 1
+            elif sheet in record.sheets:
+                record.sheets.remove(sheet)
+        if self.LOG:
+            _log("removed %r including %d records, pointer = %d" % (view, removed, self.current_item))
 
     def generate_key(self):
+        """
+        Creates a key to be used with sublime.View.add_regions()
+
+        :return:
+            A string key to use when storing and retrieving regions
+        """
+
         # generate enough keys for 5 times the jump history limit
         # this can still cause clashes as new history can be erased when we jump
         # back several steps and jump again.
@@ -112,62 +441,47 @@ class JumpHistory():
         self.key_counter %= self.LIST_LIMIT * 5
         return 'jump_key_' + hex(self.key_counter)
 
-    def clear_history_after_current(self):
-        if self.current_item == 0:
-            return
-
-        # remove all history that are newer than current
-        for i in range(-1, self.current_item):
-            view, key = self.history_list[i]
-            view.erase_regions(key)
-        del self.history_list[self.current_item + 1:]
-        # set current_item to the imaginary back (current caret position not yet pushed)
-        self.current_item = 0
-
-    def trim_selections(self):
-        if len(self.history_list) > self.LIST_LIMIT:
-            # max reached, remove everything too old
-            # trim to a smaller size to avoid doing on this every insert
-            for i in range(0, len(self.history_list) - self.LIST_TRIMMED_SIZE):
-                # erase the regions from view
-                view, key = self.history_list[i]
-                view.erase_regions(key)
-            del self.history_list[: len(self.history_list) - self.LIST_TRIMMED_SIZE]
-
-    def len(self):
-        return len(self.history_list)
-
 
 # dict from window id to JumpHistory
 jump_history_dict = {}
 
 
-def get_jump_history(window_id):
+def _history_for_window(window):
+    """
+    Fetches the JumpHistory object for the window
+
+    :param window:
+        A sublime.Window object
+
+    :return:
+        A JumpHistory object
+    """
+
     global jump_history_dict
-    return jump_history_dict.setdefault(window_id, JumpHistory())
 
-
-def get_jump_history_for_view(view):
-    win = view.window()
-    if not win:
+    if not window:
         return JumpHistory()
     else:
-        return get_jump_history(win.id())
+        return jump_history_dict.setdefault(window.id(), JumpHistory())
 
 
-# remember that we are jumping and ignore
-# on_deactivated callback
-g_is_jumping = False
+def _history_for_view(view):
+    """
+    Fetches the JumpHistory object for the window containing the view
+
+    :param view:
+        A sublime.View object
+
+    :return:
+        A JumpHistory object
+    """
+
+    return _history_for_window(view.window())
 
 
-def lock_jump_history():
-    global g_is_jumping
-    g_is_jumping = True
-
-
-def unlock_jump_history():
-    global g_is_jumping
-    g_is_jumping = False
+# Compatibility shim to not raise ImportError with Anaconda and other plugins
+# that manipulated the JumpHistory in ST3
+get_jump_history_for_view = _history_for_view
 
 
 class JumpHistoryUpdater(sublime_plugin.EventListener):
@@ -176,265 +490,238 @@ class JumpHistoryUpdater(sublime_plugin.EventListener):
     JumpHistory object
     """
 
-    def on_text_command(self, view, name, args):
-        if view.settings().get('is_widget'):
+    def _valid_view(self, view):
+        """
+        Determines if we want to track the history for a view
+
+        :param view:
+            A sublime.View object
+
+        :return:
+            A bool if we should track the view
+        """
+
+        return view is not None and not view.settings().get('is_widget')
+
+    def on_modified(self, view):
+        if not self._valid_view(view):
             return
-        # print(view.id())
-        # print(name)
-        if name == 'move' and args['by'] == 'pages':
-            # syntax is {'by': 'lines', 'forward': True}
-            get_jump_history_for_view(view).push_selection(view)
-        elif name == 'drag_select':
-            # using mouse to move cursor, we only want to capture
-            # this if it is in the same view, otherwise on_deactivated()
-            # will handle this
-            if view.window().active_view() == view:
-                get_jump_history_for_view(view).push_selection(view)
-        elif name == 'move_to':
-            where_to = args.get('to')
-            if where_to == 'bof' or where_to == 'eof':
-                # move to bof/eof
-                get_jump_history_for_view(view).push_selection(view)
+
+        history = _history_for_view(view)
+        if history.LOG:
+            _log("%r was modified" % view)
+        history.record_command(":text_modified")
+
+    def on_selection_modified(self, view):
+        if not self._valid_view(view):
+            return
+
+        history = _history_for_view(view)
+        if history.LOG:
+            _log("%r selection was changed" % view)
+        history.push_selection(view)
+
+    def on_activated(self, view):
+        if not self._valid_view(view):
+            return
+
+        history = _history_for_view(view)
+        if history.LOG:
+            _log("%r was activated" % view)
+        history.push_selection(view, is_activation=True)
+
+    def on_text_command(self, view, name, args):
+        if not self._valid_view(view):
+            return
+
+        history = _history_for_view(view)
+        if history.LOG:
+            _log("%r is about to run text command %r" % (view, name))
+        history.record_command(name)
+
+    def on_post_text_command(self, view, name, args):
+        if not self._valid_view(view):
+            return
+
+        if name == "undo" or name == "redo_or_repeat" or name == "redo":
+            _history_for_view(view).reorient_current_item(view)
+
+        if name == "soft_redo":
+            _history_for_view(view).set_current_item(-1)
 
     def on_window_command(self, window, name, args):
-        if name == 'goto_definition':
-            view = window.active_view()
-            if not view.settings().get('is_widget'):
-                get_jump_history(window.id()).push_selection(view)
+        view = window.active_view()
+        if not self._valid_view(view):
+            return
 
-    def on_deactivated(self, view):
-        if not g_is_jumping:
-            if view.settings().get('is_widget'):
-                return
-            # check the property to ensure we don't add history
-            # for a view that is dying
-            if view.settings().get('history_list_is_closing'):
-                return
+        history = _history_for_view(view)
+        if history.LOG:
+            _log("%r is about to run window command %r" % (view, name))
+        history.record_command(name)
 
-            get_jump_history_for_view(view).push_selection(view)
-
+    # TODO: We need an on_pre_closed_sheet in the future since we currently
+    # leave stale ImageSheet() and HtmlSheet() references in the JumpHistory.
     def on_pre_close(self, view):
-        """ remove the history from the view """
-        if view.settings().get('is_widget'):
+        if not self._valid_view(view):
             return
-        # hack to add a property so that we know to ignore this
-        # view on_deactivated
-        view.settings().set('history_list_is_closing', True)
-        get_jump_history_for_view(view).remove_view(view.id())
-        unlock_jump_history()
+
+        _history_for_view(view).remove_view(view)
 
 
-class JumpBackCommand(sublime_plugin.TextCommand):
-    """
-    Defines a new text command "jump_back"
-    """
+class _JumpCommand(sublime_plugin.TextCommand):
 
+    VALID_WIDGETS = {
+        "find:input",
+        "incremental_find:input",
+        "replace:input:find",
+        "replace:input:replace",
+        "find_in_files:input:find",
+        "find_in_files:input:location",
+        "find_in_files:input:replace",
+        "find_in_files:output",
+    }
+
+    def _get_window(self):
+        """
+        Returns the (non-widget) view to get the history for
+
+        :return:
+            None or a sublime.Window to get the history from
+        """
+
+        if not self.view.settings().get('is_widget') or \
+                self.view.element() in self.VALID_WIDGETS:
+            return self.view.window()
+
+        return None
+
+    def _perform_jump(self, window, view, selections, sheets):
+        """
+        Restores the window to the state where the view has the selections
+
+        :param window:
+            The sublime.Window containing the view
+
+        :param view:
+            The sublime.View to focus
+
+        :param selections:
+            A list of sublime.Region objects to set the selection to
+
+        :param sheets:
+            A list of sublime.Sheet objects that should be (minimally)
+            selected. If the currently selected sheets is a superset of these,
+            then no sheet selection changes will be made.
+        """
+
+        # Reduce churn by only selecting sheets when one is not visible
+        if set(sheets) - set(window.selected_sheets()):
+            window.select_sheets(sheets)
+        window.focus_view(view)
+
+        view.sel().clear()
+        view.sel().add_all(selections)
+        view.show(selections[0], True)
+
+        sublime.status_message("")
+
+    def is_enabled(self):
+        return self._get_window() is not None
+
+
+class JumpBackCommand(_JumpCommand):
     def run(self, edit):
-        if self.view.settings().get('is_widget'):
-            return
+        window = self._get_window()
+        jump_history = _history_for_window(window)
 
-        # jump back in history
-        # get the new selection
-        jump_history = get_jump_history_for_view(self.view)
-
-        view, region_list = jump_history.jump_back(self.view)
-        if region_list == []:
+        is_widget = self.view.settings().get('is_widget')
+        view, selections, sheets = jump_history.jump_back(is_widget)
+        if not selections:
             sublime.status_message("Already at the earliest position")
             return
 
-        lock_jump_history()
-        # inputs a dict where the first is the argument name
-        # print(view.window(), region_list)
-        # change to another view
-
-        self.view.window().focus_view(view)
-        view.sel().clear()
-        view.sel().add_all(region_list)
-        view.show(region_list[0], True)
-        sublime.status_message("")
-        unlock_jump_history()
+        if jump_history.LOG:
+            _log("jumping back to %r, %r, %r" % (view, selections, sheets))
+        self._perform_jump(window, view, selections, sheets)
 
 
-class JumpForwardCommand(sublime_plugin.TextCommand):
-    """
-    Defines a new text command "jump_forward"
-    """
-
+class JumpForwardCommand(_JumpCommand):
     def run(self, edit):
-        if self.view.settings().get('is_widget'):
-            return
+        window = self._get_window()
+        jump_history = _history_for_window(window)
 
-        # jump back in history
-        # get the new selection
-        jump_history = get_jump_history_for_view(self.view)
-        view, region_list = jump_history.jump_forward(self.view)
-        if region_list == []:
+        is_widget = self.view.settings().get('is_widget')
+        view, selections, sheets = jump_history.jump_forward(is_widget)
+        if not selections:
             sublime.status_message("Already at the newest position")
             return
 
-        lock_jump_history()
-
-        # inputs a dict where the first is the argument name
-        # print(region_list)
-        # change to another view
-        self.view.window().focus_view(view)
-        view.sel().clear()
-        view.sel().add_all(region_list)
-        # print(region_list)
-        view.show(region_list[0], True)
-        sublime.status_message("")
-
-        unlock_jump_history()
+        if jump_history.LOG:
+            _log("jumping forward to %r, %r, %r" % (view, selections, sheets))
+        self._perform_jump(window, view, selections, sheets)
 
 
-# unit testing
-# to run it in sublime text:
-# import Default.history_list
-# Default.history_list.Unittest.run()
+def _2_int_list(value):
+    """
+    :param value:
+        The value to check
 
-class Unittest(unittest.TestCase):
+    :return:
+        A bool is the value is a list with 2 ints
+    """
 
-    class Sublime:
-        pass
+    if not isinstance(value, list):
+        return False
 
-    class View:
-        def __init__(self, id):
-            self.view_id = id
-            # just make it a list of regions
-            self.region_list = [sublime.Region(0, 0)]
-            self.key_to_region = {}
+    if len(value) != 2:
+        return False
 
-        def sel(self):
-            return self.region_list
+    if not isinstance(value[0], int):
+        return False
 
-        def set_sel(self, region):
-            self.region_list = [region]
+    return isinstance(value[1], int)
 
-        def add_regions(self, key, regions):
-            self.key_to_region[key] = regions
 
-        def get_regions(self, key):
-            return self.key_to_region.get(key, [])
+class AddJumpRecordCommand(sublime_plugin.TextCommand):
+    """
+    Allows packages to add a jump point without changing the selection
+    """
 
-        def erase_regions(self, key):
-            del self.key_to_region[key]
+    def run(self, edit, selection):
+        if not self.view.settings().get('is_widget'):
+            view = self.view
+        else:
+            view = self.view.window().active_view()
 
-    def run():
-        # redefine the modules to use the mock version
-        global sublime
+        regions = []
+        type_error = False
 
-        sublime_module = sublime
-        # use the normal region
-        Unittest.Sublime.Region = sublime.Region
-        sublime = Unittest.Sublime
+        if isinstance(selection, int):
+            regions.append(sublime.Region(selection, selection))
 
-        test = Unittest()
-        test.test_simple_jump()
-        test.test_duplicate_jump_history()
-        test.test_jump_branch()
+        elif isinstance(selection, list):
+            if _2_int_list(selection):
+                regions.append(sublime.Region(selection[0], selection[1]))
+            else:
+                for s in selection:
+                    if _2_int_list(s):
+                        regions.append(sublime.Region(s[0], s[1]))
+                    elif isinstance(s, int):
+                        regions.append(sublime.Region(s, s))
+                    else:
+                        type_error = True
+                        break
+        else:
+            type_error = True
 
-        # set it back after testing
-        sublime = sublime_module
+        if type_error:
+            raise TypeError('selection must be an int, 2-int list, '
+                            'or list of 2-int lists')
 
-    def test_simple_jump(self):
-        history = JumpHistory()
-        view = Unittest.View(1)
+        jump_history = _history_for_window(view.window())
+        jump_history.push_selection(view, selection=regions)
 
-        # create a new selection
-        first_pos = sublime.Region(10, 10)
-        view.set_sel(first_pos)
 
-        # push
-        history.push_selection(view)
-
-        # go some where
-        second_pos = sublime.Region(20, 10)
-        view.set_sel(second_pos)
-
-        # now try to jump back
-        # should jump back to first pos
-        self.assertEqual(history.jump_back(view)[1][0], first_pos)
-
-        # now jump back again, should go no where
-        self.assertEqual(history.jump_back(view)[1], [])
-
-        # jump forward, should jump to where we were, this also test
-        # that second_pos is automatically pushed when we jump back
-        # from a new position
-        self.assertEqual(history.jump_forward(view)[1][0], second_pos)
-
-    # try to jump back two step and set new history
-    def test_jump_branch(self):
-        history = JumpHistory()
-        view = Unittest.View(1)
-
-        # create 3 jump positions
-        pos_1 = sublime.Region(1, 1)
-        view.set_sel(pos_1)
-        history.push_selection(view)
-
-        pos_2 = sublime.Region(2, 2)
-        view.set_sel(pos_2)
-        history.push_selection(view)
-
-        pos_3 = sublime.Region(3, 3)
-        view.set_sel(pos_3)
-        history.push_selection(view)
-
-        pos_4 = sublime.Region(4, 4)
-        view.set_sel(pos_4)
-
-        # now jump back to pos_2, and do few moves
-        self.assertEqual(history.jump_back(view)[1][0], pos_3)
-        self.assertEqual(history.jump_back(view)[1][0], pos_2)
-
-        pos_3 = sublime.Region(3, 1)
-        view.set_sel(pos_3)
-        history.push_selection(view)
-
-        pos_4 = sublime.Region(4, 1)
-        view.set_sel(pos_4)
-        history.push_selection(view)
-
-        # now if I do a jump back i should get to pos_3
-        self.assertEqual(history.jump_back(view)[1][0], pos_3)
-
-        # back two more step should get to pos_1, show that history
-        # before pos_2 is still there
-        self.assertEqual(history.jump_back(view)[1][0], pos_2)
-        self.assertEqual(history.jump_back(view)[1][0], pos_1)
-
-        # test jumping forward again
-        self.assertEqual(history.jump_forward(view)[1][0], pos_2)
-        self.assertEqual(history.jump_forward(view)[1][0], pos_3)
-
-    # test case where some jump history points are dups
-    def test_duplicate_jump_history(self):
-        history = JumpHistory()
-        view = Unittest.View(1)
-
-        # create a new selection
-        first_pos = sublime.Region(10, 10)
-        view.set_sel(first_pos)
-
-        history.push_selection(view)
-        history.push_selection(view)
-
-        # go some where
-        second_pos = sublime.Region(20, 10)
-        view.set_sel(second_pos)
-        history.push_selection(view)
-        history.push_selection(view)
-
-        # now jump back, should jump back to first pos
-        # and ignore the previous two pushes
-        self.assertEqual(history.jump_back(view)[1][0], first_pos)
-
-        # now jump back again, should go no where
-        self.assertEqual(history.jump_back(view)[1], [])
-
-        # jump forward would still jump to second_pos
-        self.assertEqual(history.jump_forward(view)[1][0], second_pos)
-
-        # jump forward again would go no where
-        self.assertEqual(history.jump_forward(view)[1], [])
+def plugin_unloaded():
+    # Clean up the View region side-effects of the JumpRecord objects
+    jump_history_dict.clear()

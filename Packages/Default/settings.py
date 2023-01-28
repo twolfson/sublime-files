@@ -68,37 +68,58 @@ class EditSettingsCommand(sublime_plugin.ApplicationCommand):
                         user_file = non_platform_path
                         break
 
-        sublime.run_command('new_window')
-        new_window = sublime.active_window()
+        # If the user has previously opened the settings from the menu, locate and bring to front the respective window
+        windows = sublime.windows()
+        previous_settings_index = -1
+        view_to_focus = None
 
-        new_window.run_command(
-            'set_layout',
-            {
-                'cols': [0.0, 0.5, 1.0],
-                'rows': [0.0, 1.0],
-                'cells': [[0, 0, 1, 1], [1, 0, 2, 1]]
-            })
-        new_window.focus_group(0)
-        new_window.run_command('open_file', {'file': base_file})
-        new_window.focus_group(1)
-        new_window.run_command('open_file', {'file': user_file, 'contents': default})
+        for window in windows:
+            user_view = window.find_open_file(user_file)
+            base_view = window.find_open_file(base_file.replace("${packages}", sublime.packages_path()))
+            if (window.num_groups() == 2 and
+                    window.get_view_index(user_view) == (1, 0) and
+                    window.get_view_index(base_view) == (0, 0)):
+                previous_settings_index = windows.index(window)
+                view_to_focus = user_view
+                break
 
-        new_window.set_tabs_visible(True)
-        new_window.set_sidebar_visible(False)
+        if previous_settings_index > -1:
+            settings_window = windows[previous_settings_index]
+            settings_window.bring_to_front()
+            settings_window.focus_view(view_to_focus)
 
-        base_view = new_window.active_view_in_group(0)
-        user_view = new_window.active_view_in_group(1)
+        else:
+            sublime.run_command('new_window')
+            new_window = sublime.active_window()
 
-        base_settings = base_view.settings()
-        base_settings.set('edit_settings_view', 'base')
-        base_settings.set('edit_settings_other_view_id', user_view.id())
+            new_window.run_command(
+                'set_layout',
+                {
+                    'cols': [0.0, 0.5, 1.0],
+                    'rows': [0.0, 1.0],
+                    'cells': [[0, 0, 1, 1], [1, 0, 2, 1]]
+                })
+            new_window.focus_group(0)
+            new_window.run_command('open_file', {'file': base_file})
+            new_window.focus_group(1)
+            new_window.run_command('open_file', {'file': user_file, 'contents': default})
 
-        user_settings = user_view.settings()
-        user_settings.set('edit_settings_view', 'user')
-        user_settings.set('edit_settings_other_view_id', base_view.id())
-        if not os.path.exists(user_file):
-            user_view.set_scratch(True)
-            user_settings.set('edit_settings_default', default.replace('$0', ''))
+            new_window.set_tabs_visible(True)
+            new_window.set_sidebar_visible(False)
+
+            base_view = new_window.active_view_in_group(0)
+            user_view = new_window.active_view_in_group(1)
+
+            base_settings = base_view.settings()
+            base_settings.set('edit_settings_view', 'base')
+            base_settings.set('edit_settings_other_view_id', user_view.id())
+
+            user_settings = user_view.settings()
+            user_settings.set('edit_settings_view', 'user')
+            user_settings.set('edit_settings_other_view_id', base_view.id())
+            if not os.path.exists(user_file):
+                user_view.set_scratch(True)
+                user_settings.set('edit_settings_default', default.replace('$0', ''))
 
 
 class EditSyntaxSettingsCommand(sublime_plugin.WindowCommand):

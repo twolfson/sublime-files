@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>scope</key>
-    <string>entity.name.function, entity.name.type</string>
+    <string>entity.name.function, entity.name.type, entity.name.class, entity.name.enum, entity.name.namespace</string>
     <key>settings</key>
     <dict>
         <key>showInIndexedSymbolList</key>

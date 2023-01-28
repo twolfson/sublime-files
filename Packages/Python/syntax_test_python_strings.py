@@ -4,7 +4,7 @@
 # Strings and embedded syntaxes
 ###############################
 
-var = "\x00 \xaa \xAF \070 \r \n \t \\ \a \b \' \v \f \u0aF1 \UFe0a182f \N{SPACE}"
+var = "\x00 \xaa \xAF \070 \0 \r \n \t \\ \a \b \' \v \f \u0aF1 \UFe0a182f \N{SPACE}"
 #     ^ meta.string.python
 #      ^^^^ constant.character.escape.hex
 #           ^^^^ constant.character.escape.hex
@@ -19,14 +19,14 @@ var = "\x00 \xaa \xAF \070 \r \n \t \\ \a \b \' \v \f \u0aF1 \UFe0a182f \N{SPACE
 #                                            ^^ constant.character.escape
 #                                               ^^ constant.character.escape
 #                                                  ^^ constant.character.escape
-#                                                     ^^^^^^ constant.character.escape.unicode
-#                                                            ^^^^^^^^^^ constant.character.escape.unicode
-#                                                                       ^^^^^^^^^ constant.character.escape.unicode
+#                                                     ^^ constant.character.escape
+#                                                        ^^^^^^ constant.character.escape.unicode
+#                                                               ^^^^^^^^^^ constant.character.escape.unicode
+#                                                                          ^^^^^^^^^ constant.character.escape.unicode
 
-invalid_escapes = "\.  \7 \-"
+invalid_escapes = "\.  \-"
 #                  ^^ invalid.deprecated.character.escape.python
 #                      ^^ invalid.deprecated.character.escape.python
-#                         ^^ invalid.deprecated.character.escape.python
 
 conn.execute("SELECT * FROM foobar")
 #              ^ meta.string.python keyword.other.DML.sql
@@ -136,10 +136,14 @@ string = """
 
 string = """
 #        ^^^ string.quoted.double.block - string string
+\
+# <- punctuation.separator.continuation.line.python
 """
 
 string = r"""
 #         ^^^ meta.string.python string.quoted.double.block
+\
+# <- - punctuation
 """
 
 string = r"""
@@ -411,7 +415,8 @@ datetime.strftime(datetime.now(), '%Y%V%uT')
 '{0:%Y}-{0:%m}-{0:%d}'.format(datetime.date.today())
 # ^^^^^^^^^^^^^^^^^^^ string.quoted.single.python
 # ^^^^^ constant.other.placeholder.python
-#  ^^^ constant.other.format-spec.python
+#  ^ punctuation.separator.format-spec.python
+#   ^^ meta.format-spec.python constant.other.format-spec.python
 #      ^ - constant.other.placeholder.python
 #       ^^^^^^ constant.other.placeholder.python
 #          ^^ constant.other.format-spec.python
@@ -421,13 +426,11 @@ datetime.strftime(datetime.now(), '%Y%V%uT')
 '{0:%Y}-{0:%m
 # ^^^^^^^^^^^ string.quoted.single.python
 # ^^^^^ constant.other.placeholder.python
-#  ^^^ constant.other.format-spec.python
 #      ^^^^ - constant.other.placeholder.python
 #            ^ invalid.illegal.unclosed-string.python
 '{0:%Y}-{0:%
 # ^^^^^^^^^^^ string.quoted.single.python
 # ^^^^^ constant.other.placeholder.python
-#  ^^^ constant.other.format-spec.python
 #      ^^^^^ - constant.other.placeholder.python
 #           ^ invalid.illegal.unclosed-string.python
 
@@ -492,6 +495,8 @@ sql = b'just some \
 #     ^^^^ constant.other.placeholder.python
 "More {!a: <10s}"                 # Calls ascii() on the argument first, then formats
 #     ^^^^^^^^^^ constant.other.placeholder.python
+#        ^ punctuation.separator.format-spec.python - meta.format-spec.python
+#         ^^^^^ meta.format-spec.python constant.other.format-spec.python
 "Escaped {{0}}"                   # outputs: "Escaped {0}"
 #        ^^^^^ - constant.other.placeholder.python
 #        ^^ constant.character.escape.python
@@ -524,12 +529,13 @@ datetime.datetime.utcnow().strftime("%Y%m%d%H%M")
 
 "Testing {:j^9,}".format(1000)
 #        ^^^^^^^ constant.other.placeholder
-#         ^^^^^ constant.other.format-spec
+#          ^^^^ meta.format-spec.python constant.other.format-spec
 
 "result: {value:{width}.{precision}}"
 #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ constant.other.placeholder
-#              ^^^^^^^^^^^^^^^^^^^^ meta.format-spec.python
+#               ^^^^^^^^^^^^^^^^^^^ meta.format-spec.python
 #        ^ punctuation.definition.placeholder.begin
+#              ^ punctuation.separator.format-spec.python
 #               ^^^^^^^ constant.other.placeholder constant.other.placeholder
 #               ^ punctuation.definition.placeholder.begin
 #                       ^^^^^^^^^^^ constant.other.placeholder constant.other.placeholder
@@ -545,6 +551,47 @@ foo = "{text{" # Comment
 bar = "}}" # Comment
 #      ^^ constant.character.escape
 
+# The following section contains unusual and legal or illegal format placeholders.
+# We don't actually want to match the syntax 100% of the time,
+# since we never know for sure if the string is used as a format string,
+# so some of these matches are incorrect because of implementation details.
+
+# Not format specs
+"{:{ }"  # unclosed
+# ^ - constant.other.placeholder
+'{{foo!r:4.2}'  # escaped opening
+# ^ - constant.other.placeholder
+'{{foo!r:4.2}}'  # escaped opening and closing
+# ^ - constant.other.placeholder
+'{foo!a:ran{dom}'  # unclosed
+# ^ - constant.other.placeholder
+'{foo!a:ran{dom}'  # unclosed
+# ^ - constant.other.placeholder
+
+# Invalid field names
+'{foo{d}}'
+# ^ - constant.other.placeholder
+"{:{ {}}"  # issue 2232
+# ^ - constant.other.placeholder
+'{foo.!a:d}'  # incomplete accessor (in simple form)
+# ^ constant.other.placeholder
+
+# Syntactically correct, but hardly come up in real code
+"{:{ ()}}".format(0, **{" ()": "d"}) == '0'
+# ^ constant.other.placeholder
+'{foo/bar}'.format(**{"foo/bar": 1}) == '1'
+# ^ - constant.other.placeholder
+
+# Legal but non-standard format spec
+'{foo:{{w}}.{{p}}}'
+# ^ - constant.other.placeholder
+'{foo:w}}}'
+# ^ - constant.other.placeholder
+'{foo!a:random}'
+# ^ - constant.other.placeholder
+'{foo!a:ran{d}om}'  # nested specification
+# ^ constant.other.placeholder
+
 f"string"
 # <- storage.type.string
 #^^^^^^^^ string.quoted.double
@@ -556,6 +603,8 @@ f"string"
 F'''string'''
 # <- storage.type.string
 #^^^^^^^^^^^^ meta.string.interpolated string.quoted.single.block
+#^ meta.string.interpolated.python string.quoted.single.block.python punctuation.definition.string.begin.python
+#         ^ meta.string.interpolated.python string.quoted.single.block.python punctuation.definition.string.end.python
 
  rf'string'
 #^^ storage.type.string - string
@@ -578,6 +627,18 @@ expr = fr"^\s*({label}|{notlabel})"
 #              ^^^^^^^ source.python meta.string.interpolated.python meta.interpolation.python
 #               ^^^^^ source.python.embedded meta.qualified-name.python meta.generic-name.python
 #                                ^ source.regexp.python meta.group.regexp punctuation.definition.group.end.regexp
+
+line = re.sub(rf" ?\{{\\i.?\}}({x})\{{\\i.?\}}", r"\1", line)
+#                  ^^^^^ constant.character.escape.backslash.regexp
+#                   ^^ constant.character.escape.python
+#                          ^^^ constant.character.escape.backslash.regexp
+#                           ^^ constant.character.escape.python
+#                              ^ punctuation.section.interpolation.begin.python
+
+f"\{{{x}\}} test"
+# ^ invalid.deprecated.character.escape.python
+#  ^^ constant.character.escape.python
+#    ^ punctuation.section.interpolation.begin.python
 
 f"{something}"
 #^^^^^^^^^^^^ meta.string.interpolated
@@ -634,6 +695,37 @@ F""" {} {\} }
 #           ^ invalid.illegal.stray-brace
 """
 
+fr'''
+#    ^ - invalid
+'''
+
+# Most of these were inspired by
+# https://github.com/python/cpython/commit/9a4135e939bc223f592045a38e0f927ba170da32
+f'{x=:}'
+#   ^ storage.modifier.debug.python
+f'{x=:.2f}'
+#   ^ storage.modifier.debug.python
+f'{x=!r}'
+#   ^ storage.modifier.debug.python
+f'{x=!a}'
+#   ^ storage.modifier.debug.python
+f'{x=!s:*^20}'
+#   ^ storage.modifier.debug.python
+#    ^^ storage.modifier.conversion.python
+#      ^^^^^ meta.format-spec.python
+f'{"Σ"=}'
+#     ^ storage.modifier.debug.python
+f'{0==1}'
+#   ^^ -storage.modifier.debug.python
+f'{0!=1}'
+#    ^ -storage.modifier.debug.python
+f'{0<=1}'
+#    ^ -storage.modifier.debug.python
+f'{0>=1}'
+#    ^ -storage.modifier.debug.python
+f'{f(a="3=")}'
+#     ^^^^ -storage.modifier.debug.python
+
 f" {
 %   ^ invalid.illegal.unclosed-string
    # TODO make this test pass
@@ -645,7 +737,7 @@ f'   \
 # ^^^^^ source source.python.embedded
 
 f"{d for d in range(10)}"  # yes, this doesn't make sense
-#    ^^^ keyword.control.flow.for.generator.python
+#    ^^^ keyword.control.loop.for.generator.python
 
 f'
 # ^ invalid.illegal.unclosed-string

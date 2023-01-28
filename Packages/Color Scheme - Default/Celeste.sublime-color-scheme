@@ -26,6 +26,7 @@
         "foreground": "var(black)",
         "background": "#fff",
         "caret": "var(magenta)",
+        "block_caret": "color(var(dark_gray) a(0.06))",
         "selection": "color(var(dark_gray) a(0.08))",
         "selection_border": "var(teal)",
         "inactive_selection": "color(var(dark_gray) a(0.08))",
@@ -85,6 +86,12 @@
             "foreground": "var(red)"
         },
         {
+            "scope": "storage.type.numeric",
+            "foreground": "var(black)",
+            "background": "none",
+            "font_style": "italic"
+        },
+        {
             "scope": "constant.character",
             "foreground": "var(dark_orange)"
         },
@@ -103,7 +110,7 @@
             "foreground": "var(dark_brown)"
         },
         {
-            "scope": "punctuation",
+            "scope": "punctuation - punctuation.definition.numeric.base",
             "foreground": "#666"
         },
         {
@@ -170,6 +177,31 @@
             "scope": "markup.bold",
             "foreground": "var(black)",
             "font_style": "bold"
+        },
+        {
+            "scope": "markup.underline",
+            "foreground": "var(black)",
+            "font_style": "underline"
+        },
+        {
+            "scope": "markup.italic markup.bold | markup.bold markup.italic",
+            "foreground": "var(black)",
+            "font_style": "bold italic"
+        },
+        {
+            "scope": "markup.underline markup.bold | markup.bold markup.underline",
+            "foreground": "var(black)",
+            "font_style": "bold underline"
+        },
+        {
+            "scope": "markup.underline markup.italic | markup.italic markup.underline",
+            "foreground": "var(black)",
+            "font_style": "italic underline"
+        },
+        {
+            "scope": "markup.bold markup.italic markup.underline | markup.bold markup.underline markup.italic | markup.italic markup.bold markup.underline | markup.italic markup.underline markup.bold | markup.underline markup.bold markup.italic | markup.underline markup.italic markup.bold",
+            "foreground": "var(black)",
+            "font_style": "bold italic underline"
         },
         {
             "scope": "markup.list punctuation.definition.list_item",

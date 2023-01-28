@@ -3,7 +3,7 @@ import sublime_plugin
 
 
 def fold_region_from_indent(view, r):
-    if r.b == view.size():
+    if view.substr(r.b - 1) != '\n':
         return sublime.Region(r.a - 1, r.b)
     else:
         return sublime.Region(r.a - 1, r.b - 1)
@@ -88,6 +88,9 @@ class FoldByLevelCommand(sublime_plugin.TextCommand):
         size = self.view.size()
         while tp < size:
             if self.view.indentation_level(tp) == level:
+                if len(self.view.substr(self.view.full_line(tp)).strip()) < 1:
+                    tp = self.view.full_line(tp).b
+                    continue
                 s = self.view.indented_region(tp)
                 if not s.empty():
                     r = fold_region_from_indent(self.view, s)

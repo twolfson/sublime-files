@@ -7,11 +7,11 @@ import sublime_plugin
 rex = re.compile(
     r'''(?x)
     \b(?:
-        https?://(?:(?:[a-zA-Z0-9\-_]+(?:\.[a-zA-Z0-9\-._]+)+)|localhost)|  # http://
-        www\.[a-zA-Z0-9\-_]+(?:\.[a-zA-Z0-9\-._]+)+                         # www.
+        https?://(?:(?:[\w\d\-]+(?:\.[\w\d\-.]+)+)|localhost)|  # http://
+        www\.[\w\d\-]+(?:\.[\w\d\-.]+)+                         # www.
     )
-    /?[a-zA-Z0-9\-._?,!'(){}\[\]/+&@%$#=:"|~;]*                             # url path and query string
-    [a-zA-Z0-9\-_~:/#@$*+=]                                                 # allowed end chars
+    /?[\w\d\-.?,!'(){}\[\]/+&@%$#=:"|~;]*                       # url path and query string
+    [\w\d\-~:/#@$*+=]                                           # allowed end chars
     ''')
 
 

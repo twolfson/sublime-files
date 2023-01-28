@@ -4,8 +4,9 @@
     "variables":
     {
         "blue": "hsl(210, 50%, 60%)",
+        "blue-vibrant": "hsl(210, 60%, 60%)",
         "blue2": "hsl(180, 36%, 54%)",
-        "green": "hsl(114, 31%, 68%)",
+        "green": "hsl(114, 31%, 60%)",
         "grey": "hsl(0, 0%, 73%)",
         "grey2": "hsl(0, 0%, 60%)",
         "grey3": "hsl(0, 0%, 20%)",
@@ -18,15 +19,17 @@
         "red3": "hsl(16, 29%, 54%)",
         "white": "hsl(0, 0%, 97%)",
         "white2": "hsl(210, 11%, 85%)",
-        "white3": "hsl(204, 10%, 90%)",
+        "white3": "hsla(204, 10%, 86%, 0.7)",
         "white4": "hsl(195, 11%, 93%)",
-        "white5": "hsl(180, 9%, 98%)"
+        "white5": "hsl(180, 9%, 99%)"
     },
     "globals":
     {
         "foreground": "var(grey3)",
         "background": "var(white5)",
+        "accent": "var(blue-vibrant)",
         "caret": "var(blue2)",
+        "block_caret": "color(var(white3) a(0.5))",
         "line_highlight": "var(white3)",
         "selection": "var(white3)",
         "selection_border": "var(white2)",
@@ -59,13 +62,19 @@
         },
         {
             "name": "Punctuation",
-            "scope": "punctuation.definition",
+            "scope": "punctuation.definition - punctuation.definition.numeric.base",
             "foreground": "var(blue2)"
         },
         {
             "name": "Number",
             "scope": "constant.numeric",
             "foreground": "var(orange)"
+        },
+        {
+            "name": "Number suffix",
+            "scope": "storage.type.numeric",
+            "foreground": "var(pink)",
+            "font_style": "italic"
         },
         {
             "name": "Built-in constant",
@@ -138,7 +147,7 @@
             "name": "Inherited class",
             "scope": "entity.other.inherited-class",
             "foreground": "var(blue2)",
-            "font_style": "italic underline"
+            "font_style": "italic"
         },
         {
             "name": "Function argument",
@@ -237,9 +246,29 @@
             "font_style": "italic"
         },
         {
+            "name": "markup underline",
+            "scope": "markup.underline",
+            "font_style": "underline"
+        },
+        {
             "name": "markup bold/italic",
             "scope": "markup.italic markup.bold | markup.bold markup.italic",
             "font_style": "bold italic"
+        },
+        {
+            "name": "markup bold/underline",
+            "scope": "markup.underline markup.bold | markup.bold markup.underline",
+            "font_style": "bold underline"
+        },
+        {
+            "name": "markup italic/underline",
+            "scope": "markup.underline markup.italic | markup.italic markup.underline",
+            "font_style": "italic underline"
+        },
+        {
+            "name": "markup bold/italic/underline",
+            "scope": "markup.bold markup.italic markup.underline | markup.bold markup.underline markup.italic | markup.italic markup.bold markup.underline | markup.italic markup.underline markup.bold | markup.underline markup.bold markup.italic | markup.underline markup.italic markup.bold",
+            "font_style": "bold italic underline"
         },
         {
             "name": "markup hr",

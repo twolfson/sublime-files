@@ -1,134 +1,147 @@
 [
-    {
-        "caption": "Rename File",
-        "command": "rename_file",
-    },
-    {
-        "caption": "Arithmetic",
-        "command": "arithmetic",
-    },
-    {
-        "caption": "View Package File",
-        "command": "view_resource",
-    },
-    {
-        "caption": "Convert Color Scheme",
-        "command": "convert_color_scheme",
-    },
+	{ "caption": "Rename File", "command": "rename_file" },
 
-    {
-        "caption": "Word Wrap: Toggle",
-        "command": "toggle_setting",
-        "args": {"setting": "word_wrap"}
-    },
-    {
-        "caption": "Convert Case: Upper Case",
-        "command": "upper_case"
-    },
-    {
-        "caption": "Convert Case: Lower Case",
-        "command": "lower_case"
-    },
-    {
-        "caption": "Convert Case: Title Case",
-        "command": "title_case"
-    },
-    {
-        "caption": "Convert Case: Swap Case",
-        "command": "swap_case"
-    },
+	{ "caption": "Arithmetic", "command": "arithmetic" },
 
-    { "command": "toggle_comment", "args": {"block": false}, "caption": "Toggle Comment" },
-    { "command": "toggle_comment", "args": {"block": true}, "caption": "Toggle Block Comment" },
+	{ "caption": "Wrap at Ruler", "command": "wrap_lines" },
 
-    { "command": "toggle_bookmark", "caption": "Bookmarks: Toggle" },
-    { "command": "next_bookmark", "caption": "Bookmarks: Select Next" },
-    { "command": "prev_bookmark", "caption": "Bookmarks: Select Previous" },
-    { "command": "clear_bookmarks", "caption": "Bookmarks: Clear All" },
-    { "command": "select_all_bookmarks", "caption": "Bookmarks: Select All" },
+	{ "caption": "Word Wrap: Toggle", "command": "toggle_setting", "args": {"setting": "word_wrap"} },
 
-    { "caption": "Indentation: Convert to Tabs", "command": "unexpand_tabs", "args": {"set_translate_tabs": true} },
-    { "caption": "Indentation: Convert to Spaces", "command": "expand_tabs", "args": {"set_translate_tabs": true} },
-    { "caption": "Indentation: Reindent Lines", "command": "reindent", "args": {"single_line": false} },
+	{ "caption": "Convert Case: Title Case", "command": "title_case" },
+	{ "caption": "Convert Case: Upper Case", "command": "upper_case" },
+	{ "caption": "Convert Case: Lower Case", "command": "lower_case" },
+	{ "caption": "Convert Case: Swap Case", "command": "swap_case" },
 
-    { "caption": "View: Toggle Side Bar", "command": "toggle_side_bar" },
-    { "caption": "View: Toggle Open Files in Side Bar", "command": "toggle_show_open_files" },
-    { "caption": "View: Toggle Minimap", "command": "toggle_minimap" },
-    { "caption": "View: Toggle Tabs", "command": "toggle_tabs" },
-    { "caption": "View: Toggle Status Bar", "command": "toggle_status_bar" },
-    { "caption": "View: Toggle Menu", "command": "toggle_menu" },
+	{ "caption": "Toggle Comment", "command": "toggle_comment", "args": {"block": false} },
+	{ "caption": "Toggle Block Comment", "command": "toggle_comment", "args": {"block": true} },
 
-    { "caption": "Project: Save As", "command": "save_project_and_workspace_as" },
-    { "caption": "Project: Close", "command": "close_workspace" },
-    { "caption": "Project: Add Folder", "command": "prompt_add_folder" },
-    { "caption": "Project: Refresh Folders", "command": "refresh_folder_list" },
-    { "caption": "Project: Edit Project",  "command": "open_file", "args": {"file": "${project}"} },
+	{ "caption": "Bookmarks: Toggle", "command": "toggle_bookmark" },
+	{ "caption": "Bookmarks: Select Next", "command": "next_bookmark" },
+	{ "caption": "Bookmarks: Select Previous", "command": "prev_bookmark" },
+	{ "caption": "Bookmarks: Clear All", "command": "clear_bookmarks" },
+	{ "caption": "Bookmarks: Select All", "command": "select_all_bookmarks" },
 
-    {
-        "caption": "Preferences: Settings",
-        "command": "edit_settings", "args":
-        {
-            "base_file": "${packages}/Default/Preferences.sublime-settings",
-            "default": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by syntax-specific settings.\n{\n\t$0\n}\n"
-        }
-    },
-    { "caption": "Preferences: Settings – Syntax Specific", "command": "edit_syntax_settings" },
-    { "caption": "Install Package Control", "command": "install_package_control" },
-    { "caption": "Preferences: Browse Packages", "command": "open_dir", "args": {"dir": "$packages"} },
+	{ "caption": "Jump to Matching Bracket", "command": "move_to", "args": {"to": "brackets"} },
 
-    {
-        "caption": "Preferences: Key Bindings",
-        "command": "edit_settings", "args":
-        {
-            "base_file": "${packages}/Default/Default ($platform).sublime-keymap",
-            "default": "[\n\t$0\n]\n"
-        }
-    },
+	{ "caption": "Indentation: Convert to Tabs", "command": "unexpand_tabs", "args": {"set_translate_tabs": true} },
+	{ "caption": "Indentation: Convert to Spaces", "command": "expand_tabs", "args": {"set_translate_tabs": true} },
+	{ "caption": "Indentation: Reindent Lines", "command": "reindent", "args": {"single_line": false} },
+	{ "caption": "Indentation: Detect", "command": "detect_indentation" },
 
-    {
-        "caption": "UI: Select Color Scheme",
-        "command": "select_color_scheme"
-    },
-    {
-        "caption": "UI: Select Theme",
-        "command": "select_theme"
-    },
+	{ "caption": "View: Toggle Side Bar", "command": "toggle_side_bar" },
+	{ "caption": "View: Toggle Open Files in Side Bar", "command": "toggle_show_open_files" },
+	{ "caption": "View: Toggle Minimap", "command": "toggle_minimap" },
+	{ "caption": "View: Toggle Tabs", "command": "toggle_tabs" },
+	{ "caption": "View: Toggle Status Bar", "command": "toggle_status_bar" },
+	{ "caption": "View: Toggle Menu", "command": "toggle_menu" },
+	{ "caption": "View: Toggle Full Screen", "command": "toggle_full_screen" },
+	{ "caption": "View: Toggle Distraction Free", "command": "toggle_distraction_free" },
 
-    { "caption": "File: Save All", "command": "save_all" },
-    { "caption": "File: Revert", "command": "revert" },
-    { "caption": "File: New View into File", "command": "clone_file" },
-    { "caption": "File: Close All", "command": "close_all" },
+	{ "caption": "Project: Save As", "command": "save_project_and_workspace_as" },
+	{ "caption": "Project: Close", "command": "close_workspace" },
+	{ "caption": "Project: Add Folder", "command": "prompt_add_folder" },
+	{ "caption": "Project: Refresh Folders", "command": "refresh_folder_list" },
+	{ "caption": "Project: Edit Project",  "command": "open_file", "args": {"file": "${project}"} },
 
-    { "caption": "Sublime Merge: Open Repository", "command": "sublime_merge_open_repo" },
-    { "caption": "Sublime Merge: File History", "command": "sublime_merge_file_history" },
-    { "caption": "Sublime Merge: Folder History", "command": "sublime_merge_folder_history" },
-    { "caption": "Sublime Merge: Blame File", "command": "sublime_merge_blame_file" },
+	{ "caption": "View Package File", "command": "view_resource" },
 
-    { "caption": "HTML: Wrap Selection With Tag", "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/long-tag.sublime-snippet" } },
-    { "caption": "HTML: Encode Special Characters", "command": "encode_html_entities" },
+	{ "caption": "Preferences: Browse Packages", "command": "open_dir", "args": {"dir": "$packages"} },
+	{
+		"caption": "Preferences: Settings",
+		"command": "edit_settings", "args":
+		{
+			"base_file": "${packages}/Default/Preferences.sublime-settings",
+			"default": "// Settings in here override those in \"Default/Preferences.sublime-settings\",\n// and are overridden in turn by syntax-specific settings.\n{\n\t$0\n}\n"
+		}
+	},
+	{ "caption": "Preferences: Settings – Syntax Specific", "command": "edit_syntax_settings" },
+	{
+		"caption": "Preferences: Settings – Distraction Free",
+		"command": "edit_settings", "args":
+		{
+			"base_file": "${packages}/Default/Distraction Free.sublime-settings",
+			"default": "{\n\t$0\n}\n"
+		}
+	},
+	{
+		"caption": "Preferences: Key Bindings",
+		"command": "edit_settings", "args":
+		{
+			"base_file": "${packages}/Default/Default ($platform).sublime-keymap",
+			"default": "[\n\t$0\n]\n"
+		}
+	},
 
-    { "caption": "Rot13 Selection", "command": "rot13" },
+	{ "caption": "Install Package Control", "command": "install_package_control" },
 
-    { "caption": "Sort Lines", "command": "sort_lines", "args": {"case_sensitive": false} },
-    { "caption": "Sort Lines (Case Sensitive)", "command": "sort_lines", "args": {"case_sensitive": true} },
+	{ "caption": "UI: Select Color Scheme", "command": "select_color_scheme" },
+	{ "caption": "UI: Select Theme", "command": "select_theme" },
+	{ "caption": "UI: Customize Color Scheme", "command": "customize_color_scheme" },
+	{ "caption": "UI: Customize Theme", "command": "customize_theme" },
 
-    { "caption": "Permute Lines: Reverse", "command": "permute_lines", "args": {"operation": "reverse"} },
-    { "caption": "Permute Lines: Unique", "command": "permute_lines", "args": {"operation": "unique"} },
-    { "caption": "Permute Lines: Shuffle", "command": "permute_lines", "args": {"operation": "shuffle"} },
+	{ "caption": "File: Save All", "command": "save_all" },
+	{ "caption": "File: Revert", "command": "revert" },
+	{ "caption": "File: New View into File", "command": "clone_file" },
+	{ "caption": "File: Split View", "command": "clone_file", "args": {"add_to_selection": true} },
+	{ "caption": "File: Close All", "command": "close_all" },
+	{ "caption": "File: Print", "command": "html_print" },
 
-    { "caption": "Permute Selections: Sort", "command": "sort_selection", "args": {"case_sensitive": false} },
-    { "caption": "Permute Selections: Sort (Case Sensitive)", "command": "sort_selection", "args": {"case_sensitive": true} },
-    { "caption": "Permute Selections: Reverse", "command": "permute_selection", "args": {"operation": "reverse"} },
-    { "caption": "Permute Selections: Unique", "command": "permute_selection", "args": {"operation": "unique"} },
-    { "caption": "Permute Selections: Shuffle", "command": "permute_selection", "args": {"operation": "shuffle"} },
+	{ "caption": "Sublime Merge: Open Repository", "command": "sublime_merge_open_repo" },
+	{ "caption": "Sublime Merge: File History", "command": "sublime_merge_file_history" },
+	{ "caption": "Sublime Merge: Folder History", "command": "sublime_merge_folder_history" },
+	{ "caption": "Sublime Merge: Blame File", "command": "sublime_merge_blame_file" },
 
-    { "caption": "Code Folding: Unfold All", "command": "unfold_all" },
-    { "caption": "Code Folding: Fold Tag Attributes", "command": "fold_tag_attributes" },
+	{ "caption": "HTML: Wrap Selection With Tag", "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/xml-long-tag.sublime-snippet" } },
+	{ "caption": "HTML: Encode Special Characters", "command": "encode_html_entities" },
 
-    { "caption": "Plugin Development: Profile Events", "command": "profile_plugins" },
-    { "caption": "Plugin Development: Convert Syntax to .sublime-syntax", "command": "convert_syntax" },
+	{ "caption": "Rot13 Selection", "command": "rot13" },
 
-    { "caption": "About", "command": "show_about_window" },
-    { "caption": "Changelog", "command": "show_changelog" },
-    { "caption": "Indexing Status", "command": "show_progress_window" },
+	{ "caption": "Sort Lines", "command": "sort_lines", "args": {"case_sensitive": false} },
+	{ "caption": "Sort Lines (Case Sensitive)", "command": "sort_lines", "args": {"case_sensitive": true} },
+
+	{ "caption": "Selection: Split into Lines", "command": "split_selection_into_lines" },
+	{ "caption": "Selection: Select All", "command": "select_all" },
+	{ "caption": "Selection: Expand", "command": "expand_selection", "args": {"to": "smart"} },
+	{ "caption": "Selection: Expand to Line", "command": "expand_selection", "args": {"to": "line"} },
+	{ "caption": "Selection: Expand to Word", "command": "find_under_expand" },
+	{ "caption": "Selection: Expand to Paragraph", "command": "expand_selection_to_paragraph" },
+	{ "caption": "Selection: Expand to Scope", "command": "expand_selection", "args": {"to": "scope"} },
+	{ "caption": "Selection: Expand to Brackets", "command": "expand_selection", "args": {"to": "brackets"} },
+	{ "caption": "Selection: Expand to Indentation", "command": "expand_selection", "args": {"to": "indentation"} },
+	{ "caption": "Selection: Add Previous Line", "command": "select_lines", "args": {"forward": false} },
+	{ "caption": "Selection: Add Next Line", "command": "select_lines", "args": {"forward": true} },
+
+	{ "caption": "History: Revert Hunk", "command": "revert_hunk" },
+	{ "caption": "History: Revert Modification", "command": "revert_modification" },
+	{ "caption": "History: Next Modification", "command": "next_modification" },
+	{ "caption": "History: Previous Modification", "command": "prev_modification" },
+	{ "caption": "History: Toggle Inline Diff", "command": "toggle_inline_diff" },
+
+	{ "caption": "Permute Lines: Reverse", "command": "permute_lines", "args": {"operation": "reverse"} },
+	{ "caption": "Permute Lines: Unique", "command": "permute_lines", "args": {"operation": "unique"} },
+	{ "caption": "Permute Lines: Shuffle", "command": "permute_lines", "args": {"operation": "shuffle"} },
+
+	{ "caption": "Permute Selections: Sort", "command": "sort_selection", "args": {"case_sensitive": false} },
+	{ "caption": "Permute Selections: Sort (Case Sensitive)", "command": "sort_selection", "args": {"case_sensitive": true} },
+	{ "caption": "Permute Selections: Reverse", "command": "permute_selection", "args": {"operation": "reverse"} },
+	{ "caption": "Permute Selections: Unique", "command": "permute_selection", "args": {"operation": "unique"} },
+	{ "caption": "Permute Selections: Shuffle", "command": "permute_selection", "args": {"operation": "shuffle"} },
+
+	{ "caption": "Code Folding: Fold", "command": "fold" },
+	{ "caption": "Code Folding: Fold All", "command": "fold_by_level", "args": {"level": 1} },
+	{ "caption": "Code Folding: Unfold", "command": "unfold" },
+	{ "caption": "Code Folding: Unfold All", "command": "unfold_all" },
+	{ "caption": "Code Folding: Fold Tag Attributes", "command": "fold_tag_attributes" },
+
+	{ "caption": "Trim Trailing White Space", "command": "trim_trailing_white_space" },
+
+	{ "caption": "Plugin Development: Profile Events", "command": "profile_plugins" },
+	{ "caption": "Plugin Development: Convert Syntax to .sublime-syntax", "command": "convert_syntax" },
+	{ "caption": "Plugin Development: Convert Color Scheme to .sublime-color-scheme", "command": "convert_color_scheme" },
+
+	{ "caption": "Help: Documentation", "command": "open_url", "args": {"url": "https://www.sublimetext.com/docs/"} },
+	{ "caption": "Help: Indexing Status", "command": "show_progress_window" },
+	{ "caption": "Help: Check for Updates", "command": "update_check", "platform": "!Linux" },
+	{ "caption": "Help: Changelog", "command": "show_changelog" },
+	{ "caption": "Help: About", "command": "show_about_window" },
 ]

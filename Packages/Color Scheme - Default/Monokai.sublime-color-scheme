@@ -7,7 +7,7 @@
         "black2": "hsl(60, 17%, 11%)",
         "black3": "hsl(70, 8%, 15%)",
         "blue": "hsl(190, 81%, 67%)",
-        "grey": "hsl(55, 8%, 26%)",
+        "grey": "hsla(55, 8%, 31%, 0.7)",
         "orange": "hsl(32, 98%, 56%)",
         "orange2": "hsl(30, 83%, 34%)",
         "orange3": "hsl(47, 100%, 79%)",
@@ -28,7 +28,8 @@
         "foreground": "var(white3)",
         "background": "var(black3)",
         "caret": "color(var(white2) alpha(0.9))",
-        "block_caret": "color(var(white2) alpha(0.4))",
+        "block_caret": "color(var(white2) alpha(0.2))",
+        "block_caret_border": "color(var(white2) alpha(0.8))",
         "invisibles": "color(var(white3) alpha(0.35))",
         "line_highlight": "var(yellow4)",
         "selection": "var(grey)",
@@ -41,7 +42,7 @@
         "brackets_foreground": "color(var(white3) alpha(0.65))",
         "bracket_contents_options": "underline",
         "bracket_contents_foreground": "color(var(white3) alpha(0.65))",
-        "tags_options": "stippled_underline"
+        "tags_options": "stippled_underline",
     },
     "rules":
     [
@@ -59,6 +60,12 @@
             "name": "Number",
             "scope": "constant.numeric",
             "foreground": "var(purple)"
+        },
+        {
+            "name": "Number suffix",
+            "scope": "storage.type.numeric",
+            "foreground": "var(blue)",
+            "font_style": "italic"
         },
         {
             "name": "Built-in constant",
@@ -109,7 +116,7 @@
             "name": "Inherited class",
             "scope": "entity.other.inherited-class",
             "foreground": "var(yellow2)",
-            "font_style": "italic underline"
+            "font_style": "italic"
         },
         {
             "name": "Function argument",
@@ -216,9 +223,29 @@
             "font_style": "italic"
         },
         {
+            "name": "markup underline",
+            "scope": "markup.underline",
+            "font_style": "underline"
+        },
+        {
             "name": "markup bold/italic",
             "scope": "markup.italic markup.bold | markup.bold markup.italic",
             "font_style": "bold italic"
+        },
+        {
+            "name": "markup bold/underline",
+            "scope": "markup.underline markup.bold | markup.bold markup.underline",
+            "font_style": "bold underline"
+        },
+        {
+            "name": "markup italic/underline",
+            "scope": "markup.underline markup.italic | markup.italic markup.underline",
+            "font_style": "italic underline"
+        },
+        {
+            "name": "markup bold/italic/underline",
+            "scope": "markup.bold markup.italic markup.underline | markup.bold markup.underline markup.italic | markup.italic markup.bold markup.underline | markup.italic markup.underline markup.bold | markup.underline markup.bold markup.italic | markup.underline markup.italic markup.bold",
+            "font_style": "bold italic underline"
         },
         {
             "name": "markup hr",

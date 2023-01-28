@@ -118,7 +118,7 @@ def permute_lines(f, v, e):
 
     for r in regions:
         txt = v.substr(r)
-        lines = txt.splitlines()
+        lines = txt.split('\n')
         lines = f(lines)
 
         v.replace(e, r, u"\n".join(lines))

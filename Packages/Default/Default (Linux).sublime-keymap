@@ -3,14 +3,28 @@
 
 	{ "keys": ["ctrl+shift+n"], "command": "new_window" },
 	{ "keys": ["ctrl+shift+w"], "command": "close_window" },
+	{ "keys": ["open"], "command": "prompt_open_file" },
 	{ "keys": ["ctrl+o"], "command": "prompt_open_file" },
 	{ "keys": ["ctrl+shift+t"], "command": "reopen_last_file" },
 	{ "keys": ["alt+o"], "command": "switch_file", "args": {"extensions": ["cpp", "cxx", "cc", "c", "hpp", "hxx", "hh", "h", "ipp", "inl", "m", "mm"]} },
+	{ "keys": ["alt+shift+o"], "command": "switch_file", "args": {"extensions": ["cpp", "cxx", "cc", "c", "hpp", "hxx", "hh", "h", "ipp", "inl", "m", "mm"], "side_by_side": true} },
 	{ "keys": ["ctrl+n"], "command": "new_file" },
-	{ "keys": ["ctrl+s"], "command": "save" },
+	{ "keys": ["save"], "command": "save", "args": { "async": true } },
+	{ "keys": ["ctrl+s"], "command": "save", "args": { "async": true } },
 	{ "keys": ["ctrl+shift+s"], "command": "prompt_save_as" },
 	{ "keys": ["ctrl+f4"], "command": "close_file" },
+	{ "keys": ["close"], "command": "close" },
+	{ "keys": ["close"], "command": "close_transient", "context":
+		[
+			{ "key": "group_has_transient_sheet", "operator": "equal", "operand": true }
+		]
+	},
 	{ "keys": ["ctrl+w"], "command": "close" },
+	{ "keys": ["ctrl+w"], "command": "close_transient", "context":
+		[
+			{ "key": "group_has_transient_sheet", "operator": "equal", "operand": true }
+		]
+	},
 
 	{ "keys": ["ctrl+k", "ctrl+b"], "command": "toggle_side_bar" },
 	{ "keys": ["f11"], "command": "toggle_full_screen" },
@@ -25,8 +39,10 @@
 	{ "keys": ["keypad_enter"], "command": "insert", "args": {"characters": "\n"} },
 	{ "keys": ["shift+keypad_enter"], "command": "insert", "args": {"characters": "\n"} },
 
+	{ "keys": ["undo"], "command": "undo" },
 	{ "keys": ["ctrl+z"], "command": "undo" },
 	{ "keys": ["ctrl+shift+z"], "command": "redo" },
+	{ "keys": ["redo"], "command": "redo_or_repeat" },
 	{ "keys": ["ctrl+y"], "command": "redo_or_repeat" },
 	{ "keys": ["ctrl+u"], "command": "soft_undo" },
 	{ "keys": ["ctrl+shift+u"], "command": "soft_redo" },
@@ -35,6 +51,56 @@
 	{ "keys": ["ctrl+insert"], "command": "copy" },
 	{ "keys": ["shift+insert"], "command": "paste" },
 
+	{ "keys": ["enter"], "command": "select", "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["keypad_enter"], "command": "select", "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+
+		],
+	},
+	{ "keys": ["ctrl+enter"], "command": "select", "args": { "extend": true, "clear_to_right": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["ctrl+keypad_enter"], "command": "select", "args" : { "extend": true, "clear_to_right": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["shift+enter"], "command": "select", "args": { "extend": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["shift+keypad_enter"], "command": "select", "args" : { "extend": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["alt+enter"], "command": "select", "args": { "replace": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+	{ "keys": ["alt+keypad_enter"], "command": "select", "args": { "replace": true }, "context":
+		[
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true },
+			{ "key": "overlay_name", "operator": "equal", "operand" : "goto" }
+		],
+	},
+
 	// These two key bindings should replace the above three if you'd prefer
 	// the traditional X11 behavior of shift+insert pasting from the primary
 	// selection. The above CUA keys are the default, to match most GTK
@@ -42,8 +108,11 @@
 	//{ "keys": ["shift+insert"], "command": "paste", "args": {"clipboard": "selection"} },
 	//{ "keys": ["shift+delete"], "command": "right_delete" },
 
+	{ "keys": ["cut"], "command": "cut" },
 	{ "keys": ["ctrl+x"], "command": "cut" },
+	{ "keys": ["copy"], "command": "copy" },
 	{ "keys": ["ctrl+c"], "command": "copy" },
+	{ "keys": ["paste"], "command": "paste" },
 	{ "keys": ["ctrl+v"], "command": "paste" },
 	{ "keys": ["ctrl+shift+v"], "command": "paste_and_indent" },
 	{ "keys": ["ctrl+k", "ctrl+v"], "command": "paste_from_history" },
@@ -88,13 +157,16 @@
 	{ "keys": ["ctrl+down"], "command": "scroll_lines", "args": {"amount": -1.0 } },
 
 	{ "keys": ["ctrl+pagedown"], "command": "next_view" },
+	{ "keys": ["ctrl+shift+pagedown"], "command": "next_view", "args": {"extend": true} },
 	{ "keys": ["ctrl+pageup"], "command": "prev_view" },
+	{ "keys": ["ctrl+shift+pageup"], "command": "prev_view", "args": {"extend": true} },
 
 	{ "keys": ["ctrl+tab"], "command": "next_view_in_stack" },
 	{ "keys": ["ctrl+shift+tab"], "command": "prev_view_in_stack" },
 
 	{ "keys": ["ctrl+a"], "command": "select_all" },
 	{ "keys": ["ctrl+shift+l"], "command": "split_selection_into_lines" },
+	{ "keys": ["escape"], "command": "cancel"},
 	{ "keys": ["escape"], "command": "single_selection", "context":
 		[
 			{ "key": "num_selections", "operator": "not_equal", "operand": 1 }
@@ -118,12 +190,8 @@
 	},
 	{ "keys": ["escape"], "command": "hide_overlay", "context":
 		[
-			{ "key": "overlay_visible", "operator": "equal", "operand": true }
-		]
-	},
-	{ "keys": ["escape"], "command": "hide_popup", "context":
-		[
-			{ "key": "popup_visible", "operator": "equal", "operand": true }
+			{ "key": "overlay_visible", "operator": "equal", "operand": true },
+			{ "key": "panel_has_focus", "operator": "equal", "operand": false }
 		]
 	},
 	{ "keys": ["escape"], "command": "hide_auto_complete", "context":
@@ -131,20 +199,24 @@
 			{ "key": "auto_complete_visible", "operator": "equal", "operand": true }
 		]
 	},
-
-	{ "keys": ["tab"], "command": "insert_best_completion", "args": {"default": "\t", "exact": true} },
-	{ "keys": ["tab"], "command": "insert_best_completion", "args": {"default": "\t", "exact": false},
-		"context":
+	{ "keys": ["escape"], "command": "hide_popup", "context":
 		[
-			{ "key": "setting.tab_completion", "operator": "equal", "operand": true },
-			{ "key": "preceding_text", "operator": "not_regex_match", "operand": ".*\\b[0-9]+$", "match_all": true },
+			{ "key": "popup_visible", "operator": "equal", "operand": true }
 		]
 	},
-	{ "keys": ["tab"], "command": "replace_completion_with_next_completion", "context":
+
+	{ "keys": ["tab"], "command": "insert", "args": {"characters": "\t"} },
+	{ "keys": ["tab"], "command": "auto_complete", "args": {"mini": true, "default": "\t"},
+		"context":
 		[
-			{ "key": "last_command", "operator": "equal", "operand": "insert_best_completion" },
-			{ "key": "setting.tab_completion", "operator": "equal", "operand": true }
+			{ "key": "auto_complete_visible", "operand": false },
+			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "setting.tab_completion", "operator": "equal", "operand": true },
+			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*\\w", "match_all": true },
 		]
+	},
+	{ "keys": ["tab"], "command": "expand_snippet", "context":
+		[{ "key": "has_snippet" }]
 	},
 	{ "keys": ["tab"], "command": "reindent", "context":
 		[
@@ -155,42 +227,35 @@
 		]
 	},
 	{ "keys": ["tab"], "command": "indent", "context":
+		[{ "key": "text", "operator": "regex_contains", "operand": "\n" }]
+	},
+	{ "keys": ["tab"], "command": "move", "args": {"by": "lines", "forward": true}, "context":
 		[
-			{ "key": "text", "operator": "regex_contains", "operand": "\n" }
+		 	{ "key": "overlay_has_focus", "operator": "equal", "operand": true  }
 		]
 	},
 	{ "keys": ["tab"], "command": "next_field", "context":
-		[
-			{ "key": "has_next_field", "operator": "equal", "operand": true }
-		]
+		[{ "key": "has_next_field", "operator": "equal", "operand": true }]
 	},
 	{ "keys": ["tab"], "command": "commit_completion", "context":
-		[
-			{ "key": "auto_complete_visible" },
-			{ "key": "setting.auto_complete_commit_on_tab" }
-		]
+		[{ "key": "auto_complete_visible" }]
 	},
 
 	{ "keys": ["shift+tab"], "command": "insert", "args": {"characters": "\t"} },
 	{ "keys": ["shift+tab"], "command": "unindent", "context":
-		[
-			{ "key": "setting.shift_tab_unindent", "operator": "equal", "operand": true }
-		]
+		[{ "key": "setting.shift_tab_unindent", "operator": "equal", "operand": true }]
 	},
 	{ "keys": ["shift+tab"], "command": "unindent", "context":
-		[
-			{ "key": "preceding_text", "operator": "regex_match", "operand": "^[\t ]*" }
-		]
+		[{ "key": "preceding_text", "operator": "regex_match", "operand": "^[\t ]*" }]
 	},
 	{ "keys": ["shift+tab"], "command": "unindent", "context":
-		[
-			{ "key": "text", "operator": "regex_contains", "operand": "\n" }
-		]
+		[{ "key": "text", "operator": "regex_contains", "operand": "\n" }]
+	},
+	{ "keys": ["shift+tab"], "command": "move", "args": {"by": "lines", "forward": false}, "context":
+		[{ "key": "overlay_visible", "operator": "equal", "operand": true }]
 	},
 	{ "keys": ["shift+tab"], "command": "prev_field", "context":
-		[
-			{ "key": "has_prev_field", "operator": "equal", "operand": true }
-		]
+		[{ "key": "has_prev_field", "operator": "equal", "operand": true }]
 	},
 
 	{ "keys": ["ctrl+]"], "command": "indent" },
@@ -202,17 +267,37 @@
 	{ "keys": ["ctrl+d"], "command": "find_under_expand" },
 	{ "keys": ["ctrl+k", "ctrl+d"], "command": "find_under_expand_skip" },
 	{ "keys": ["ctrl+shift+space"], "command": "expand_selection", "args": {"to": "scope"} },
+	{ "keys": ["ctrl+shift+a"], "command": "expand_selection", "args": {"to": "smart"} },
 	{ "keys": ["ctrl+shift+m"], "command": "expand_selection", "args": {"to": "brackets"} },
 	{ "keys": ["ctrl+m"], "command": "move_to", "args": {"to": "brackets"} },
-	{ "keys": ["ctrl+shift+j"], "command": "expand_selection", "args": {"to": "indentation"} },
-	{ "keys": ["ctrl+shift+a"], "command": "expand_selection", "args": {"to": "tag"} },
+	{ "keys": ["ctrl+shift+a"], "command": "expand_selection", "args": {"to": "tag"}, "context":
+		[
+			{ "key": "selector", "operator": "equal", "operand": "text.html - source", "match_all": true }
+		]
+	},
 
 	{ "keys": ["alt+."], "command": "close_tag" },
 
 	{ "keys": ["ctrl+alt+q"], "command": "toggle_record_macro" },
 	{ "keys": ["ctrl+alt+shift+q"], "command": "run_macro" },
 
-	{ "keys": ["ctrl+enter"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Add Line.sublime-macro"} },
+	{ "keys": ["ctrl+keypad_enter"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Add Line.sublime-macro"}, "context":
+		[
+		 	{ "key": "overlay_has_focus", "operator": "equal", "operand": false }
+		]
+	},
+	{ "keys": ["ctrl+shift+keypad_enter"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Add Line Before.sublime-macro"} },
+	{ "keys": ["keypad_enter"], "command": "commit_completion", "context":
+		[
+			{ "key": "auto_complete_visible" },
+			{ "key": "setting.auto_complete_commit_on_tab", "operand": false }
+		]
+	},
+	{ "keys": ["ctrl+enter"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Add Line.sublime-macro"}, "context":
+		[
+	 		{ "key": "overlay_has_focus", "operator": "equal", "operand": false }
+		]
+	},
 	{ "keys": ["ctrl+shift+enter"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Add Line Before.sublime-macro"} },
 	{ "keys": ["enter"], "command": "commit_completion", "context":
 		[
@@ -228,15 +313,23 @@
 	{ "keys": ["ctrl+g"], "command": "show_overlay", "args": {"overlay": "goto", "text": ":"} },
 	{ "keys": ["ctrl+;"], "command": "show_overlay", "args": {"overlay": "goto", "text": "#"} },
 	{ "keys": ["f12"], "command": "goto_definition" },
+	{ "keys": ["ctrl+f12"], "command": "goto_definition", "args": {"side_by_side": true, "clear_to_right": true} },
 	{ "keys": ["shift+f12"], "command": "goto_reference" },
+	{ "keys": ["ctrl+shift+f12"], "command": "goto_reference", "args": {"side_by_side": true, "clear_to_right": true} },
 	{ "keys": ["ctrl+shift+r"], "command": "goto_symbol_in_project" },
 	{ "keys": ["alt+-"], "command": "jump_back" },
 	{ "keys": ["alt+shift+-"], "command": "jump_forward" },
 	{ "keys": ["alt+keypad_minus"], "command": "jump_back" },
 	{ "keys": ["alt+shift+keypad_minus"], "command": "jump_forward" },
+	{ "keys": ["f12"], "command": "auto_complete_open_link", "context":
+		[
+			{ "key": "auto_complete_visible", "operator": "equal", "operand": true },
+		]
+	},
 
 	{ "keys": ["ctrl+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": false} },
 	{ "keys": ["ctrl+shift+i"], "command": "show_panel", "args": {"panel": "incremental_find", "reverse": true} },
+	{ "keys": ["find"], "command": "show_panel", "args": {"panel": "find", "reverse": false} },
 	{ "keys": ["ctrl+f"], "command": "show_panel", "args": {"panel": "find", "reverse": false} },
 	{ "keys": ["ctrl+h"], "command": "show_panel", "args": {"panel": "replace", "reverse": false} },
 	{ "keys": ["ctrl+shift+h"], "command": "replace_next" },
@@ -253,7 +346,8 @@
 
 	{ "keys": ["ctrl+."], "command": "next_modification" },
 	{ "keys": ["ctrl+,"], "command": "prev_modification" },
-	{ "keys": ["ctrl+k", "ctrl+z"], "command": "revert_modification" },
+	{ "keys": ["ctrl+k", "ctrl+z"], "command": "revert_hunk" },
+	{ "keys": ["ctrl+k", "ctrl+shift+z"], "command": "revert_modification" },
 	{ "keys": ["ctrl+k", "ctrl+/"], "command": "toggle_inline_diff" },
 	{ "keys": ["ctrl+k", "ctrl+;"], "command": "toggle_inline_diff", "args": { "prefer_hide": true } },
 
@@ -273,19 +367,14 @@
 	{ "keys": ["ctrl+/"], "command": "toggle_comment", "args": { "block": false } },
 	{ "keys": ["ctrl+shift+/"], "command": "toggle_comment", "args": { "block": true } },
 
-	{ "keys": ["ctrl+j"], "command": "join_lines" },
+	{ "keys": ["ctrl+j", "ctrl+j"], "command": "primary_j_changed" },
+	{ "keys": ["ctrl+shift+j"], "command": "join_lines" },
 	{ "keys": ["ctrl+shift+d"], "command": "duplicate_line" },
 
 	{ "keys": ["ctrl+`"], "command": "show_panel", "args": {"panel": "console", "toggle": true} },
 
 	{ "keys": ["alt+/"], "command": "auto_complete" },
-	{ "keys": ["alt+/"], "command": "replace_completion_with_auto_complete", "context":
-		[
-			{ "key": "last_command", "operator": "equal", "operand": "insert_best_completion" },
-			{ "key": "auto_complete_visible", "operator": "equal", "operand": false },
-			{ "key": "setting.tab_completion", "operator": "equal", "operand": true }
-		]
-	},
+	{ "keys": ["ctrl+space"], "command": "auto_complete" },
 
 	{ "keys": ["ctrl+alt+shift+p"], "command": "show_scope_name" },
 
@@ -505,6 +594,27 @@
 		]
 	},
 
+	{ "keys": ["enter"], "command": "insert", "args": {"characters": "\n* "}, "context":
+		[
+			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
+			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "selector", "operator": "equal", "operand": "source comment", "match_all": true },
+			{ "key": "preceding_text", "operator": "regex_contains", "operand": "^\\s*\\*", "match_all": true },
+			{ "key": "following_text", "operator": "regex_match", "operand": "(?!/).*", "match_all": true },
+			{ "key": "is_javadoc", "operator": "equal", "operand": true, "match_all": true },
+		]
+	},
+	{ "keys": ["enter"], "command": "insert", "args": {"characters": "\n * "}, "context":
+		[
+			{ "key": "setting.auto_indent", "operator": "equal", "operand": true },
+			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "selector", "operator": "equal", "operand": "source comment", "match_all": true },
+			{ "key": "preceding_text", "operator": "regex_contains", "operand": "^\\s*/\\*[*!]", "match_all": true },
+			{ "key": "following_text", "operator": "regex_match", "operand": "(?!/).*", "match_all": true },
+			{ "key": "is_javadoc", "operator": "equal", "operand": true, "match_all": true },
+		]
+	},
+
 	{
 		"keys": ["alt+shift+1"],
 		"command": "set_layout",
@@ -618,6 +728,45 @@
 	{ "keys": ["alt+9"], "command": "select_by_index", "args": { "index": 8 } },
 	{ "keys": ["alt+0"], "command": "select_by_index", "args": { "index": 9 } },
 
+	{ "keys": ["ctrl+j", "ctrl+up"], "command": "unselect_others" },
+	{ "keys": ["ctrl+j", "ctrl+left"], "command": "unselect_to_left" },
+	{ "keys": ["ctrl+j", "ctrl+right"], "command": "unselect_to_right" },
+	{ "keys": ["ctrl+j", "ctrl+shift+left"], "command": "select_to_left" },
+	{ "keys": ["ctrl+j", "ctrl+shift+right"], "command": "select_to_right" },
+	{ "keys": ["ctrl+j", "ctrl+pageup"], "command": "focus_to_left" },
+	{ "keys": ["ctrl+j", "ctrl+pagedown"], "command": "focus_to_right" },
+
+	{ "keys": ["alt+1"], "command": "focus_by_index", "args": { "index": 0 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+2"], "command": "focus_by_index", "args": { "index": 1 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+3"], "command": "focus_by_index", "args": { "index": 2 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+4"], "command": "focus_by_index", "args": { "index": 3 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+5"], "command": "focus_by_index", "args": { "index": 4 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+6"], "command": "focus_by_index", "args": { "index": 5 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+7"], "command": "focus_by_index", "args": { "index": 6 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+8"], "command": "focus_by_index", "args": { "index": 7 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+9"], "command": "focus_by_index", "args": { "index": 8 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+	{ "keys": ["alt+0"], "command": "focus_by_index", "args": { "index": 9 },
+		"context": [{ "key": "group_has_multiselect", "operator": "equal", "operand": true }]
+	},
+
 	{ "keys": ["f2"], "command": "next_bookmark" },
 	{ "keys": ["shift+f2"], "command": "prev_bookmark" },
 	{ "keys": ["ctrl+f2"], "command": "toggle_bookmark" },
@@ -645,7 +794,7 @@
 	{ "keys": ["ctrl+="], "command": "increase_font_size" },
 	{ "keys": ["ctrl+-"], "command": "decrease_font_size" },
 
-	{ "keys": ["alt+shift+w"], "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/long-tag.sublime-snippet" } },
+	{ "keys": ["alt+shift+w"], "command": "insert_snippet", "args": { "name": "Packages/XML/Snippets/xml-long-tag.sublime-snippet" } },
 
 	{ "keys": ["ctrl+shift+["], "command": "fold" },
 	{ "keys": ["ctrl+shift+]"], "command": "unfold" },
@@ -663,29 +812,31 @@
 	{ "keys": ["ctrl+k", "ctrl+t"], "command": "fold_tag_attributes" },
 
 	{ "keys": ["context_menu"], "command": "context_menu" },
+	{ "keys": ["shift+f10"], "command": "context_menu" },
 
 	{ "keys": ["alt+c"], "command": "toggle_case_sensitive", "context":
-		[
-			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
-		]
+		[{"key": "panel_type", "operand": "find"}, {"key": "panel_has_focus"}],
 	},
 	{ "keys": ["alt+r"], "command": "toggle_regex", "context":
-		[
-			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
-		]
+		[{"key": "panel_type", "operand": "find"}, {"key": "panel_has_focus"}],
 	},
 	{ "keys": ["alt+w"], "command": "toggle_whole_word", "context":
-		[
-			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
-		]
+		[{"key": "panel_type", "operand": "find"}, {"key": "panel_has_focus"}],
 	},
 	{ "keys": ["alt+a"], "command": "toggle_preserve_case", "context":
-		[
-			{ "key": "setting.is_widget", "operator": "equal", "operand": true }
-		]
+		[{"key": "panel_type", "operand": "find"}, {"key": "panel_has_focus"}],
 	},
 
 	// Find panel key bindings
+	{ "keys": ["keypad_enter"], "command": "find_next", "context":
+		[{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+keypad_enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+keypad_enter"], "command": "find_all", "args": {"close_panel": true},
+		 "context": [{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
+	},
 	{ "keys": ["enter"], "command": "find_next", "context":
 		[{"key": "panel", "operand": "find"}, {"key": "panel_has_focus"}]
 	},
@@ -697,6 +848,18 @@
 	},
 
 	// Replace panel key bindings
+	{ "keys": ["keypad_enter"], "command": "find_next", "context":
+		[{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+keypad_enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+keypad_enter"], "command": "find_all", "args": {"close_panel": true},
+		"context": [{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["ctrl+alt+keypad_enter"], "command": "replace_all", "args": {"close_panel": true},
+		 "context": [{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
+	},
 	{ "keys": ["enter"], "command": "find_next", "context":
 		[{"key": "panel", "operand": "replace"}, {"key": "panel_has_focus"}]
 	},
@@ -711,6 +874,15 @@
 	},
 
 	// Incremental find panel key bindings
+	{ "keys": ["keypad_enter"], "command": "hide_panel", "context":
+		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["shift+keypad_enter"], "command": "find_prev", "context":
+		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+keypad_enter"], "command": "find_all", "args": {"close_panel": true},
+		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	},
 	{ "keys": ["enter"], "command": "hide_panel", "context":
 		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
@@ -722,11 +894,29 @@
 	},
 
 	// Find in Files panel key bindings
+	{ "keys": ["keypad_enter"], "command": "find_all",
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["alt+keypad_enter"], "command": "find_all",
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["ctrl+alt+keypad_enter"], "command": "replace_all",
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
 	{ "keys": ["alt+enter"], "command": "find_all",
-		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+	{ "keys": ["enter"], "command": "find_all",
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
 	},
 	{ "keys": ["ctrl+alt+enter"], "command": "replace_all",
-		 "context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+		"context": [{"key": "panel", "operand": "find_in_files"}, {"key": "panel_has_focus"}]
+	},
+
+	{
+		"keys": ["shift+escape"], "command": "show_panel",
+		"args": {"panel": "output.exec"},
+		"context": [ { "key": "panel_visible", "operand": false } ]
 	},
 
 	// HTML, XML close tag

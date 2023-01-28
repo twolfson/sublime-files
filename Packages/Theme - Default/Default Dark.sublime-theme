@@ -1,0 +1,87 @@
+{
+	"extends": "Default.sublime-theme",
+	"variables":
+	{
+		"base_hue": "hsl(215, 10%, 50%)",
+		"base_tint": "white",
+
+		"ui_bg": "color(var(base_hue) l(20%))",
+		"text_fg": "hsl(0, 0%, 85%)",
+
+		"button_bg": "color(var(base_hue) l(30%))",
+
+		"button_label_shadow": "transparent",
+
+		"sidebar_bg": "color(var(base_hue) l(15%))",
+		"sidebar_row_selected": "color(var(base_hue) l(25%))",
+
+		"sidebar_heading": "hsl(0, 0%, 90%)",
+		"sidebar_heading_shadow": "transparent",
+		"sidebar_label": "hsl(0, 0%, 80%)",
+		"sidebar_label_selected": "hsl(0, 0%, 90%)",
+		"sidebar_label_ignored": "hsl(0, 0%, 50%)",
+
+		"sidebar_button_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_button_hover_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
+
+		"sidebar_scroll_bar_bg": "var(scroll_bar_dark_bg)",
+		"sidebar_scroll_bar_puck_bg": "var(scroll_bar_puck_dark_bg)",
+
+		"panel_bg": "var(ui_bg)",
+
+		"progress_bar_fg": "color(var(base_hue) l(40%))",
+
+		"dialog_button_bg": "color(var(base_hue) l(70%))",
+
+		"icon_button_highlight": "color(var(base_hue) l(30%))",
+
+		"tool_tip_fg": "hsl(0, 0%, 25%)",
+
+		"tabset_dark_tint_mod": "color(white a(0.20))",
+		"tabset_dark_bg": "color(var(--background) blend(white 80%))",
+		"tabset_medium_dark_tint_mod": "color(white a(0.15))",
+		"tabset_medium_dark_bg": "color(var(--background) blend(white 85%))",
+		"tabset_medium_tint_mod": "color(black a(0.25))",
+		"tabset_medium_bg": "color(var(--background) blend(black 75%))",
+		"tabset_light_tint_mod": "color(black a(0.20))",
+		"tabset_light_bg": "color(var(--background) blend(black 80%))",
+
+		"overlay_bg": "var(ui_bg)",
+
+		"quick_panel_label_color": "color(var(base_hue) l(75%))",
+		"quick_panel_path_label_color": "color(var(base_hue) l(65%))",
+		"quick_panel_matched_label_color": "color(var(base_hue) l(90%))",
+		"quick_panel_matched_path_label_color": "color(var(base_hue) l(80%))",
+
+		"quick_panel_selected_row_bg": "color(var(base_hue) l(30%))",
+		"quick_panel_selected_label_color": "color(var(base_hue) l(80%))",
+		"quick_panel_selected_path_label_color": "color(var(base_hue) l(70%))",
+		"quick_panel_selected_matched_label_color": "var(quick_panel_matched_label_color)",
+		"quick_panel_selected_matched_path_label_color": "color(var(base_hue) l(80%))",
+
+		"status_bar_bg": "var(ui_bg)",
+		"status_bar_label_shadow": "transparent",
+
+		// The angled styles aren't great, but preserved since it is easier
+		// to tweak them a little than prevent the "angled" style rules from
+		// applying
+		"file_tab_angled_unselected_dark_tint": "color(white a(0.07))",
+		"file_tab_angled_unselected_medium_dark_tint": "color(white a(0.07))",
+		"file_tab_angled_unselected_medium_tint": "color(black a(0.13))",
+		"file_tab_angled_unselected_light_tint": "color(black a(0.12))",
+
+		"file_tab_angled_unselected_label_color": "hsl(0, 0%, 60%)",
+		"file_tab_angled_unselected_label_shadow": "transparent",
+		"file_tab_angled_unselected_medium_label_color": "hsl(0, 0%, 75%)",
+		"file_tab_angled_unselected_medium_label_shadow": "transparent",
+		"file_tab_angled_unselected_light_label_color": "hsl(0, 0%, 45%)",
+		"file_tab_angled_unselected_light_label_shadow": "transparent",
+	},
+	"rules":
+	[
+		{
+			"class": "title_bar",
+			"style": "dark"
+		},
+	]
+}

@@ -1,6 +1,5 @@
 import sublime
 import sublime_plugin
-import sublime_api
 
 
 MAX_COLUMNS = 2
@@ -156,7 +155,9 @@ class ClosePaneCommand(sublime_plugin.WindowCommand):
         if new_idx < 0:
             new_idx = 0
         window.focus_group(new_idx)
-        window.focus_sheet(selected_sheet)
+
+        if not selected_sheet.is_transient():
+            window.focus_sheet(selected_sheet)
 
     def run(self, group=-1):
         if group < 0:
@@ -177,40 +178,33 @@ def is_automatic_layout(window):
     return True
 
 
-class AutomaticPaneCloser(sublime_plugin.EventListener):
-    def on_activated(self, view):
-        # Check for empty groups here, to handle tabs being dragged out of their
-        # group
-        sublime.set_timeout(lambda: self.on_close(view), 0)
+class CloseTransient(sublime_plugin.WindowCommand):
+    def close_pane(self):
+        if not is_automatic_layout(self.window):
+            return False
 
-    def on_close(self, view):
-        window = sublime.active_window()
+        group = self.window.active_group()
 
-        if not is_automatic_layout(window):
-            return
+        sheet = self.window.transient_sheet_in_group(group)
 
-        if sublime_api.window_is_dragging(window.id()):
-            return
+        if sheet is None:
+            return False
 
-        # Only close panes when closing the transient sheet
+        view = sheet.view()
         if view.size() != 0 or view.file_name() is not None:
-            return
+            return False
+        # Active pane contains other sheets. Run close command instead.
+        if len(self.window.sheets_in_group(group)) != 0:
+            return False
 
-        # Maintain the focused group, which is required if the group being
-        # closed is not focused (perhaps sheet was closed with the mouse)
-        focused_group = window.active_group()
+        self.window.run_command('close_pane', {'group': group})
 
-        for i in reversed(range(window.num_groups())):
-            if num_sheets_in_group_including_transient(window, i) == 0:
-                if i == focused_group:
-                    focused_group = -1
-                elif i < focused_group:
-                    focused_group -= 1
+        return True
 
-                window.run_command('close_pane', {'group': i})
-                if focused_group >= 0:
-                    window.focus_group(focused_group)
-                break
+    def run(self):
+        # Attempt to close an empty pane
+        if not self.close_pane():
+            self.window.run_command('close')
 
 
 class FocusNeighboringGroup(sublime_plugin.WindowCommand):
