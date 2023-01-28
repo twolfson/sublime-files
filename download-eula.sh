@@ -3,4 +3,4 @@
 set -e
 
 # Download the EULA
-wget http://www.sublimetext.com/eula -O EULA
+wget https://www.sublimetext.com/eula -O EULA
