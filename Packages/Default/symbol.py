@@ -174,13 +174,16 @@ def navigate_to_symbol(
         else:
             for view_id in open_file_states:
                 restore_selections(sublime.View(view_id))
-
-            if window.active_view() != highlighted_view:
-                window.select_sheets(prev_selected)
+            if view.is_valid():
+                window.focus_view(view)
+                view.show(view.sel()[0])
+            # When in side-by-side mode close the current highlighted
+            # sheet upon canceling if the sheet is semi-transient otherwise
+            # deselect
+            if side_by_side:
                 if highlighted_view.sheet().is_semi_transient():
                     highlighted_view.close()
-                elif view.is_valid():
-                    window.focus_view(view)
+            window.select_sheets(prev_selected)
 
     def highlight_entry(window, locations, idx):
         nonlocal highlighted_view
@@ -250,7 +253,7 @@ class GotoDefinition(sublime_plugin.WindowCommand):
             return
 
         if not symbol:
-            # Ensure that events are processed correctly as goto_definition command can be run from a menubar item. 
+            # Ensure that events are processed correctly as goto_definition command can be run from a menubar item.
             # Event may contain "modifier_keys" but not "x" and "y", in which case fallback to current selection.
             if event and "x" in event and "y" in event:
                 pt = v.window_to_text((event["x"], event["y"]))

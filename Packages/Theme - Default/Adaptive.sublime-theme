@@ -512,6 +512,11 @@
 			"layer0.opacity": 1.0,
 		},
 		{
+			"class": "vcs_status_badge",
+			"parents": [{"class": "file_system_entry", "attributes": ["ignored"]}],
+			"content_margin": 0,
+		},
+		{
 			"class": "sidebar_label",
 			"parents": [{"class": "file_system_entry", "attributes": ["ignored"]}],
 			"color": "color(var(--background) blend(white 50%))"

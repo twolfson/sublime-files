@@ -620,6 +620,30 @@ class Window:
     def set_view_index(self, view, group, idx):
         sublime_api.window_set_view_index(self.window_id, view.view_id, group, idx)
 
+    def move_sheets_to_group(self, sheets, group, insertion_idx=-1, select=True):
+        """
+        Moves all unique provided sheets to specified group at insertion index provided.
+        If an index is not provided defaults to last index of the destination group.
+
+        :param sheets:
+                A List of Sheet objects
+
+        :param group:
+                An int specifying the destination group
+
+        :param insertion_idx:
+                An int specifying the insertion index
+
+        :param select:
+                A bool specifying whether the moved sheets should be selected
+        """
+        sheet_ids = []
+        for sheet in sheets:
+            if not isinstance(sheet, Sheet):
+                raise TypeError('list must contain items of type sublime.Sheet only')
+            sheet_ids.append(sheet.id())
+        sublime_api.window_move_sheets_to_group(self.window_id, sheet_ids, group, insertion_idx, select)
+
     def sheets(self):
         sheet_ids = sublime_api.window_sheets(self.window_id)
         return [make_sheet(x) for x in sheet_ids]
@@ -1512,12 +1536,12 @@ class View:
         else:
             return sublime_api.view_show_point(self.view_id, x, show_surrounds, keep_to_left, animate)
 
-    def show_at_center(self, x):
+    def show_at_center(self, x, animate=True):
         """ Scrolls the view to center on x, which may be a Region or point """
         if isinstance(x, Region):
-            return sublime_api.view_show_region_at_center(self.view_id, x)
+            return sublime_api.view_show_region_at_center(self.view_id, x, animate)
         else:
-            return sublime_api.view_show_point_at_center(self.view_id, x)
+            return sublime_api.view_show_point_at_center(self.view_id, x, animate)
 
     def viewport_position(self):
         """ Returns the (x, y) scroll position of the view in layout coordinates """

@@ -59,6 +59,52 @@ html.dark tt {
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>Build 4126</h2>
+<div class="release-date">21 December 2021</div>
+<ul>
+    <li>Improved OpenGL rendering performance by automatically batching together controls</li>
+    <li>Added support for Chinese standard GB18030 file encoding</li>
+    <li>Added support for CP862 file encoding</li>
+    <li>Resolved various issues tracking symlinks in the side-bar</li>
+    <li>Avoid session data corruption if a crash happens while saving the session</li>
+    <li><tt>subl -n</tt> will reuse an existing empty window if the application isn't running</li>
+    <li>Binary files now show as "Binary" syntax instead of "Plain Text" in the status bar</li>
+    <li>Fixed wildcards incorrectly matching subpaths (For settings like <tt>"folder_exclude_patterns"</tt>)</li>
+    <li>Made <tt>"find_in_files_max_result_size"</tt> not apply when replacing</li>
+    <li>Fixed crash when loading invalid grid layout from session</li>
+    <li>Fixed spell checker incorrectly marking some words as correct if they can't be encoded</li>
+    <li>Fixed rendering order of successive popups</li>
+    <li>Fixed package subfolders sometimes not being loaded when matching the <tt>"ignored_packages"</tt> setting</li>
+    <li>Fixed layout instability in side bar causing things to occasionally be rendered 1 pixel off</li>
+    <li>Added some missing glyphs to <tt>"draw_unicode_white_space": "all"</tt></li>
+    <li>Added <tt>"draw_unicode_bidi"</tt> setting for drawing unicode bidi characters</li>
+    <li>Added <tt>"select_across_groups"</tt> setting for opting into the old side bar selection behavior when selecting a single file</li>
+    <li>Fixed <tt>"close_windows_when_empty"</tt> setting not working</li>
+    <li>Fixed goto-definition preview not closing on escape</li>
+    <li>Fixed quick panel closing on enter when there are no matching entries</li>
+    <li>Syntax Highlighting: Fixed backtracking breaking when creating phantoms or doing a context backtrace</li>
+    <li>Syntax Highlighting: Fixed regression with some syntax definitions introduced in 4115</li>
+    <li>Linux: Added missing <tt>libcurl</tt> dependency for package managers</li>
+    <li>Linux: Fixed GTK overriding <tt>LC_NUMERIC</tt> environment variable breaking serialization</li>
+    <li>Windows: Fixed command line not taking focus after closing a waited on file</li>
+    <li>Windows: Fixed crash when OpenGL initialization fails</li>
+    <li>Mac: Aliases are now resolved when using drag and drop</li>
+    <li>Mac: Fixed window sometimes being restored on startup when <tt>"create_window_at_startup"</tt> is disabled</li>
+    <li>Mac: Fixed native tabs restoration resulting in odd behavior</li>
+    <li>Mac: Fixed <tt>subl -b</tt> not working</li>
+    <li>Mac: Fixed terminal not being focused after waiting on file</li>
+    <li>Mac: Fixed <i>Window > Merge All Windows</i> merging minimized windows</li>
+    <li>Mac: Fixed various inconsistencies when opening files from finder</li>
+    <li>API: The <tt>show_panel</tt> command for the find and find in files panels can now take <tt>"pattern"</tt> and <tt>"replace_pattern"</tt> arguments</li>
+    <li>API: <tt>ListInputHandler.preview</tt> is now called with <tt>None</tt> when no items match the current filter</li>
+    <li>API: Fixed case where <tt>Window.project_data()</tt> could return an invalid value</li>
+    <li>API: Opening a new pane moves currently selected sheets</li>
+    <li>API: Added <tt>Window.move_sheets_to_group</tt></li>
+    <li>API: The commands <tt>move_to</tt> and <tt>move_to_neighbouring</tt> now move currently selected sheets</li>
+</ul>
+</article>
+
+<article>
 <h2>Build 4121</h2>
 <div class="release-date">26 October 2021</div>
 <ul>

@@ -2,10 +2,17 @@
 ---
 # http://www.sublimetext.com/docs/3/syntax.html
 name: R
+scope: source.r
+
 file_extensions:
   - R
   - Rprofile
-scope: source.r
+
+first_line_match: |-
+  (?xi:
+    ^ \#! .* \br\b                        # shebang
+  | ^ \s* \# .*? -\*- .*? \br\b .*? -\*-  # editorconfig
+  )
 
 variables:
   exponent: (?:[eE][-+]?\d+)
@@ -149,6 +156,8 @@ contexts:
       scope: keyword.operator.arithmetic.r
     - match: (<-|->)
       scope: keyword.operator.assignment.r
+    - match: \|>
+      scope: keyword.operator.assignment.redirection.r
     - match: (==|!=|<>|<=?|>=?)
       scope: keyword.operator.comparison.r
     - match: (&&?|\|\|?)

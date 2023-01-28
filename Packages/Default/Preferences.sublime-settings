@@ -136,7 +136,7 @@
 	// Automatically close HTML and XML tags when </ is entered.
 	"auto_close_tags": true,
 
-	// Word list to use for spell checking
+	// Word list to use for spell checking. May also be a list of dictionaries.
 	"dictionary": "Packages/Language - English/en_US.dic",
 
 	// Sets which scopes are checked for spelling errors
@@ -283,6 +283,9 @@
 	//                  Ideographic Space.
 	// - "all": Draw codepoints of all non-ascii space characters.
 	"draw_unicode_white_space": "punctuation",
+
+	// Controls whether unicode bidi characters are drawn as codepoints.
+	"draw_unicode_bidi": true,
 
 	// Control characters (or white space if enabled) can be drawn as either hex
 	// or using their abbreviation:
@@ -568,8 +571,7 @@
 	// Hides the tab close button when false
 	"show_tab_close_buttons": true,
 
-	// Determines which side the close button is on. The default for OSX is true
-	// (on the left) and for other platforms it's false (on the right).
+	// Determines which side the close button is on
 	"show_tab_close_buttons_on_left": false,
 
 	// Show folders in the side bar in bold
@@ -765,6 +767,13 @@
 	// - "only_left": Only preview on left click, right click will change the
 	//                selection but not preview the file.
 	"preview_on_click": true,
+
+	// Controls the behavior when clicking on a single file in the sidebar
+	// that's already open.
+	// - true: If the file is already open in any group it will be selected.
+	// - false: Only if the file is open in the focused group will it be
+	//          selected, otherwise a new view into the file is opened.
+	"select_across_groups": false,
 
 	// Controls the maximum number of lines kept in the console's history. Note
 	// a large limit will increase memory usage. Use 0 to remove any limit.

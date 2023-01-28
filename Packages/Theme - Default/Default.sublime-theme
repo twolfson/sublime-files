@@ -187,13 +187,13 @@
 
 		"radio_back": "white",
 		"radio_border-unselected": "#a6a6a6",
-		"radio_selected": "var(--bluish)",
-		"radio_border-selected": "var(--bluish)",
+		"radio_selected": "color(var(--bluish) l(- 10%))",
+		"radio_border-selected": "color(var(--bluish) l(- 10%))",
 
 		"checkbox_back": "white",
 		"checkbox_border-unselected": "#a6a6a6",
-		"checkbox_selected": "var(--bluish)",
-		"checkbox_border-selected": "var(--bluish)",
+		"checkbox_selected": "color(var(--bluish) l(- 10%))",
+		"checkbox_border-selected": "color(var(--bluish) l(- 10%))",
 		"checkbox-disabled": "#a6a6a6",
 	},
 	"rules":
@@ -447,6 +447,11 @@
 			"layer0.texture": "Theme - Default/common/status_unmerged.png",
 			"layer0.tint": "var(vcs_unmerged)",
 			"layer0.opacity": 1.0,
+		},
+		{
+			"class": "vcs_status_badge",
+			"parents": [{"class": "file_system_entry", "attributes": ["ignored"]}],
+			"content_margin": 0,
 		},
 		{
 			"class": "sidebar_label",

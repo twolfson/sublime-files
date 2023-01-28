@@ -150,6 +150,9 @@ class TabCommand(sublime_plugin.TextCommand):
         view.show(visible, False)
         view.run_command("scroll_lines", {"amount": 1.0})
 
+    def is_enabled(self):
+        return not self.view.settings().get('is_widget')
+
 
 class ExpandTabs(TabCommand):
     translate = True

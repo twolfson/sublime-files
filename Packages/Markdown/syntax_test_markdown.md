@@ -740,55 +740,75 @@ non-disabled markdown
 non-disabled markdown
 | <- - meta.disable-markdown
 
-> Quote
-| <- meta.block-level markup.quote punctuation.definition.blockquote
-| ^^^^^^ meta.block-level markup.quote
 
-> Quote followed by an empty block quote line
+# Block Quote Tests ###########################################################
+
+>=
+| <- punctuation.definition.blockquote.markdown 
+
+>==
+| <- punctuation.definition.blockquote.markdown
+
+  >=
+| ^ punctuation.definition.blockquote.markdown
+    >=
+|   ^^ - punctuation.definition.blockquote.markdown
+
+    >=
+|   ^^ - punctuation.definition.blockquote.markdown
+
+> Block quote
+| <- meta.block-level markup.quote punctuation.definition.blockquote
+| ^^^^^^^^^^^ meta.block-level markup.quote
+
+> Block quote followed by an empty block quote line
 >
 | <- meta.block-level markup.quote punctuation.definition.blockquote
 
-> Quote followed by an empty block quote line
+> Block quote followed by an empty block quote line
 >
 > Followed by more quoted text
 | <- meta.block-level markup.quote punctuation.definition.blockquote
 
-> > Nested quote
+> > Nested block quote
 | <- meta.block-level markup.quote punctuation.definition.blockquote
-| ^ meta.block-level markup.quote markup.quote punctuation.definition.blockquote
+| ^^^^^^^^^^^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown markup.quote.markdown
+|^ - punctuation
+| ^ punctuation.definition.blockquote
+|  ^ - punctuation
 
 > > Nested quote
 > Followed by more quoted text that is not nested
 | <- meta.block-level markup.quote punctuation.definition.blockquote - markup.quote markup.quote
 
-> Here is a quote block
-This quote continues on.  Line breaking is OK in markdown
-| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block-level markup.quote
+> Here is a block quote
+This quote continues on. Line breaking is OK in markdown
+| ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block-level markup.quote
 > Here it is again
 | <- punctuation.definition.blockquote
 
 paragraph
 | <- meta.paragraph - meta.block-level
 
->     > this is code in a quote block, not a nested quote
+>    > this is a nested quote but no code in a block quote
+| <- punctuation.definition.blockquote
+|    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown markup.quote.markdown
+
+>     > this is code in a block quote, not a nested quote
 | <- punctuation.definition.blockquote
 |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.raw.block - markup.quote markup.quote
 
-> Here are fenced code blocks
+> CommonMark expects following line to be indented code block (see: example 326)
+    > but all common parsers handle it as continued text.
+|   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown - markup.raw
+|   ^ - punctuation
+
+> Quoted fenced code block begin
 > ```
 | <- meta.block-level.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
 |^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
 | ^^^^ meta.block-level.markdown markup.quote.markdown meta.code-fence.definition.begin.text.markdown-gfm
 | ^^^ punctuation.definition.raw.code-fence.begin.markdown
-> code block
-| <- meta.block-level.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
-|^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
-| ^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown markup.raw.code-fence.markdown-gfm
-> ```
-| <- meta.block-level.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
-|^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
-| ^^^^ meta.block-level.markdown markup.quote.markdown meta.code-fence.definition.end.text.markdown-gfm
-| ^^^ punctuation.definition.raw.code-fence.end.markdown
 
 > Quoted fenced code block language identifier
 > ```C++
@@ -796,7 +816,6 @@ paragraph
 |^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
 | ^^^^^^^ meta.block-level.markdown markup.quote.markdown meta.code-fence.definition.begin.text.markdown-gfm
 |    ^^^ constant.other.language-name.markdown
-> ```
 
 > Quoted fenced code block language identifier
 > ```C++ info string
@@ -805,27 +824,90 @@ paragraph
 | ^^^^^^^^^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown meta.code-fence.definition.begin.text.markdown-gfm
 |    ^^^ constant.other.language-name.markdown
 |       ^^^^^^^^^^^^^ - constant
-> ```
 
-> > 2nd level
-> > 
+> Quoted fenced code block content
+> ```
+> code block
+| <- meta.block-level.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
+|^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
+| ^^^^^^^^^^^ meta.block-level.markdown markup.quote.markdown markup.raw.code-fence.markdown-gfm
+
+> Quoted fenced code block end
+> ```
+> ```
+| <- meta.block-level.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
+|^ meta.block-level.markdown markup.quote.markdown - meta.code-fence
+| ^^^^ meta.block-level.markdown markup.quote.markdown meta.code-fence.definition.end.text.markdown-gfm
+| ^^^ punctuation.definition.raw.code-fence.end.markdown
+
+> > 2nd level quoted fenced code block
 > > ```
 > > code block ```
-|              ^^^ - punctuation
 > > ```
 | <- meta.block-level.markdown markup.quote.markdown markup.quote.markdown punctuation.definition.blockquote.markdown
 |^^^ meta.block-level.markdown markup.quote.markdown markup.quote.markdown - meta.code-fence
 |   ^^^^ meta.block-level.markdown markup.quote.markdown markup.quote.markdown meta.code-fence.definition.end.text.markdown-gfm
 
->=
-| <- punctuation.definition.blockquote.markdown 
-  >=
-| ^ punctuation.definition.blockquote.markdown
-    >=
-|   ^^ - punctuation.definition.blockquote.markdown
+> Block quote followed by fenced code block
+```
+| <- meta.code-fence.definition.begin.text.markdown-gfm punctuation.definition.raw.code-fence.begin.markdown - meta.quote
+```
+| <- meta.code-fence.definition.end.text.markdown-gfm punctuation.definition.raw.code-fence.end.markdown - meta.quote
 
->==
-| <- punctuation.definition.blockquote.markdown
+> Quoted fenced code block is terminated by missing > at bol
+> ```
+no code block
+| <- meta.paragraph.markdown - meta.quote - meta.code-fence
+|^^^^^^^^^^^^^ meta.paragraph.markdown - meta.quote - meta.code-fence
+
+> Quoted fenced code block is terminated by missing > at bol
+> ```
+> content
+no code block
+| <- meta.paragraph.markdown - meta.quote - meta.code-fence
+|^^^^^^^^^^^^^ meta.paragraph.markdown - meta.quote - meta.code-fence
+
+> Unterminated quoted fenced code block followed by unquoted fenced code block
+> ```
+```
+| <- meta.code-fence.definition.begin.text.markdown-gfm - markup.quote
+```
+| <- meta.code-fence.definition.end.text.markdown-gfm - markup.quote
+
+> Block quote followed by heading
+# heading
+| <- meta.block-level.markdown markup.heading.1.markdown punctuation.definition.heading.begin.markdown
+|^^^^^^^^^ meta.block-level.markdown markup.heading.1.markdown - meta.quote
+| ^^^^^^^ entity.name.section.markdown
+
+> Block quote followed by list
+* list item
+| <- markup.list.unnumbered.bullet.markdown punctuation.definition.list_item.markdown
+|^^^^^^^^^^^ markup.list.unnumbered.markdown - meta.quote
+
+> Block quote followed by list
++ list item
+| <- markup.list.unnumbered.bullet.markdown punctuation.definition.list_item.markdown
+|^^^^^^^^^^^ markup.list.unnumbered.markdown - meta.quote
+
+> Block quote followed by list
+- list item
+| <- markup.list.unnumbered.bullet.markdown punctuation.definition.list_item.markdown
+|^^^^^^^^^^^ markup.list.unnumbered.markdown - meta.quote
+
+> Block quote followed by list
+1. list item
+| <- markup.list.numbered.bullet.markdown - punctuation
+|^ markup.list.numbered.bullet.markdown punctuation.definition.list_item.markdown
+| ^^^^^^^^^^ markup.list.numbered.markdown - meta.quote
+
+> Block quote followed by thematic break
+***
+| <- meta.block-level.markdown meta.separator.thematic-break.markdown punctuation.definition.thematic-break.markdown - meta.quote
+
+> Block quote followed by thematic break
+- - -
+| <- meta.block-level.markdown meta.separator.thematic-break.markdown punctuation.definition.thematic-break.markdown - meta.quote
 
 Code block below:
 
@@ -2935,3 +3017,88 @@ link with a single underscore inside the text : [@_test](http://example.com)
 |     ^ punctuation.separator.key-value
 |       ^ punctuation.definition.link.begin
 |        ^ punctuation.definition.link.end
+
+# CriticMarkup ################################################################
+
+This is an {++additional++} word in {++**bold**++}.
+|          ^^^^^^^^^^^^^^^^ markup.critic.addition.markdown
+|          ^^^ punctuation.definition.critic.begin.markdown - markup.inserted
+|             ^^^^^^^^^^ markup.inserted.critic.markdown
+|                       ^^^ punctuation.definition.critic.end.markdown - markup.inserted
+|                                   ^^^ markup.critic.addition.markdown - markup.inserted - markup.bold
+|                                      ^^^^^^^^ markup.critic.addition.markdown markup.inserted.critic.markdown markup.bold.markdown
+|                                              ^^^ markup.critic.addition.markdown - markup.inserted
+|                                   ^^^ punctuation.definition.critic.begin.markdown
+|                                      ^^ punctuation.definition.bold.begin.markdown
+|                                            ^^ punctuation.definition.bold.end.markdown 
+|                                              ^^^ punctuation.definition.critic.end.markdown
+
+This is an {++ multiline
+addition ++} test.
+| <- markup.critic.addition.markdown
+|^^^^^^^^ markup.critic.addition.markdown markup.inserted.critic.markdown
+|        ^^^ markup.critic.addition.markdown - markup.inserted
+|        ^^^ punctuation.definition.critic.end.markdown
+|           ^^^^^^ - markup.critic
+
+Additional {++[Link](https://foo.bar)++} and {++![Image](images/image.png)++}.
+| ^^^^^^^^^ - markup.critic
+|          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.critic.addition.markdown
+|                                        ^^^^ - markup.critic
+|                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.critic.addition.markdown
+|                                                                            ^^ - markup.critic
+|          ^^^ punctuation.definition.critic.begin.markdown
+|             ^ meta.link.inline.markdown punctuation.definition.link.begin.markdown 
+|              ^^^^ meta.link.inline.description.markdown
+|                  ^ meta.link.inline.markdown punctuation.definition.link.end.markdown
+|                   ^^^^^^^^^^^^^^^^^ meta.link.inline.markdown
+|                                    ^^^ punctuation.definition.critic.end.markdown
+|                                            ^^^ punctuation.definition.critic.begin.markdown
+|                                               ^^ meta.image.inline.markdown punctuation.definition.image.begin.markdown
+|                                                 ^^^^^ meta.image.inline.description.markdown
+|                                                      ^ meta.image.inline.markdown punctuation.definition.image.end.markdown
+|                                                       ^^^^^^^^^^^^^^^^^^ meta.image.inline.markdown
+|                                                                         ^^^ punctuation.definition.critic.end.markdown
+
+This is a {-- deletion --} and {~~substitute~>with~~striked~~text~~} or {~~~~old~~~>~~new~~~~}.
+|         ^^^^^^^^^^^^^^^^ markup.critic.deletion.markdown
+|         ^^^ punctuation.definition.critic.begin.markdown - markup.deleted
+|            ^^^^^^^^^^ markup.deleted.critic.markdown
+|                      ^^^ punctuation.definition.critic.end.markdown - markup.deleted
+|                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ markup.critic.substitution.markdown
+|                                                                    ^^^ - markup.critic
+|                                                                       ^^^^^^^^^^^^^^^^^^^^^^ markup.critic.substitution.markdown
+|                                                                                             ^^ - markup.critic
+|                              ^^^ punctuation.definition.critic.begin.markdown - markup.deleted
+|                                 ^^^^^^^^^^ markup.deleted.critic.markdown
+|                                           ^^ punctuation.separator.critic.markdown - markup.deleted - markup.inserted
+|                                              ^^^^^^^^^^^^^^^^^^ markup.inserted.critic.markdown
+|                                                  ^^^^^^^^^^ markup.strikethrough.markdown-gfm
+|                                                                ^^^ punctuation.definition.critic.end.markdown - markup.inserted
+|                                                                       ^^^ punctuation.definition.critic.begin.markdown
+|                                                                          ^^ punctuation.definition.strikethrough.begin.markdown
+|                                                                          ^^^^^^^ markup.deleted.critic.markdown markup.strikethrough.markdown-gfm
+|                                                                               ^^ punctuation.definition.strikethrough.end.markdown
+|                                                                                 ^^ punctuation.separator.critic.markdown
+|                                                                                   ^^ punctuation.definition.strikethrough.begin.markdown
+|                                                                                   ^^^^^^^ markup.inserted.critic.markdown markup.strikethrough.markdown-gfm
+|                                                                                        ^^ punctuation.definition.strikethrough.end.markdown
+|                                                                                          ^^^ punctuation.definition.critic.end.markdown
+
+This is a {>> comment <<}.
+|         ^^^^^^^^^^^^^^^ markup.critic.comment.markdown
+|         ^^^ punctuation.definition.critic.begin.markdown - comment
+|            ^^^^^^^^^ comment.critic.markdown
+|                     ^^^ punctuation.definition.critic.end.markdown - comment
+|                        ^ - markup.critic
+
+This is an {== information ==}{>> comment <<}.
+|          ^^^^^^^^^^^^^^^^^^^ markup.critic.highlight.markdown
+|                             ^^^^^^^^^^^^^^^ markup.critic.comment.markdown
+|          ^^^ punctuation.definition.critic.begin.markdown -  markup.info
+|             ^^^^^^^^^^^^^ markup.info.critic.markdown
+|                          ^^^ punctuation.definition.critic.end.markdown -  markup.info
+|                             ^^^ punctuation.definition.critic.begin.markdown - comment
+|                                ^^^^^^^^^ comment.critic.markdown
+|                                         ^^^ punctuation.definition.critic.end.markdown - comment
+|                                            ^^ - markup.critic

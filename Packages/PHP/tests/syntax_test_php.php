@@ -473,6 +473,17 @@ $f3 = #[ExampleAttribute] fn () => 1;
 
 /** @var Properties: class properties. */
 //  ^ keyword.other.phpdoc
+//       ^ - keyword.other.phpdoc
+
+/** @var @var Properties: class properties. */
+//  ^ keyword.other.phpdoc
+//       ^ - keyword.other.phpdoc
+
+/**@var Properties: class properties. */
+// ^^^^ - keyword.other.phpdoc
+
+/** @var@var Properties: class properties. */
+//  ^^^^^^^^ - keyword.other.phpdoc
 
 /* No phpdoc highlight since there are not two * after the opening /
  * @return
@@ -650,7 +661,7 @@ $f3 = #[ExampleAttribute] fn () => 1;
  */
 
 /**
- * @codeCoverageIgnore*
+ * @codeCoverageIgnore
 //  ^ keyword.other.phpunit
  */
 
@@ -762,6 +773,22 @@ $f3 = #[ExampleAttribute] fn () => 1;
 /**
  * @ticket
 //  ^ keyword.other.phpunit
+ */
+
+/**
+ * @param @param
+// ^^ keyword.other.phpdoc
+//        ^^ - keyword.other.phpdoc
+ */
+
+/**
+ * @param@param
+// ^^^^^^^^^^^^ - keyword.other.phpdoc
+ */
+
+/**
+ *@param
+// ^ - keyword.other.phpdoc
  */
 
 /**
@@ -2085,6 +2112,16 @@ class D {
 var_dump(new C(42));
 //           ^ meta.path support.class
 
+// test for https://github.com/sublimehq/Packages/issues/3134
+$array = array_reduce(
+    $items,
+    function ($array, $item) {
+        return $array;
+    },
+    $initial
+);
+// <- punctuation.section.group.end
+
 ?>
 
 <div><?php include 'image.svg' ?></div>
@@ -2268,3 +2305,25 @@ h1 {
     <? } ?>
 }
 </style>
+
+<?php
+    for ($i = 0; $i < 10; $i++) { echo $i; }
+//  ^^^ keyword.control.loop.for.php
+//      ^^^^^^^^^^^^^^^^^^^^^^^ meta.group.php
+//      ^ punctuation.section.group.begin.php
+//             ^ punctuation.terminator.expression.php
+//                      ^ punctuation.terminator.expression.php
+//                            ^ punctuation.section.group.end.php
+//                              ^ punctuation.section.block.begin.php
+//                                         ^ punctuation.section.block.end.php
+
+    FOR ($i = 0; $i < 10; $i++) { ECHO $i; }
+//  ^^^ keyword.control.loop.for.php
+//      ^^^^^^^^^^^^^^^^^^^^^^^ meta.group.php
+//      ^ punctuation.section.group.begin.php
+//             ^ punctuation.terminator.expression.php
+//                      ^ punctuation.terminator.expression.php
+//                            ^ punctuation.section.group.end.php
+//                              ^ punctuation.section.block.begin.php
+//                                         ^ punctuation.section.block.end.php
+ ?>

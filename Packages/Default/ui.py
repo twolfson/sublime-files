@@ -126,6 +126,9 @@ class ColorSchemeInputHandler(sublime_plugin.ListInputHandler):
             None
 
     def preview(self, name):
+        if name is None:
+            return
+
         self.last_previewed = name
 
         def update_cs():
@@ -173,7 +176,6 @@ class ColorSchemeInputHandler(sublime_plugin.ListInputHandler):
                 details='Switches between light and dark color schemes to match OS appearance',
                 kind=kind_info
             ))
-
 
         files = []
         nameset = set()
@@ -376,6 +378,9 @@ class ThemeInputHandler(sublime_plugin.ListInputHandler):
             None
 
     def preview(self, name):
+        if name is None:
+            return
+
         self.last_previewed = name
 
         def update_theme():
