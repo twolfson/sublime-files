@@ -25,7 +25,7 @@ filename="$(basename "$url")"
 tar xf "$filename"
 
 # Enter our directory
-subl_dir="sublime_text_3"
+subl_dir="sublime_text"
 cd "$subl_dir"
 
 # Find and remove files over 1MB (e.g. `plugin_host`, `sublime_text`)
@@ -77,7 +77,7 @@ shopt -u globstar
 # Transfer our files
 #   `ls` -> `sublime_text_3 sublime_text_3_build_3083_x64.tar.bz2`
 cd ../
-cp sublime_text_3/* ../ -R
+cp "$subl_dir"/* ../ -R
 
 # Navigate out of our temporary directory and notify the user that we are done
 echo "Extraction complete. Please run \`git status\` to see what has changed." 1>&2
