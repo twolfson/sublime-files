@@ -59,6 +59,16 @@ html.dark tt {
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>Build 4143</h2>
+<div class="release-date">11 November 2022</div>
+<ul>
+    <li>Fixed a performance regression in 4142 on color schemes with very complex selectors</li>
+    <li>Folded regions no longer include the trailing newline by default</li>
+    <li>Fixed selection jumping when clicking on a fold marker</li>
+</ul>
+</article>
+
+<article>
 <h2>Build 4142</h2>
 <div class="release-date">10 November 2022</div>
 <ul>
@@ -143,7 +153,7 @@ html.dark tt {
 </article>
 
 <article>
-<h2>Build 4121</h2>
+<h2>Build 4126</h2>
 <div class="release-date">21 December 2021</div>
 <ul>
     <li>Improved OpenGL rendering performance by automatically batching together controls</li>

@@ -132,7 +132,7 @@
         },
         {
             "name": "Tag name",
-            "scope": "entity.name.tag",
+            "scope": "entity.name.tag | meta.mapping.key string.unquoted",
             "foreground": "var(red2)"
         },
         {
