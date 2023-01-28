@@ -46,8 +46,19 @@ article { display: block; }
 
 <h1>Stable Channel Changelog</h1>
 
-
 <article class="current">
+<h2>3.2.2 (Build 3211)</h2>
+<div class="release-date">1 October 2019</div>
+<ul>
+    <li>Mac: Added Notarization</li>
+    <li>Fixed a performance regression when moving the caret upwards in large files</li>
+    <li>Fixed a memory leak</li>
+    <li>Fixed not being able to swap lines down with the last line if it was empty</li>
+    <li>Git: Fixed <tt>includeIf</tt> handling in git config files not interpreting <tt>~</tt> relative paths correctly</li>
+</ul>
+</article>
+
+<article>
 <h2>3.2.1 (Build 3207)</h2>
 <div class="release-date">6 April 2019</div>
 <ul>
@@ -61,7 +72,7 @@ article { display: block; }
     <li>Fixed block carets changing the way text selection works</li>
     <li>Fixed <tt>swap_line_up</tt> and <tt>swap_line_down</tt> transforming tabs into spaces</li>
     <li>Mac: Added a workaround for a MacOS issue with DisplayLink adapters</li>
-    <li>Lixed: Fixed compatibility with old Linux distributions</li>
+    <li>Linux: Fixed compatibility with old Linux distributions</li>
     <li>Linux: Improved high dpi handling under KDE</li>
     <li>Linux: Tweaked the way text scaling is handled</li>
     <li>Linux: Fixed incorrect file ownership in the deb packages</li>
