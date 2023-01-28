@@ -87,7 +87,7 @@
 	"translate_tabs_to_spaces": false,
 
 	// If translate_tabs_to_spaces is true, use_tab_stops will make tab and
-	// backspace insert/delete up to the next tabstop
+	// backspace and delete insert/delete up to the next tabstop
 	"use_tab_stops": true,
 
 	// Set to false to disable detection of tabs vs. spaces on load
@@ -496,13 +496,30 @@
 	// Whether to highlight find results in the scrollbar
 	"highlight_find_results_in_scrollbar": true,
 
+	// The maximum number of find results to show in the scroll bar. If this
+	// number is exceeded no results will be shown. Use 0 to remove this limit.
+	"find_scroll_highlights_limit": 8192,
+
+	// The maximum file size that the "Highlight matches" option is used for.
+	// Highlighting all matches requires searching the whole file while typing
+	// the search query which can quickly get slow. Use 0 to remove this limit.
+	"find_highlight_matches_max_size": 16777216, // 16MiB
+
+	// Same as "find_highlight_matches_max_size" but used when regex is enabled.
+	"find_regex_highlight_matches_max_size": 1048576, // 1MiB
+
 	// The maximum output size for find-in-files. Prevents searches with a large
 	// number of results from using too much memory. Use 0 to remove this limit.
-	"find_in_files_max_result_size": 16777216, // 16MB
+	"find_in_files_max_result_size": 16777216, // 16MiB
 
 	// When drag_text is enabled, clicking on selected text will begin a
 	// drag-drop operation.
 	"drag_text": true,
+
+	// Take focus when a file is dragged and dropped onto Sublime Text. On
+	// Windows this value is overidden to true in the platform specific
+	// settings.
+	"focus_on_file_drop": false,
 
 	//
 	// User Interface Settings
@@ -648,6 +665,10 @@
 	// a window is opened in. This doesn't work with Wayland.
 	"remember_workspace": true,
 
+	// remember_layout makes Sublime Text start with the same layout it closed
+	// with. Only applies when hot_exit is disabled.
+	"remember_layout": false,
+
 	// Mac only. If the user's default shell should be invoked to obtain the
 	// user's customized environment variables. May be a boolean, or a string
 	// of the path the shell to invoke. Sublime Text must be restarted for this
@@ -686,6 +707,9 @@
 
 	// Mac only: Show recent files on the Touch Bar.
 	"show_navigation_bar": true,
+
+	// Mac only: Use global find clipboard.
+	"use_find_clipboard": true,
 
 	// Set to true to close windows as soon as the last file is closed, unless
 	// there's a folder open within the window.
@@ -730,7 +754,8 @@
 
 	// The path to the Sublime Merge executable. This should only be set if
 	// Sublime Merge is not installed in a standard location, such as when
-	// using a portable install.
+	// using a portable install. Set to 'null' to hide Sublime Merge
+	// integrations.
 	"sublime_merge_path": "",
 
 	// Preview file contents when clicking on a file in the side bar. Double

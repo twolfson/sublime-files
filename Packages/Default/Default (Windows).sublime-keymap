@@ -247,7 +247,7 @@
 	{ "keys": ["ctrl+m"], "command": "move_to", "args": {"to": "brackets"} },
 	{ "keys": ["ctrl+shift+a"], "command": "expand_selection", "args": {"to": "tag"}, "context":
 		[
-			{ "key": "selector", "operator": "equal", "operand": "text.html - source", "match_all": true }
+			{ "key": "selector", "operator": "equal", "operand": "(text.html, text.xml) - source", "match_all": true }
 		]
 	},
 
@@ -804,6 +804,20 @@
 	{ "keys": ["alt+a"], "command": "toggle_preserve_case", "context":
 		[{"key": "panel_type", "operand": "find"}, {"key": "panel_has_focus"}],
 	},
+	
+	{ "keys": ["enter"], "command": "select", "context":
+		[
+			{ "key": "panel_has_focus", "operator": "equal", "operand": true },
+			{ "key": "panel_type", "operand": "input"},
+		],
+	},
+	{ "keys": ["keypad_enter"], "command": "select", "context":
+		[
+			{ "key": "panel_has_focus", "operator": "equal", "operand": true },
+			{ "key": "panel_type", "operand": "input"},
+		],
+	},
+
 
 	// Overlay key bindings
 	{ "keys": ["enter"], "command": "select", "context":

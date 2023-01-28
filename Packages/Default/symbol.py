@@ -1,4 +1,5 @@
 import sys
+import html
 
 import sublime
 import sublime_plugin
@@ -57,7 +58,7 @@ def open_location(window, l, side_by_side=False, replace=False, clear_to_right=F
 
 
 def format_location(l):
-    return "%s:%d" % (l.display_name, l.row)
+    return "%s:%d" % (html.escape(l.display_name), l.row)
 
 
 def filter_current_symbol(view, point, symbol, locations):
@@ -173,16 +174,13 @@ def navigate_to_symbol(
         else:
             for view_id in open_file_states:
                 restore_selections(sublime.View(view_id))
-            if view.is_valid():
-                window.focus_view(view)
-                view.show(view.sel()[0])
-            # When in side-by-side mode close the current highlighted
-            # sheet upon canceling if the sheet is semi-transient otherwise
-            # deselect
-            if side_by_side:
+
+            if window.active_view() != highlighted_view:
+                window.select_sheets(prev_selected)
                 if highlighted_view.sheet().is_semi_transient():
                     highlighted_view.close()
-            window.select_sheets(prev_selected)
+                elif view.is_valid():
+                    window.focus_view(view)
 
     def highlight_entry(window, locations, idx):
         nonlocal highlighted_view
@@ -233,7 +231,7 @@ def navigate_to_symbol(
             items=items,
             on_select=lambda x, e: select_entry(window, locations, x, e),
             on_highlight=lambda x: highlight_entry(window, locations, x),
-            flags=sublime.KEEP_OPEN_ON_FOCUS_LOST | sublime.WANT_EVENT,
+            flags=sublime.WANT_EVENT,
             placeholder=placeholder)
 
 
@@ -252,8 +250,15 @@ class GotoDefinition(sublime_plugin.WindowCommand):
             return
 
         if not symbol:
-            if event:
+            # Ensure that events are processed correctly as goto_definition command can be run from a menubar item. 
+            # Event may contain "modifier_keys" but not "x" and "y", in which case fallback to current selection.
+            if event and "x" in event and "y" in event:
                 pt = v.window_to_text((event["x"], event["y"]))
+                modifiers = event.get("modifier_keys", None)
+                if modifiers:
+                    if 'primary' in modifiers:
+                        side_by_side = True
+                        clear_to_right = True
             else:
                 pt = v.sel()[0]
 
@@ -266,13 +271,14 @@ class GotoDefinition(sublime_plugin.WindowCommand):
     def is_visible(self, event=None, **args):
         if not event:
             return True
-
         v = self.window.active_view()
 
-        pt = v.window_to_text((event["x"], event["y"]))
-        symbol, locations = symbol_at_point(v, pt)
+        if "x" in event and "y" in event:
+            pt = v.window_to_text((event["x"], event["y"]))
+            symbol, locations = symbol_at_point(v, pt)
+            return len(locations) > 0
 
-        return len(locations) > 0
+        return False
 
     def want_event(self):
         return True
@@ -491,7 +497,7 @@ class AutoCompleteGotoDefinition(sublime_plugin.WindowCommand):
                     class_name=_kind_class_name(l.kind[0]),
                     letter=l.kind[1] if l.kind[1] else '&nbsp;',
                     name=l.kind[2] if l.kind[2] else '',
-                    syntax=l.syntax,
+                    syntax=html.escape(l.syntax),
                     location=format_location(l),
                     href=_sym_def_href(l, new_tab=True, keep_auto_complete_open=True, focus_view=view.id()))
                 for l in locations)
@@ -608,7 +614,7 @@ class ShowDefinitions(sublime_plugin.EventListener):
             save_point = -1
 
         symbol_name = '&nbsp;{}&nbsp;<code>{}</code>'.format(
-            'of' if locations else 'to', symbol)
+            'of' if locations else 'to', html.escape(symbol))
 
         sheet = view.sheet()
         group = sheet.group()
@@ -631,7 +637,7 @@ class ShowDefinitions(sublime_plugin.EventListener):
                 class_name=_kind_class_name(l.kind[0]),
                 letter=l.kind[1] if l.kind[1] else '&nbsp;',
                 name=l.kind[2] if l.kind[2] else '',
-                syntax=l.syntax,
+                syntax=html.escape(l.syntax),
                 location=format_location(l),
                 href=_sym_def_href(l, add_jump_point=save_point, focus_view=view.id()),
                 new_tab_href=_sym_def_href(l, new_tab=True, add_jump_point=save_point, focus_view=view.id()),
@@ -656,7 +662,7 @@ class ShowDefinitions(sublime_plugin.EventListener):
 
         ref_links = '<br>'.join(
             ref_link_markup.format(
-                syntax=l.syntax,
+                syntax=html.escape(l.syntax),
                 location=format_location(l),
                 href=_sym_def_href(l, add_jump_point=save_point, focus_view=view.id()),
                 new_tab_href=_sym_def_href(l, new_tab=True, add_jump_point=save_point, focus_view=view.id()),

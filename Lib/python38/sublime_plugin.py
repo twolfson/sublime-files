@@ -688,7 +688,7 @@ def check_text_change_listeners(buf):
             if want and not found:
                 cls().attach(buf)
             elif found and not want:
-                instance.detach(buf)
+                instance.detach()
 
 
 def detach_buffer(buf):

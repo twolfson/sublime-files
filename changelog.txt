@@ -59,6 +59,72 @@ html.dark tt {
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>Build 4121</h2>
+<div class="release-date">26 October 2021</div>
+<ul>
+    <li>New update dialog that shows versions, license status and links to the changelog</li>
+    <li>Various syntax highlighting improvements</li>
+    <li>Use goto-symbol to jump to specific files in find results</li>
+    <li>Improved color scheme/theme selection UI</li>
+    <li>Layout is no longer remembered when <tt>"hot_exit"</tt> is disabled. You can change this using <tt>"remember_layout"</tt></li>
+    <li>Right-delete now respects <tt>"use_tab_stops"</tt> setting</li>
+    <li>Various improvements to behavior of moving sheets during window layout changes</li>
+    <li>Improved mini-diff and white space rendering performance under OpenGL</li>
+    <li>Improved performance when reading large files from stdin</li>
+    <li>Fixed regex replace not working on last occurrence when using look-behind</li>
+    <li>Fixed <tt>"save_on_focus_lost"</tt> not working as expected with the reload dialog</li>
+    <li>Fixed open files not being added to recent file list when <tt>"hot_exit"</tt> is disabled</li>
+    <li>Fixed snippet completions not respecting word boundaries</li>
+    <li>Fixed extra blank window being opened at startup in some cases</li>
+    <li>Fixed not properly exiting after a prompt when <tt>"hot_exit"</tt> is disabled</li>
+    <li>Fixed window unexpectedly closing when project has no added folders and <tt>"close_windows_when_empty"</tt> is enabled</li>
+    <li>Fixed tab selection stack not being updated as expected in some cases</li>
+    <li>Fixed transient sheets persisting when exiting goto-anything</li>
+    <li>Fixed squiggle underline width not scaling properly</li>
+    <li>Fixed line highlighting not working when gutter is disabled</li>
+    <li>Fixed case where folders were being added to existing windows instead of opening in a new window</li>
+    <li>Fixed performance regression under Windows with non-integer DPI scaling</li>
+    <li>Fixed syntax highlighting backtracking-related performance problem</li>
+    <li>Undo stack is now cleared when reading from stdin</li>
+    <li>Added <i>Selection > Expand Selection to Block</i> which has the same behavior as <i>Expand Selection to Paragraph</i> had previously</li>
+    <li><tt>"open_files_in_new_window"</tt> is now respected when reading from stdin</li>
+    <li>Added <tt>"find_scroll_highlights_limit"</tt>, <tt>"find_highlight_matches_max_size"</tt> and <tt>"find_regex_highlight_matches_max_size"</tt> settings to allow configuring find limits</li>
+    <li>Added newline detection and normalization when changing settings programmatically</li>
+    <li>Sublime Merge menu items are hidden when <tt>"sublime_merge_path"</tt> is set to <tt>null</tt></li>
+    <li>Fixed wrong path sometimes being used when viewing file history in Sublime Merge</li>
+    <li>Fixed focus lost when selected group is closed whilst reducing the number of groups</li>
+    <li>File-specific indentation settings are now persisted across restarts</li>
+    <li>Fixed some edge cases related to <tt>"find_in_files_max_result_size"</tt></li>
+    <li>Fixed completions in input panel not utilizing available window space</li>
+    <li>Fixed expand selection to tag not working in XML</li>
+    <li>Fixed current transient sheet unexpectedly closing when using goto-anything</li>
+    <li>Fixed crash related to syntax backtracking and phantoms</li>
+    <li>Fixed being unable to open more than one new empty window</li>
+    <li>Linux: Make selection after middle-click paste consistent with other applications</li>
+    <li>Linux: Fixed race condition with multiple simultaneous command line invocations</li>
+    <li>Linux: Fixed custom title bar label color for some GTK themes</li>
+    <li>Windows: Fixed a case where session could be lost when upgrading</li>
+    <li>Windows: Fixed NTFS alternate data streams being deleted on save</li>
+    <li>Windows: Fixed slow window creation when using OpenGL</li>
+    <li>Windows: Fixed incorrect case being used when opening files from find-in-files with gitignore enabled</li>
+    <li>Windows: Fixed stdout/stderr output data race when building</li>
+    <li>Windows: Fixed hang on modal dialogs when context menu is open</li>
+    <li>Mac: Tweaked text drag-drop behavior to respect NSDragAndDropTextDelay</li>
+    <li>Mac: The setting <tt>"use_find_clipboard"</tt> can be used to disable global find clipboard integration</li>
+    <li>Mac: Fixed double click not working at the top of a window when in full screen with a custom title bar</li>
+    <li>Mac: Fixed incorrectly reporting successful key event when no command was found</li>
+    <li>Mac: Fixed windows not restoring properly with multi-monitor setups</li>
+    <li>Mac: Fixed window layout issue with native tabs when exiting full screen</li>
+    <li>Mac: Fixed title bar text not fading when out of focus</li>
+    <li>Mac: Fixed reading stdin not working when no windows are open</li>
+    <li>API: Fixed plugin popups sometimes having the wrong placement</li>
+    <li>API: Fixed plugins not loading when a <tt>.python-version</tt> file is in the User package</li>
+    <li>API: Added <tt>Buffer.clear_undo_stack()</tt></li>
+    <li>API: Fixed <tt>View.show</tt> and <tt>View.show_at_center</tt> not working from <tt>on_load</tt> callback</li>
+</ul>
+</article>
+
+<article>
 <h2>Build 4113</h2>
 <div class="release-date">14 July 2021</div>
 <ul>

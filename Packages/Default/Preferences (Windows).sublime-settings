@@ -1,4 +1,5 @@
 {
 	"font_face": "Consolas",
-	"font_size": 11
+	"font_size": 11,
+	"focus_on_file_drop": true,
 }

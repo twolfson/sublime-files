@@ -1,4 +1,5 @@
 {
 	"context_menu": "Console Input Widget Context.sublime-menu",
 	"auto_complete_disabled": true,
+	"show_definitions": false
 }

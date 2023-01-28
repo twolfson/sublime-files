@@ -576,6 +576,9 @@ class Window:
         else:
             return View(view_id)
 
+    def file_history(self):
+        return sublime_api.window_file_history(self.window_id)
+
     def num_groups(self):
         return sublime_api.window_num_groups(self.window_id)
 
@@ -1154,8 +1157,8 @@ class Sheet:
             return None
         return group_num
 
-    def close(self):
-        return sublime_api.sheet_close(self.sheet_id)
+    def close(self, on_close=lambda did_close: None):
+        sublime_api.sheet_close(self.sheet_id, on_close)
 
 
 class TextSheet(Sheet):
@@ -1249,9 +1252,9 @@ class View:
         else:
             return name
 
-    def close(self):
+    def close(self, on_close=lambda did_close: None):
         window_id = sublime_api.view_window(self.view_id)
-        return sublime_api.window_close_file(window_id, self.view_id)
+        return sublime_api.window_close_file(window_id, self.view_id, on_close)
 
     def retarget(self, new_fname):
         sublime_api.view_retarget(self.view_id, new_fname)
@@ -1773,6 +1776,9 @@ class View:
 
         return sublime_api.view_export_to_html(self.view_id, regions, options)
 
+    def clear_undo_stack(self):
+        sublime_api.view_clear_undo_stack(self.view_id)
+
 
 def _buffers():
     return list(map(Buffer, sublime_api.buffers()))
@@ -2133,6 +2139,9 @@ class Syntax:
 
     def __eq__(self, other):
         return isinstance(other, Syntax) and self.path == other.path
+
+    def __hash__(self):
+        return hash(self.path)
 
     def __repr__(self):
         return (f'Syntax({self.path!r}, {self.name!r}, {self.hidden!r}, '

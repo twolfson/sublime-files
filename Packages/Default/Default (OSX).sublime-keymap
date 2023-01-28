@@ -176,7 +176,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["ctrl+m"], "command": "move_to", "args": {"to": "brackets"} },
 	{ "keys": ["super+shift+a"], "command": "expand_selection", "args": {"to": "tag"}, "context":
 		[
-			{ "key": "selector", "operator": "equal", "operand": "text.html - source", "match_all": true }
+			{ "key": "selector", "operator": "equal", "operand": "(text.html, text.xml) - source", "match_all": true }
 		]
 	},
 
@@ -688,7 +688,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 
 	{ "keys": ["super+k", "super+u"], "command": "upper_case" },
 	{ "keys": ["super+k", "super+l"], "command": "lower_case" },
-	{ "keys": ["super+k", "super+space"], "command": "set_mark" },
+	{ "keys": ["super+k", "super+m"], "command": "set_mark" },
 	{ "keys": ["super+k", "super+a"], "command": "select_to_mark" },
 	{ "keys": ["super+k", "super+w"], "command": "delete_to_mark" },
 	{ "keys": ["super+k", "super+x"], "command": "swap_with_mark" },
@@ -835,6 +835,19 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 		"keys": ["shift+escape"], "command": "show_panel",
 		"args": {"panel": "output.exec"},
 		"context": [ { "key": "panel_visible", "operand": false } ]
+	},
+
+	{ "keys": ["enter"], "command": "select", "context":
+		[
+			{ "key": "panel_has_focus", "operator": "equal", "operand": true },
+			{ "key": "panel_type", "operand": "input"},
+		],
+	},
+	{ "keys": ["keypad_enter"], "command": "select", "context":
+		[
+			{ "key": "panel_has_focus", "operator": "equal", "operand": true },
+			{ "key": "panel_type", "operand": "input"},
+		],
 	},
 
 	//Overlay key bindings

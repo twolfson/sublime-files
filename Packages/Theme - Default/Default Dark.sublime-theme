@@ -28,7 +28,7 @@
 
 		"progress_bar_fg": "color(var(base_hue) l(40%))",
 
-		"dialog_button_bg": "color(var(base_hue) l(70%))",
+		"dialog_button_bg": "color(var(base_hue) l(50%))",
 
 		"icon_button_highlight": "color(var(base_hue) l(30%))",
 
@@ -73,6 +73,16 @@
 		"file_tab_angled_unselected_medium_label_shadow": "transparent",
 		"file_tab_angled_unselected_light_label_color": "hsl(0, 0%, 45%)",
 		"file_tab_angled_unselected_light_label_shadow": "transparent",
+
+		// Radio buttons
+		"radio_back": "var(--background)",
+		"radio_selected": "var(--bluish)",
+		"radio_border-selected": "var(--bluish)",
+
+		// Checkbox buttons
+		"checkbox_back": "var(--background)",
+		"checkbox_selected": "var(--bluish)",
+		"checkbox_border-selected": "var(--bluish)",
 	},
 	"rules":
 	[

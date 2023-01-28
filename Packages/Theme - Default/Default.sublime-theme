@@ -184,6 +184,17 @@
 		"status_bar_label_color": "var(text_fg)",
 		"status_bar_icon_tint": "color(var(status_bar_label_color) a(0.8))",
 		"status_bar_label_shadow": "color(white a(0.18))",
+
+		"radio_back": "white",
+		"radio_border-unselected": "#a6a6a6",
+		"radio_selected": "var(--bluish)",
+		"radio_border-selected": "var(--bluish)",
+
+		"checkbox_back": "white",
+		"checkbox_border-unselected": "#a6a6a6",
+		"checkbox_selected": "var(--bluish)",
+		"checkbox_border-selected": "var(--bluish)",
+		"checkbox-disabled": "#a6a6a6",
 	},
 	"rules":
 	[
@@ -2081,6 +2092,10 @@
 		},
 		{
 			"class": "text_area_control",
+			"deleted_line_texture": "Theme - Default/common/deleted_line_indicator.png",
+		},
+		{
+			"class": "text_area_control",
 			"settings": {
 				"inactive_sheet_dimming": true,
 			},
@@ -2134,6 +2149,11 @@
 			"class": "button_control",
 			"parents": [{"class": "dialog"}],
 			"layer0.tint": "var(dialog_button_bg)",
+		},
+		{
+			"class": "button_control",
+			"attributes": ["disabled"],
+			"layer0.opacity": 0.3,
 		},
 		{
 			"class": "icon_button_group",
@@ -2341,7 +2361,13 @@
 			"parents": [{"class": "button_control"}],
 			"fg": "var(button_label_color)",
 			"shadow_color": "var(button_label_shadow)",
-			"shadow_offset": [0, 1]
+			"shadow_offset": [0, 1],
+			"opacity": 1,
+		},
+		{
+			"class": "label_control",
+			"parents": [{"class": "button_control", "attributes": ["disabled"]}],
+			"opacity": 0.7,
 		},
 
 		// Tool tips
@@ -2412,6 +2438,65 @@
 			"color": "color(var(status_bar_label_color) a(0.8))",
 			"border_color": "color(var(status_bar_label_color) a(0.5))",
 			"content_margin": [3, 0]
+		},
+
+		// Checkboxes
+		{
+			"class": "checkbox_box_control",
+			"content_margin": [13, 13, 0, 0],
+			"layer0.texture": "Theme - Default/common/checkbox_back.png",
+			"layer0.tint": "var(checkbox_back)",
+			"layer0.opacity": 1,
+			"layer1.texture": "Theme - Default/common/checkbox_border.png",
+			"layer1.tint": "var(checkbox_border-unselected)",
+			"layer1.opacity": 1,
+			"layer2.texture": "Theme - Default/common/checkbox_check.png",
+			"layer2.tint": "var(checkbox_selected)",
+			"layer2.opacity": 0,
+		},
+		{
+			"class": "checkbox_box_control",
+			"parents": [ {"class": "checkbox_control", "attributes": ["checked"]}],
+			"layer1.tint": "var(checkbox_border-selected)",
+			"layer2.opacity": 1,
+		},
+		{
+			"class": "checkbox_box_control",
+			"parents": [ {"class": "checkbox_control", "attributes": ["disabled"]}],
+			"layer2.texture": "Theme - Default/common/checkbox_disabled.png",
+			"layer2.tint": "var(checkbox-disabled)",
+			"layer2.opacity": 1,
+		},
+
+		// Radio Buttons
+		{
+			"class": "radio_button_list_control",
+			"spacing": 4
+		},
+		{
+			"class": "checkbox_box_control",
+			"parents": [{"class": "radio_button_list_control"}, {"class": "checkbox_control"}],
+			"content_margin": [13, 13, 0, 0],
+			"layer0.texture": "Theme - Default/common/radio_button_back.png",
+			"layer0.tint": "var(radio_back)",
+			"layer0.opacity": 1,
+			"layer1.texture": "Theme - Default/common/radio_button_border.png",
+			"layer1.tint": "var(radio_border-unselected)",
+			"layer1.opacity": 1,
+			"layer2.texture": "Theme - Default/common/radio_button_on.png",
+			"layer2.tint": "var(radio_selected)",
+			"layer2.opacity": 0,
+		},
+		{
+			"class": "checkbox_box_control",
+			"parents": [{"class": "radio_button_list_control"}, {"class": "checkbox_control", "attributes": ["hover"]}],
+			"layer1.tint": "var(radio_border-selected)",
+		},
+		{
+			"class": "checkbox_box_control",
+			"parents": [{"class": "radio_button_list_control"}, {"class": "checkbox_control", "attributes": ["checked"]}],
+			"layer1.tint": "var(radio_border-selected)",
+			"layer2.opacity": 1,
 		},
 	]
 }

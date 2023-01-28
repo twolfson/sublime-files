@@ -85,7 +85,7 @@ class AsyncProcess:
             cmd,
             bufsize=0,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             stdin=subprocess.PIPE,
             startupinfo=startupinfo,
             env=proc_env,
@@ -100,13 +100,7 @@ class AsyncProcess:
             args=(self.proc.stdout, True)
         )
 
-        self.stderr_thread = threading.Thread(
-            target=self.read_fileno,
-            args=(self.proc.stderr, False)
-        )
-
     def start(self):
-        self.stderr_thread.start()
         self.stdout_thread.start()
 
     def kill(self):
@@ -142,10 +136,6 @@ class AsyncProcess:
                 self.listener.on_data(self, data)
             else:
                 if execute_finished:
-                    # Make sure the stderr thread joins before we call
-                    # on_finished
-                    self.stderr_thread.join()
-
                     self.listener.on_finished(self)
                 break
 

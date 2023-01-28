@@ -5,7 +5,7 @@ import os
 
 
 PREFS_FILE = 'Preferences.sublime-settings'
-DEFAULT_CS = 'Packages/Color Scheme - Default/Mariana.sublime-color-scheme'
+DEFAULT_CS = 'Mariana.sublime-color-scheme'
 DEFAULT_THEME = 'Default.sublime-theme'
 
 CURRENT_KIND = (sublime.KIND_ID_COLOR_GREENISH, "✓", "Current")
@@ -110,7 +110,7 @@ class ColorSchemeInputHandler(sublime_plugin.ListInputHandler):
                     "light",
                     True,
                     "light_color_scheme",
-                    "Packages/Color Scheme - Default/Breakers.sublime-color-scheme",
+                    "Breakers.sublime-color-scheme",
                     "Light: "
                 )
             elif "dark" not in args:
@@ -119,7 +119,7 @@ class ColorSchemeInputHandler(sublime_plugin.ListInputHandler):
                     "dark",
                     True,
                     "dark_color_scheme",
-                    "Packages/Color Scheme - Default/Mariana.sublime-color-scheme",
+                    "Mariana.sublime-color-scheme",
                     "Dark: "
                 )
         else:
@@ -149,50 +149,63 @@ class ColorSchemeInputHandler(sublime_plugin.ListInputHandler):
         self.original = self.prefs.get('color_scheme', DEFAULT_CS)
         self.pre_selection = self.prefs.get(self.setting_name, self.default_value)
 
+        # sublime-color-scheme's are unique on the name, but tmTheme's are
+        # unique on the path
+        if self.original.endswith(".sublime-color-scheme"):
+            self.original = os.path.basename(self.original)
+        if self.pre_selection.endswith(".sublime-color-scheme"):
+            self.pre_selection = os.path.basename(self.pre_selection)
+
         show_legacy = self.prefs.get("show_legacy_color_schemes", False)
 
         items = []
+        selected = -1
+
         if not self.variant:
             kind_info = sublime.KIND_AMBIGUOUS
             if self.pre_selection == "auto":
                 kind_info = CURRENT_KIND
+                selected = 0
+
             items.append(sublime.ListInputItem(
                 'Auto',
                 'auto',
                 details='Switches between light and dark color schemes to match OS appearance',
                 kind=kind_info
             ))
-        selected = -1
-        package_set = set()
 
-        files = sublime.find_resources('*.tmTheme')
-        trimmed_names = set()
-        for f in files:
-            name, ext = os.path.splitext(os.path.basename(f))
-            trimmed_names.add(name)
 
-        # Add all the sublime-color-scheme files, but not the overrides
+        files = []
+        nameset = set()
+        for f in sublime.find_resources('*.tmTheme'):
+            files.append((f, f))
+            nameset.add(os.path.splitext(os.path.basename(f))[0])
+
+        # Color schemes with the same name are merged, but that's not the case
+        # for tmTheme.
         for f in sublime.find_resources('*.sublime-color-scheme'):
-            name, ext = os.path.splitext(os.path.basename(f))
-            if name not in trimmed_names:
-                trimmed_names.add(name)
-                files.append(f)
+            basename = os.path.basename(f)
+            name = os.path.splitext(basename)[0]
+            if name not in nameset:
+                nameset.add(name)
+                files.append((f, basename))
 
-        for cs in files:
-            kind_info = sublime.KIND_AMBIGUOUS
-            if self.pre_selection and cs == self.pre_selection:
-                selected = len(items)
-                kind_info = CURRENT_KIND
-            if len(cs.split('/', 2)) != 3:  # Not in a package
-                continue
-            pkg = os.path.dirname(cs)
+        for cs, unique_path in files:
+            pkg, basename = os.path.split(cs)
+            name = os.path.splitext(basename)[0]
+
             if pkg == "Packages/Color Scheme - Legacy" and not show_legacy:
                 continue
+
+            kind_info = sublime.KIND_AMBIGUOUS
+            if self.pre_selection and self.pre_selection == unique_path:
+                kind_info = CURRENT_KIND
+                selected = len(items)
+
             if pkg.startswith("Packages/"):
                 pkg = pkg[len("Packages/"):]
-            name, ext = os.path.splitext(os.path.basename(cs))
-            items.append(sublime.ListInputItem(name, cs, details=pkg, kind=kind_info))
-            package_set.add(pkg)
+
+            items.append(sublime.ListInputItem(name, unique_path, details=pkg, kind=kind_info))
 
         return (items, selected)
 
@@ -347,7 +360,7 @@ class ThemeInputHandler(sublime_plugin.ListInputHandler):
                     "light",
                     True,
                     "light_theme",
-                    "Packages/Theme - Default/Default.sublime-theme",
+                    "Default.sublime-theme",
                     "Light: "
                 )
             elif "dark" not in args:
@@ -356,7 +369,7 @@ class ThemeInputHandler(sublime_plugin.ListInputHandler):
                     "dark",
                     True,
                     "dark_theme",
-                    "Packages/Theme - Default/Default Dark.sublime-theme",
+                    "Default Dark.sublime-theme",
                     "Dark: "
                 )
         else:
@@ -381,26 +394,32 @@ class ThemeInputHandler(sublime_plugin.ListInputHandler):
         self.window = sublime.active_window()
         self.prefs = sublime.load_settings(PREFS_FILE)
 
-        self.original = self.prefs.get('theme', DEFAULT_THEME)
-        self.pre_selection = self.prefs.get(self.setting_name, self.default_value)
+        self.original = os.path.basename(
+            self.prefs.get('theme', DEFAULT_THEME))
+        self.pre_selection = os.path.basename(
+            self.prefs.get(self.setting_name, self.default_value))
 
         items = []
+        selected = -1
+
         if not self.variant:
             kind_info = sublime.KIND_AMBIGUOUS
             if self.pre_selection == "auto":
                 kind_info = CURRENT_KIND
+                selected = 0
+
             items.append(sublime.ListInputItem(
                 'Auto',
                 'auto',
                 details='Switches between light and dark themes to match OS appearance',
                 kind=kind_info
             ))
-        selected = -1
 
         nameset = set()
 
         for theme in sublime.find_resources('*.sublime-theme'):
-            name = os.path.basename(theme)
+            pkg, basename = os.path.split(theme)
+            name, ext = os.path.splitext(basename)
 
             # Themes with the same name, but in different packages, are
             # considered a single logical theme, as the data from the
@@ -411,20 +430,14 @@ class ThemeInputHandler(sublime_plugin.ListInputHandler):
             nameset.add(name)
 
             kind_info = sublime.KIND_AMBIGUOUS
-            if self.pre_selection and name == self.pre_selection:
+            if self.pre_selection and basename == self.pre_selection:
                 selected = len(items)
                 kind_info = CURRENT_KIND
-            if len(theme.split('/', 2)) != 3:  # Not in a package
-                continue
-            pkg = os.path.dirname(theme) + '/'
+
             if pkg.startswith("Packages/"):
                 pkg = pkg[len("Packages/"):]
-            items.append(sublime.ListInputItem(
-                name,
-                os.path.basename(theme),
-                details=pkg,
-                kind=kind_info
-            ))
+
+            items.append(sublime.ListInputItem(name, basename, details=pkg, kind=kind_info))
 
         return (items, selected)
 

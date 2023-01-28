@@ -1,6 +1,7 @@
 [
 	{
 		"caption": "Set Encoding",
+		"id": "set_encoding",
 		"children":
 		[
 			{ "caption": "UTF-8", "command": "set_encoding", "args": {"encoding": "utf-8" } },
@@ -43,6 +44,7 @@
 
 	{
 		"caption": "Reopen with Encoding",
+		"id": "reopen_with_encoding",
 		"children":
 		[
 			{ "caption": "UTF-8", "command": "reopen", "args": {"encoding": "utf-8" } },

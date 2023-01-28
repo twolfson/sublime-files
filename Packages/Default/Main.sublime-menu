@@ -48,6 +48,7 @@
 			},
 			{
 				"caption": "Reopen with Encoding",
+				"id": "reopen_with_encoding",
 				"children":
 				[
 					{ "caption": "UTF-8", "command": "reopen", "args": {"encoding": "utf-8" } },
@@ -91,6 +92,7 @@
 			{ "command": "save", "args": {"async": true}, "caption": "Save", "mnemonic": "S" },
 			{
 				"caption": "Save with Encoding",
+				"id": "save_with_encoding",
 				"children":
 				[
 					{ "caption": "UTF-8", "command": "save", "args": { "async": true, "encoding": "utf-8" } },
@@ -329,7 +331,8 @@
 			{ "command": "expand_selection", "args": {"to": "smart"}, "caption": "Expand Selection" },
 			{ "command": "expand_selection", "args": {"to": "line"}, "caption": "Expand Selection to Line" },
 			{ "command": "find_under_expand", "caption": "Expand Selection to Word" },
-			{ "command": "expand_selection_to_paragraph", "caption": "Expand Selection to Paragraph" },
+			{ "command": "expand_selection_to_paragraph", "caption": "Expand Selection to Block" },
+			{ "command": "expand_selection_to_paragraph", "args": {"markup_aware": true}, "caption": "Expand Selection to Paragraph" },
 			{ "command": "expand_selection", "args": {"to": "scope"}, "caption": "Expand Selection to Scope" },
 			{ "command": "expand_selection", "args": {"to": "brackets"}, "caption": "Expand Selection to Brackets" },
 			{ "command": "expand_selection", "args": {"to": "indentation"}, "caption": "Expand Selection to Indentation" },
@@ -951,7 +954,7 @@
 			{ "command": "show_license_window", "caption": "Enter License" },
 			{ "command": "remove_license"},
 			{ "caption": "-" },
-			{ "command": "update_check", "caption": "Check for Updates…", "platform": "!Linux" },
+			{ "command": "update_check", "caption": "Check for Updates…" },
 			{ "command": "show_changelog", "caption": "Changelog…" },
 			{ "command": "show_about_window", "caption": "About Sublime Text", "mnemonic": "A" }
 		]
