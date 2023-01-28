@@ -1,16 +1,20 @@
 <style>
 html {
-    background-color: #f6f6f6;
+    background-color: var(--background);
     margin: 16px;
 }
 body {
-    color: #333;
+    color: var(--foreground);
     font-family: "Open Sans", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
 }
+
 ul {
     padding-left: 1.2rem;
 }
 li { margin: 2px; }
+li ul {
+    margin: 2px 0 4px;
+}
 ul.topic {
     margin-top: 0;
     padding-left: 1.5rem;
@@ -18,35 +22,78 @@ ul.topic {
 ul.topic ul {
     margin: 0.2em 0;
 }
+
 h1 {
+    color: color(var(--foreground) l(- 10%));
     font-size: 2.0rem;
     margin: 0;
 }
+html.dark h1 {
+    color: color(var(--foreground) l(+ 10%));
+}
 h2 {
-    color: #444;
+    color: color(var(--foreground) a(0.9));
     font-size: 1.4rem;
     margin: 1em 0 0.1em 0;
 }
-h3 {
-    color: #666;
-    font-size: 1.05rem;
-    margin: 1em 0 0.25em 0.5em;
-    font-weight: bold;
-}
 a {
-    color: #000;
+    color: var(--bluish);
 }
 article { display: block; }
 .release-date, .forum-link {
     font-size: 0.9rem;
     font-style: italic;
-    color: #666;
+    color: color(var(--foreground) a(0.7));
+}
+tt {
+    font-size: 0.9em;
+    border-radius: 2px;
+    background-color: rgba(0, 0, 0, 0.08);
+    padding: 0 4px;
+}
+html.dark tt {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 </style>
 
 <h1>Stable Channel Changelog</h1>
 
 <article class="current">
+<h2>Build 4113</h2>
+<div class="release-date">14 July 2021</div>
+<ul>
+    <li>Improved performance when editing large files</li>
+    <li>Improved OpenGL rendering performance</li>
+    <li>Improved handling of deleted files</li>
+    <li>Various syntax highlighting improvements</li>
+    <li><tt>subl</tt> can now be used to edit stdin, eg: <tt>echo test | subl | cat</tt></li>
+    <li>Syntax and indentation detection is now done when editing stdin</li>
+    <li>Added <tt>syntax_detection_size_limit</tt> setting for controlling when syntax detection is skipped</li>
+    <li>Theme: Improved scroll puck visibility</li>
+    <li>Theme: Fixed adaptive theme not respecting themed_title_bar setting with light color schemes</li>
+    <li>Middle clicking in the Open Files section of then sidebar will close the clicked on file</li>
+    <li>Preserve Case now works with unicode characters</li>
+    <li>Added <tt>reveal_menu</tt> setting for disabling revealing the menu when alt is pressed on Linux and Windows</li>
+    <li>Safe Mode key binding can be disabled by creating a file named <tt>.Disable Safe Mode Shortcut</tt> in the data directory</li>
+    <li>Fixed Ruby syntax highlighting in the Monokai color scheme</li>
+    <li>Fixed a scenario where folders weren't being watched for changes</li>
+    <li>Fixed underlines being drawn behind line highlight</li>
+    <li>Fixed an infinite loop that could occur during syntax highlighting</li>
+    <li>Fixed the append command's <tt>scroll_to_end</tt> parameter sometimes not working</li>
+    <li>Fixed <i>Goto Symbol</i> sometimes being scrolled incorrectly</li>
+    <li>Fixed multi-select file limit applying to sidebar</li>
+    <li>Fixed auto-complete related hang in some large files</li>
+    <li>Linux: Fixed print sometimes not working</li>
+    <li>Linux: Fixed wrong order of yes/no buttons in GTK dialogs</li>
+    <li>Linux: Fixed letters sometimes being cut off</li>
+    <li>Windows: Always make a new window when launching main executable on Windows</li>
+    <li>Windows: Fixed window icon not scaling properly on Windows</li>
+    <li>Windows: Fixed globs not being expanded in some cases on Windows</li>
+    <li>Mac: Fixed auto theme not changing with OS auto theme on macOS</li>
+</ul>
+</article>
+
+<article>
 <h2>4 (Build 4107)</h2>
 <div class="release-date">20 May 2021</div>
 <div class="forum-link">See also the <a href="https://www.sublimetext.com/blog/articles/sublime-text-4">Announcement Post</a></div>

@@ -435,6 +435,11 @@
 	// complete dialog when it's explicitly triggered
 	"auto_complete_include_snippets_when_typing": true,
 
+	// Syntax will not be detected for files larger than this size. This makes
+	// loading large files significantly faster. Set to 0 to always perform
+	// syntax detection. The default is 16MiB.
+	"syntax_detection_size_limit": 16777216,
+
 	// A list of wildcard patterns specifying which snippet files to ignore.
 	// For example, to ignore all the default C++ snippets, set this to
 	// ["C++/*"]
@@ -450,6 +455,11 @@
 	// displayed when switching files. Tabs will automatically hidden upon
 	// resuming typing or after a fixed amount of time.
 	"reveal_tabs_with_timeout": false,
+
+	// When false, disables alt-tapping revealing the menu when hidden on Linux
+	// and Windows. Does not affect auto hiding or toggling the menu through
+	// the command palette.
+	"reveal_menu": true,
 
 	// If true, when typing the mouse pointer/cursor will be hidden. Moving the
 	// pointer will unhide it. This setting has no effect on macOS.
@@ -508,7 +518,9 @@
 	"light_theme": "Default.sublime-theme",
 	"dark_theme": "Default Dark.sublime-theme",
 
-	// Adaptive theme only: controls if a custom or default title bar is used
+	// Adaptive theme only: controls if a custom or default title bar is used.
+	// Note that on Windows, the hamburger menu is used whenever this is
+	// enabled and the adaptive theme is in use.
 	"themed_title_bar": true,
 
 	// Controls the style of file tabs for the Default, Default Dark, and

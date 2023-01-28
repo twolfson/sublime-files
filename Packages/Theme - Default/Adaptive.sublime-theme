@@ -62,10 +62,10 @@
 		"file_tab_selected_label_color": "white",
 		"file_tab_selected_light_label_color": "hsl(0, 0%, 20%)",
 
-		"file_tab_close_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_hover_opacity": { "target": 0.6, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_selected_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_selected_hover_opacity": { "target": 0.8, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_hover_opacity": { "target": 0.9, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_selected_opacity": { "target": 0.8, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_selected_hover_opacity": { "target": 1, "speed": 4.0, "interpolation": "smoothstep" },
 
 		"sheet_dark_modifier": "blend(var(tabset_dark_bg) 70%)",
 		"sheet_medium_dark_modifier": "blend(var(tabset_medium_dark_bg) 70%)",
@@ -118,6 +118,7 @@
 		},
 		{
 			"class": "title_bar",
+			"settings": ["themed_title_bar"],
 			"attributes": ["file_dark"],
 			"bg": "var(dark_bg)",
 			"style": "dark"
@@ -125,18 +126,21 @@
 		{
 			"class": "title_bar",
 			"attributes": ["file_medium_dark"],
+			"settings": ["themed_title_bar"],
 			"bg": "var(medium_dark_bg)",
 			"style": "dark"
 		},
 		{
 			"class": "title_bar",
 			"attributes": ["file_medium"],
+			"settings": ["themed_title_bar"],
 			"bg": "var(medium_bg)",
 			"style": "light"
 		},
 		{
 			"class": "title_bar",
 			"attributes": ["file_light"],
+			"settings": ["themed_title_bar"],
 			"bg": "var(light_bg)",
 			"fg": "color(var(--background) blend(black 30%))",
 			"style": "light"
@@ -283,23 +287,34 @@
 		{
 			"class": "close_button",
 			"layer0.texture": "Theme - Default/common/open_file_close.png",
-			"layer0.opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
+			"layer0.opacity": { "target": 0.7, "speed": 4.0, "interpolation": "smoothstep" },
+			"layer0.tint": "color(white a(50%))",
 			"content_margin": [8, 8],
 		},
 		{
 			"class": "close_button",
 			"parents": [{"class": "window", "attributes": ["file_light"]}],
-			"layer0.tint": "black"
+			"layer0.tint": "color(black a(50%))"
 		},
 		{
 			"class": "close_button",
 			"attributes": ["hover"],
-			"layer0.opacity": { "target": 0.6, "speed": 4.0, "interpolation": "smoothstep" }
+			"layer0.opacity": { "target": 1, "speed": 4.0, "interpolation": "smoothstep" }
 		},
 		{
 			"class": "close_button",
 			"attributes": ["!hover", "dirty"],
 			"layer0.texture": "Theme - Default/common/open_file_dirty.png",
+		},
+		{
+			"class": "close_button",
+			"attributes": ["added"],
+			"layer0.tint": "var(vcs_added)",
+		},
+		{
+			"class": "close_button",
+			"attributes": ["deleted"],
+			"layer0.tint": "var(vcs_deleted)",
 		},
 
 		// Folder & File Icons
@@ -800,7 +815,7 @@
 		},
 		{
 			"class": "tab_control",
-			"attributes": ["dirty", "!selected", "!hover"],
+			"attributes": ["dirty", "!selected"],
 			"settings": {
 				"file_tab_style": ["", "rounded"],
 				"highlight_modified_tabs": true
@@ -810,13 +825,23 @@
 		},
 		{
 			"class": "tab_control",
-			"attributes": ["dirty", "!selected", "!hover"],
+			"attributes": ["dirty", "!selected"],
 			"settings": {
 				"file_tab_style": "square",
 				"highlight_modified_tabs": true
 			},
 			"layer2.texture": "Theme - Default/common/tab_square_pinstripe.png",
 			"layer2.inner_margin": [0, 0, 0, 0],
+		},
+		{
+			"class": "tab_control",
+			"attributes": ["added"],
+			"layer2.tint": "var(--greenish)",
+		},
+		{
+			"class": "tab_control",
+			"attributes": ["deleted"],
+			"layer2.tint": "var(--redish)",
 		},
 		// Tabs - dividers
 		{
@@ -1078,7 +1103,7 @@
 			"class": "tab_close_button",
 			"settings": ["show_tab_close_buttons"],
 			"layer0.texture": "Theme - Default/common/tab_close.png",
-			"layer0.tint": "white",
+			"layer0.tint": "color(white a(50%))",
 			"content_margin": [10, 9]
 		},
 		{
@@ -1090,7 +1115,7 @@
 		{
 			"class": "tab_close_button",
 			"parents": [{"class": "tab_control", "attributes": ["file_light"]}],
-			"layer0.tint": "black",
+			"layer0.tint": "color(black a(50%))",
 		},
 		{
 			"class": "tab_close_button",
@@ -1116,21 +1141,31 @@
 		},
 		{
 			"class": "tab_close_button",
-			"settings": {"file_tab_style": ["", "rounded", "square"]},
-			"parents": [
-				{"class": "tab_control", "attributes": ["!selected", "!hover"]}
-			],
-			"layer0.tint": "white"
+			"parents": [{"class": "tab_control", "attributes": ["added"]}],
+			"layer0.tint": "var(vcs_added)",
 		},
 		{
 			"class": "tab_close_button",
-			"settings": {"file_tab_style": ["", "rounded", "square"]},
-			"parents": [
-				{"class": "edit_window", "attributes": ["file_light"]},
-				{"class": "tab_control", "attributes": ["!selected", "!hover"]}
-			],
-			"layer0.tint": "black"
+			"parents": [{"class": "tab_control", "attributes": ["deleted"]}],
+			"layer0.tint": "var(vcs_deleted)",
 		},
+		// {
+		// 	"class": "tab_close_button",
+		// 	"settings": {"file_tab_style": ["", "rounded", "square"]},
+		// 	"parents": [
+		// 		{"class": "tab_control", "attributes": ["!selected", "!hover"]}
+		// 	],
+		// 	"layer0.tint": "white"
+		// },
+		// {
+		// 	"class": "tab_close_button",
+		// 	"settings": {"file_tab_style": ["", "rounded", "square"]},
+		// 	"parents": [
+		// 		{"class": "edit_window", "attributes": ["file_light"]},
+		// 		{"class": "tab_control", "attributes": ["!selected", "!hover"]}
+		// 	],
+		// 	"layer0.tint": "black"
+		// },
 		// Tab scrolling
 		{
 			"class": "scroll_tabs_left_button",
@@ -2068,9 +2103,17 @@
 			"class": "puck_control",
 			"layer0.texture": "Theme - Default/common/scroll.png",
 			"layer0.tint": "black",
-			"layer0.opacity": 0.2,
+			"layer0.opacity": { "target": 0.2, "speed": 5.0, "interpolation": "smoothstep" },
 			"layer0.inner_margin": 2,
 			"content_margin": [0, 12]
+		},
+		{
+			"class": "puck_control",
+			"parents": [
+				{"class": "scroll_bar_control", "attributes": ["hover"]},
+				{"class": "scroll_track_control"},
+			],
+			"layer0.opacity": { "target": 0.6, "speed": 5.0, "interpolation": "smoothstep" },
 		},
 		{
 			"class": "puck_control",

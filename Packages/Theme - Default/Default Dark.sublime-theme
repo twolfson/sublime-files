@@ -21,9 +21,6 @@
 		"sidebar_label_selected": "hsl(0, 0%, 90%)",
 		"sidebar_label_ignored": "hsl(0, 0%, 50%)",
 
-		"sidebar_button_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
-		"sidebar_button_hover_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
-
 		"sidebar_scroll_bar_bg": "var(scroll_bar_dark_bg)",
 		"sidebar_scroll_bar_puck_bg": "var(scroll_bar_puck_dark_bg)",
 

@@ -39,8 +39,12 @@
 		"sidebar_label_selected": "hsl(0, 0%, 5%)",
 		"sidebar_label_ignored": "hsl(0, 0%, 60%)",
 
-		"sidebar_button_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
-		"sidebar_button_hover_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_button_tint": "color(var(shape_tint) a(40%))",
+		"sidebar_button_new_tint": "color(var(--greenish) min-contrast(var(sidebar_bg) 2.5))",
+		"sidebar_button_modified_tint": "color(var(shape_tint) a(40%))",
+		"sidebar_button_deleted_tint": "color(var(--redish) min-contrast(var(sidebar_bg) 2.5))",
+		"sidebar_button_opacity": { "target": 0.7, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_button_hover_opacity": { "target": 1, "speed": 4.0, "interpolation": "smoothstep" },
 
 		"sidebar_scroll_bar_bg": "color(var(base_hue) s(+ 5%) l(20%))",
 		"sidebar_scroll_bar_puck_bg": "color(var(base_hue) s(+ 5%) l(30%))",
@@ -104,10 +108,22 @@
 		"file_tab_selected_label_color": "white",
 		"file_tab_selected_light_label_color": "hsl(0, 0%, 20%)",
 
-		"file_tab_close_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_hover_opacity": { "target": 0.6, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_selected_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
-		"file_tab_close_selected_hover_opacity": { "target": 0.8, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_highlight_new_tint": "var(--greenish)",
+		"file_tab_highlight_deleted_tint": "var(--redish)",
+
+		"file_tab_close_dark_tint": "color(white a(50%))",
+		"file_tab_close_dark_new_tint": "var(--greenish)",
+		"file_tab_close_dark_modified_tint": "color(white a(50%))",
+		"file_tab_close_dark_deleted_tint": "var(--redish)",
+		"file_tab_close_light_tint": "color(black a(0.5))",
+		"file_tab_close_light_new_tint": "var(--greenish)",
+		"file_tab_close_light_modified_tint": "color(black a(50%))",
+		"file_tab_close_light_deleted_tint": "var(--redish)",
+
+		"file_tab_close_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_hover_opacity": { "target": 0.9, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_selected_opacity": { "target": 0.8, "speed": 4.0, "interpolation": "smoothstep" },
+		"file_tab_close_selected_hover_opacity": { "target": 1, "speed": 4.0, "interpolation": "smoothstep" },
 
 		"sheet_dark_modifier": "blend(var(tabset_dark_bg) 80%)",
 		"sheet_medium_dark_modifier": "blend(var(tabset_medium_dark_bg) 85%)",
@@ -251,7 +267,7 @@
 			"class": "close_button",
 			"layer0.texture": "Theme - Default/common/open_file_close.png",
 			"layer0.opacity": "var(sidebar_button_opacity)",
-			"layer0.tint": "var(shape_tint)",
+			"layer0.tint": "var(sidebar_button_tint)",
 			"content_margin": [8, 8],
 		},
 		{
@@ -263,6 +279,21 @@
 			"class": "close_button",
 			"attributes": ["!hover", "dirty"],
 			"layer0.texture": "Theme - Default/common/open_file_dirty.png",
+		},
+		{
+			"class": "close_button",
+			"attributes": ["added"],
+			"layer0.tint": "var(sidebar_button_new_tint)",
+		},
+		{
+			"class": "close_button",
+			"attributes": ["modified"],
+			"layer0.tint": "var(sidebar_button_modified_tint)",
+		},
+		{
+			"class": "close_button",
+			"attributes": ["deleted"],
+			"layer0.tint": "var(sidebar_button_deleted_tint)",
 		},
 
 		// Folder & File Icons
@@ -712,7 +743,7 @@
 		},
 		{
 			"class": "tab_control",
-			"attributes": ["dirty", "!selected", "!hover"],
+			"attributes": ["dirty", "!selected"],
 			"settings": {
 				"file_tab_style": ["", "rounded"],
 				"highlight_modified_tabs": true
@@ -722,13 +753,23 @@
 		},
 		{
 			"class": "tab_control",
-			"attributes": ["dirty", "!selected", "!hover"],
+			"attributes": ["dirty", "!selected"],
 			"settings": {
 				"file_tab_style": "square",
 				"highlight_modified_tabs": true
 			},
 			"layer2.texture": "Theme - Default/common/tab_square_pinstripe.png",
 			"layer2.inner_margin": [0, 0, 0, 0],
+		},
+		{
+			"class": "tab_control",
+			"attributes": ["added"],
+			"layer2.tint": "var(file_tab_highlight_new_tint)",
+		},
+		{
+			"class": "tab_control",
+			"attributes": ["deleted"],
+			"layer2.tint": "var(file_tab_highlight_deleted_tint)",
 		},
 		// Tabs - dividers
 		{
@@ -990,19 +1031,19 @@
 			"class": "tab_close_button",
 			"settings": ["show_tab_close_buttons"],
 			"layer0.texture": "Theme - Default/common/tab_close.png",
-			"layer0.tint": "white",
+			"layer0.tint": "var(file_tab_close_dark_tint)",
 			"content_margin": [10, 9]
+		},
+		{
+			"class": "tab_close_button",
+			"parents": [{"class": "tab_control", "attributes": ["file_light"]}],
+			"layer0.tint": "var(file_tab_close_light_tint)",
 		},
 		{
 			"class": "tab_close_button",
 			"attributes": ["!hover"],
 			"parents": [{"class": "tab_control", "attributes": ["dirty"]}],
 			"layer0.texture": "Theme - Default/common/tab_dirty.png",
-		},
-		{
-			"class": "tab_close_button",
-			"parents": [{"class": "tab_control", "attributes": ["file_light"]}],
-			"layer0.tint": "black",
 		},
 		{
 			"class": "tab_close_button",
@@ -1028,21 +1069,51 @@
 		},
 		{
 			"class": "tab_close_button",
-			"settings": {"file_tab_style": ["", "rounded", "square"]},
-			"parents": [
-				{"class": "tab_control", "attributes": ["!selected", "!hover"]}
-			],
-			"layer0.tint": "white"
+			"parents": [{"class": "tab_control", "attributes": ["added"]}],
+			"layer0.tint": "var(file_tab_close_dark_new_tint)",
 		},
 		{
 			"class": "tab_close_button",
-			"settings": {"file_tab_style": ["", "rounded", "square"]},
-			"parents": [
-				{"class": "edit_window", "attributes": ["file_light"]},
-				{"class": "tab_control", "attributes": ["!selected", "!hover"]}
-			],
-			"layer0.tint": "black"
+			"parents": [{"class": "tab_control", "attributes": ["modified"]}],
+			"layer0.tint": "var(file_tab_close_dark_modified_tint)",
 		},
+		{
+			"class": "tab_close_button",
+			"parents": [{"class": "tab_control", "attributes": ["deleted"]}],
+			"layer0.tint": "var(file_tab_close_dark_deleted_tint)",
+		},
+		{
+			"class": "tab_close_button",
+			"parents": [{"class": "tab_control", "attributes": ["file_light", "added"]}],
+			"layer0.tint": "var(file_tab_close_light_new_tint)",
+		},
+		{
+			"class": "tab_close_button",
+			"parents": [{"class": "tab_control", "attributes": ["file_light", "modified"]}],
+			"layer0.tint": "var(file_tab_close_light_modified_tint)",
+		},
+		{
+			"class": "tab_close_button",
+			"parents": [{"class": "tab_control", "attributes": ["file_light", "deleted"]}],
+			"layer0.tint": "var(file_tab_close_light_deleted_tint)",
+		},
+		// {
+		// 	"class": "tab_close_button",
+		// 	"settings": {"file_tab_style": ["", "rounded", "square"]},
+		// 	"parents": [
+		// 		{"class": "tab_control", "attributes": ["!selected", "!hover"]}
+		// 	],
+		// 	"layer0.tint": "white"
+		// },
+		// {
+		// 	"class": "tab_close_button",
+		// 	"settings": {"file_tab_style": ["", "rounded", "square"]},
+		// 	"parents": [
+		// 		{"class": "edit_window", "attributes": ["file_light"]},
+		// 		{"class": "tab_control", "attributes": ["!selected", "!hover"]}
+		// 	],
+		// 	"layer0.tint": "black"
+		// },
 		// Tab scrolling
 		{
 			"class": "scroll_tabs_left_button",
@@ -1421,7 +1492,7 @@
 			"class": "table_row",
 			"parents": [{"class": "auto_complete", "attributes": ["file_light"]}],
 			"attributes": ["selected"],
-			"layer0.opacity": "var(auto_complete_selected_row_light_tint)"
+			"layer0.tint": "var(auto_complete_selected_row_light_tint)"
 		},
 		{
 			"class": "kind_container",
@@ -1906,9 +1977,17 @@
 			"class": "puck_control",
 			"layer0.texture": "Theme - Default/common/scroll.png",
 			"layer0.tint": "var(scroll_bar_puck_bg)",
-			"layer0.opacity": 0.2,
+			"layer0.opacity": { "target": 0.2, "speed": 5.0, "interpolation": "smoothstep" },
 			"layer0.inner_margin": 2,
 			"content_margin": [0, 12]
+		},
+		{
+			"class": "puck_control",
+			"parents": [
+				{"class": "scroll_bar_control", "attributes": ["hover"]},
+				{"class": "scroll_track_control"},
+			],
+			"layer0.opacity": { "target": 0.6, "speed": 5.0, "interpolation": "smoothstep" },
 		},
 		{
 			"class": "puck_control",

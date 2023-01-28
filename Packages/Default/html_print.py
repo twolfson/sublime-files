@@ -15,6 +15,6 @@ class HtmlPrintCommand(sublime_plugin.TextCommand):
             f.write(html)
             f.write('<script>window.print()</script></body></html>')
 
-            url = pathlib.Path(f.name).as_uri()
-            controller = webbrowser.get(using=view.settings().get('print_using_browser'))
-            controller.open_new_tab(url)
+        url = pathlib.Path(f.name).as_uri()
+        controller = webbrowser.get(using=view.settings().get('print_using_browser'))
+        controller.open_new_tab(url)
