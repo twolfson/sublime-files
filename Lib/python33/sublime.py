@@ -41,6 +41,7 @@ ADD_TO_SELECTION = 32
 REPLACE_MRU = 64
 # Only valid with ADD_TO_SELECTION
 CLEAR_TO_RIGHT = 128
+FORCE_CLONE = 256
 
 IGNORECASE = 2
 LITERAL = 1
@@ -545,6 +546,11 @@ class Window():
             return View(view_id)
 
     def new_html_sheet(self, name, contents, flags=0, group=-1):
+        """
+        valid bits for flags are:
+        ADD_TO_SELECTION: add the html sheet to selected sheets
+        TRANSIENT:  don't add the file to the list of open buffers
+        """
         return make_sheet(sublime_api.window_new_html_sheet(
             self.window_id, name, contents, flags, group))
 
@@ -552,14 +558,14 @@ class Window():
         sublime_api.window_run_command(self.window_id, cmd, args)
 
     def new_file(self, flags=0, syntax=""):
-        """ flags must be either 0 or TRANSIENT """
+        """ flags must be either 0, TRANSIENT OR ADD_TO_SELECTION"""
         return View(sublime_api.window_new_file(self.window_id, flags, syntax))
 
     def open_file(self, fname, flags=0, group=-1):
         """
         valid bits for flags are:
         ENCODED_POSITION: fname name may have :row:col or :row suffix
-        TRASIENT: don't add the file to the list of open buffers
+        TRANSIENT: don't add the file to the list of open buffers
         FORCE_GROUP: don't select the file if it's opened in a different group
         SEMI_TRANSIENT: open the file in semi-transient mode
         ADD_TO_SELECTION: add the file to the selected sheets
@@ -568,8 +574,8 @@ class Window():
         """
         return View(sublime_api.window_open_file(self.window_id, fname, flags, group))
 
-    def find_open_file(self, fname):
-        view_id = sublime_api.window_find_open_file(self.window_id, fname)
+    def find_open_file(self, fname, group=-1):
+        view_id = sublime_api.window_find_open_file(self.window_id, fname, group)
         if view_id == 0:
             return None
         else:
@@ -694,6 +700,9 @@ class Window():
             return View(view_id)
         else:
             return None
+
+    def promote_sheet(self, sheet):
+        sublime_api.window_promote_sheet(self.window_id, sheet.id())
 
     def layout(self):
         return sublime_api.window_get_layout(self.window_id)
@@ -1132,6 +1141,9 @@ class Sheet():
     def is_transient(self):
         return sublime_api.sheet_is_transient(self.sheet_id)
 
+    def is_selected(self):
+        return sublime_api.sheet_is_selected(self.sheet_id)
+
     def group(self):
         group_num = sublime_api.sheet_group(self.sheet_id)
         if group_num == -1:
@@ -1164,6 +1176,19 @@ class HtmlSheet(Sheet):
 
     def set_contents(self, contents):
         sublime_api.html_sheet_set_contents(self.sheet_id, contents)
+
+
+class ContextStackFrame:
+    __slots__ = ['context_name', 'source_file', 'source_location']
+
+    def __init__(self, context_name, source_file, source_location):
+        self.context_name = context_name
+        self.source_file = source_file
+        self.source_location = source_location
+
+    def __repr__(self):
+        return ('ContextStackFrame(%r, %r, %r)'
+                % (self.context_name, self.source_file, self.source_location))
 
 
 class View():
@@ -1378,6 +1403,9 @@ class View():
     def extract_scope(self, pt):
         return sublime_api.view_extract_scope(self.view_id, pt)
 
+    def expand_to_scope(self, pt, selector):
+        return sublime_api.view_expand_to_scope(self.view_id, pt, selector)
+
     def scope_name(self, pt):
         return sublime_api.view_scope_name(self.view_id, pt)
 
@@ -1451,14 +1479,14 @@ class View():
 
         return sublime_api.view_classify(self.view_id, pt)
 
-    def find_by_class(self, pt, forward, classes, separators=""):
-        return sublime_api.view_find_by_class(self.view_id, pt, forward, classes, separators)
+    def find_by_class(self, pt, forward, classes, separators="", sub_word_separators=""):
+        return sublime_api.view_find_by_class(self.view_id, pt, forward, classes, separators, sub_word_separators)
 
-    def expand_by_class(self, x, classes, separators=""):
+    def expand_by_class(self, x, classes, separators="", sub_word_separators=""):
         if isinstance(x, Region):
-            return sublime_api.view_expand_by_class(self.view_id, x.a, x.b, classes, separators)
+            return sublime_api.view_expand_by_class(self.view_id, x.a, x.b, classes, separators, sub_word_separators)
         else:
-            return sublime_api.view_expand_by_class(self.view_id, x, x, classes, separators)
+            return sublime_api.view_expand_by_class(self.view_id, x, x, classes, separators, sub_word_separators)
 
     def rowcol(self, tp):
         return sublime_api.view_row_col(self.view_id, tp)
@@ -1942,7 +1970,8 @@ class CompletionItem:
             completion="",
             completion_format=COMPLETION_FORMAT_TEXT,
             kind=KIND_AMBIGUOUS,
-            details=""):
+            details="",
+            flags=0):
 
         self.trigger = trigger
         self.annotation = annotation
@@ -1950,7 +1979,7 @@ class CompletionItem:
         self.completion_format = completion_format
         self.kind = kind
         self.details = details
-        self.flags = 0
+        self.flags = flags
 
     def __repr__(self):
         return 'CompletionItem(%s, annotation=%s, completion=%s, completion_format=%s, kind=%s, details=%s)' % (

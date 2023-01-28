@@ -11,6 +11,10 @@
 	{ "caption": "Convert Case: Upper Case", "command": "upper_case" },
 	{ "caption": "Convert Case: Lower Case", "command": "lower_case" },
 	{ "caption": "Convert Case: Swap Case", "command": "swap_case" },
+	{ "caption": "Convert Case: lowerCamelCase", "command": "convert_ident_case", "args": {"case": "title", "first_case": "lower"} },
+	{ "caption": "Convert Case: UpperCamelCase", "command": "convert_ident_case", "args": {"case": "title"} },
+	{ "caption": "Convert Case: snake_case", "command": "convert_ident_case", "args": {"separator": "_", "case": "lower"} },
+	{ "caption": "Convert Case: kebab-case", "command": "convert_ident_case", "args": {"separator": "-", "case": "lower"} },
 
 	{ "caption": "Toggle Comment", "command": "toggle_comment", "args": {"block": false} },
 	{ "caption": "Toggle Block Comment", "command": "toggle_comment", "args": {"block": true} },

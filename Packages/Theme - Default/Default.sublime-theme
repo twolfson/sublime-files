@@ -43,8 +43,10 @@
 		"sidebar_button_new_tint": "color(var(--greenish) min-contrast(var(sidebar_bg) 2.5))",
 		"sidebar_button_modified_tint": "color(var(shape_tint) a(40%))",
 		"sidebar_button_deleted_tint": "color(var(--redish) min-contrast(var(sidebar_bg) 2.5))",
-		"sidebar_button_opacity": { "target": 0.7, "speed": 4.0, "interpolation": "smoothstep" },
-		"sidebar_button_hover_opacity": { "target": 1, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_button_opacity": { "target": 0.3, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_button_hover_opacity": { "target": 0.5, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_close_button_opacity": { "target": 0.7, "speed": 4.0, "interpolation": "smoothstep" },
+		"sidebar_close_button_hover_opacity": { "target": 1.0, "speed": 4.0, "interpolation": "smoothstep" },
 
 		"sidebar_scroll_bar_bg": "color(var(base_hue) s(+ 5%) l(20%))",
 		"sidebar_scroll_bar_puck_bg": "color(var(base_hue) s(+ 5%) l(30%))",
@@ -277,14 +279,14 @@
 		{
 			"class": "close_button",
 			"layer0.texture": "Theme - Default/common/open_file_close.png",
-			"layer0.opacity": "var(sidebar_button_opacity)",
+			"layer0.opacity": "var(sidebar_close_button_opacity)",
 			"layer0.tint": "var(sidebar_button_tint)",
 			"content_margin": [8, 8],
 		},
 		{
 			"class": "close_button",
 			"attributes": ["hover"],
-			"layer0.opacity": "var(sidebar_button_hover_opacity)"
+			"layer0.opacity": "var(sidebar_close_button_hover_opacity)"
 		},
 		{
 			"class": "close_button",
@@ -1908,6 +1910,12 @@
 			"layer0.tint": "var(switch_project_bg)"
 		},
 		{
+			"class": "switch_project_panel_cancel_container",
+			"layer0.tint": "var(status_bar_bg)",
+			"layer0.opacity": 1.0,
+			"content_margin": 4
+		},
+		{
 			"class": "panel_grid_control",
 			"inside_spacing": 4,
 			"outside_hspacing": 4,
@@ -2373,6 +2381,12 @@
 			"class": "label_control",
 			"parents": [{"class": "button_control", "attributes": ["disabled"]}],
 			"opacity": 0.7,
+		},
+
+		// Link Labels
+		{
+			"class": "link_label",
+			"fg": "var(link_fg)",
 		},
 
 		// Tool tips

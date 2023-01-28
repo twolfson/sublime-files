@@ -353,7 +353,7 @@ NO_SWEAT NO AA1
 #           ^^^ variable.other.constant
 
 _ self
-# <- variable.language.python
+# <- variable.language.anonymous.python
 # ^^^^ variable.language.python
 
 
@@ -590,6 +590,15 @@ myobj.method().attribute
 #    ^ punctuation.accessor.dot
 #      ^^^^^ variable.function
 
+'foo'.and()
+#    ^^^^^^ meta.function-call
+#    ^ punctuation.accessor.dot
+#     ^^^ invalid.illegal.name.python
+
+'foo'and()
+#    ^^^ keyword.operator.logical.python
+#       ^^ meta.sequence.tuple.empty.python
+
 func()(1, 2)
 # <- meta.function-call
 #^^^^^^^^^^^ meta.function-call
@@ -643,7 +652,7 @@ range(20)[10:2:-2]
 
 {foo.: bar.baz.}.
 #   ^ punctuation.accessor.dot.python
-#    ^ punctuation.separator.mapping.key-value.python
+#    ^ punctuation.separator.key-value.python
 #         ^ punctuation.accessor.dot.python
 #             ^ punctuation.accessor.dot.python
 #               ^ punctuation.accessor.dot.python
@@ -940,6 +949,7 @@ def _():
 #         ^^^^^^^^^ meta.qualified-name.python meta.generic-name.python
 #                  ^ punctuation.section.block.conditional.match.python
     case "200":
+#   ^^^^^^^^^^^^ meta.disable-dedentation.python
 #   ^^^^ meta.statement.conditional.case.python
 #       ^^^^^^ meta.statement.conditional.case.patterns.python
 #             ^ meta.statement.conditional.case.python
@@ -950,6 +960,7 @@ def _():
         print("OK")
 
     case ["403",
+#   ^^^^^^^^^^^^ - meta.disable-dedentation
 #   ^^^^ meta.statement.conditional.case.python
 #       ^^^^^^^^^ meta.statement.conditional.case.patterns.python
 #   ^^^^ keyword.control.conditional.case.python
@@ -992,7 +1003,7 @@ def _():
 #       ^^ meta.statement.conditional.case.patterns.python
 #         ^ meta.statement.conditional.case.python
 #   ^^^^ keyword.control.conditional.case.python
-#        ^ variable.language.python
+#        ^ variable.language.anonymous.python
 #         ^ punctuation.section.block.conditional.case.python
 #           ^^^^^^^^^^ comment.line.number-sign.python
         print("Code not found")
@@ -1107,13 +1118,13 @@ def _():
 #   ^^^^ keyword.control.conditional.case.python
 #        ^ punctuation.section.mapping.begin.python
 #         ^^^^^ meta.qualified-name.python meta.generic-name.python
-#              ^ punctuation.separator.mapping.key-value.python
+#              ^ punctuation.separator.key-value.python
 #                ^^^^^^^ string.quoted.single.python
-#                       ^ punctuation.separator.mapping.pair.python
+#                       ^ punctuation.separator.sequence.python
 #                         ^^^^^^^ meta.qualified-name.python
-#                                ^ punctuation.separator.mapping.key-value.python
+#                                ^ punctuation.separator.key-value.python
 #                                  ^^^ constant.numeric.value.python
-#                                     ^ punctuation.separator.mapping.pair.python
+#                                     ^ punctuation.separator.sequence.python
 #                                       ^^ keyword.operator.unpacking.mapping.python
 #                                         ^^^^^^^ meta.generic-name.python
 #                                                ^ punctuation.section.mapping.end.python
@@ -1271,7 +1282,7 @@ def _():
 
     case *expr as _:
 #              ^^ keyword.control.conditional.case.as.python
-#                 ^ variable.language.python
+#                 ^ variable.language.anonymous.python
 
     case *expr as isinstance:
 #              ^^ keyword.control.conditional.case.as.python
@@ -1478,6 +1489,15 @@ def type_annotations_line_continuation() \
 #     ^ meta.function.python punctuation.section.function.begin.python
     pass
 
+def type_annotation_with_defaults(foo: str | None = None)
+#                                    ^^^^^^^^^^^^^ meta.function.parameters.annotation.python - meta.function.parameters.default-value
+#                                                 ^^^^^^ meta.function.parameters.default-value.python - meta.function.parameters.annotation
+#                                      ^^^ support.type.python
+#                                          ^ keyword.operator.arithmetic.python
+#                                            ^^^^ constant.language.null.python
+#                                                 ^ keyword.operator.assignment.python
+#                                                   ^^^^ constant.language.null.python
+
 async def coroutine(param1):
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function
 #                  ^^^^^^^^ meta.function.parameters - meta.function meta.function
@@ -1591,11 +1611,14 @@ class MyClass(Inherited, \
 #                      ^ punctuation.separator.inheritance
 #                        ^ punctuation.separator.continuation.line.python
               module . Inherited2, metaclass=ABCMeta):
-#             ^^^^^^^^^^^^^^^^^^^ entity.other.inherited-class
+#             ^^^^^^^^^^^^^^^^^^^ meta.path - meta.path meta.path
+#             ^^^^^^ variable.namespace - entity
 #                    ^ punctuation.accessor.dot
+#                      ^^^^^^^^^^ entity.other.inherited-class
 #                                ^ punctuation.separator.inheritance
 #                                  ^^^^^^^^^ variable.parameter.class-inheritance
 #                                           ^ keyword.operator.assignment
+#                                            ^^^^^^^ entity.other.inherited-class.python
     ur'''
 #   ^^ storage.type.string
     This is a test of docstrings
@@ -1604,7 +1627,34 @@ class MyClass(Inherited, \
     pass
 
 
+class DataClass(TypedDict, None, total=False, True=False):
+#     ^^^^^^^^^ entity.name.class.python
+#               ^^^^^^^^^ entity.other.inherited-class.python
+#                        ^ punctuation.separator.inheritance.python
+#                          ^^^^ constant.language.null.python
+#                              ^ punctuation.separator.inheritance.python
+#                                ^^^^^ variable.parameter.class-inheritance.python
+#                                     ^ keyword.operator.assignment.python
+#                                      ^^^^^ constant.language.boolean.python
+#                                           ^ punctuation.separator.inheritance.python
+#                                             ^^^^ constant.language.boolean.python
+#                                                 ^ invalid.illegal.not-allowed-here.python
+#                                                  ^^^^^ constant.language.boolean.python
+
+
+
+class MyClass:
+    def foo():
+        return None
+
+    def bar():
+#   ^^^^^^^^^^ meta.function
+#   ^^^ keyword.declaration.function.python
+        return True
+
+
 class Unterminated(Inherited:
+# <- meta.class.python keyword.declaration.class.python
 #                           ^ invalid.illegal
 
 
@@ -1724,6 +1774,11 @@ also_a_tuple = ()[-1]
 #              ^^ meta.sequence.tuple.empty.python
 #                ^^^^ meta.item-access
 
+tuple_expression = ()and()
+#                  ^^ meta.sequence.tuple.empty.python
+#                    ^^^ keyword.operator.logical.python
+#                       ^^ meta.sequence.tuple.empty.python
+
 not_a_tuple = (a = 2, b += 3)
 #             ^^^^^^^^^^^^^^^ meta.sequence
 #                ^ invalid.illegal.unexpected-assignment-in-tuple - keyword
@@ -1762,11 +1817,11 @@ mydict = {"key": True, key2: (1, 2, [-1, -2]), ,}
 #        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.mapping - meta.mapping meta.mapping
 #        ^ punctuation.section.mapping.begin
 #         ^^^^^ meta.mapping.key.python string.quoted.double
-#              ^ punctuation.separator.mapping.key-value
+#              ^ punctuation.separator.key-value
 #                ^^^^ meta.mapping.value.python constant.language
-#                    ^ punctuation.separator.mapping
+#                    ^ punctuation.separator.sequence.python
 #                      ^^^^ meta.mapping.key.python meta.qualified-name
-#                          ^ punctuation.separator.mapping
+#                          ^ punctuation.separator.key-value.python
 #                            ^^^^^^^^^^^^^^^^ meta.sequence.tuple
 #                            ^ punctuation.section.sequence.begin
 #                             ^ constant.numeric
@@ -1774,13 +1829,13 @@ mydict = {"key": True, key2: (1, 2, [-1, -2]), ,}
 #                                   ^^^^^^^^ meta.sequence.list
 #                                      ^ punctuation.separator.sequence
 #                                           ^ punctuation.section.sequence.end
-#                                            ^ punctuation.separator.mapping.python
+#                                            ^ punctuation.separator.sequence.python
 #                                              ^ invalid.illegal.expected-colon.python
 #                                               ^ punctuation.section.mapping.end - meta.mapping.key
 
 mydict = { 'a' : xform, 'b' : form, 'c' : frm }
-#                                 ^ meta.mapping.python punctuation.separator.mapping.python
-#                                       ^ punctuation.separator.mapping.key-value.python
+#                                 ^ meta.mapping.python punctuation.separator.sequence.python
+#                                       ^ punctuation.separator.key-value.python
 
 mydict = { a : b async for b in range(1, 2) }
 #                ^^^^^ storage.modifier.async.python
@@ -1800,11 +1855,35 @@ myset = {"key", True, key2, [-1], {}:1}
 #                                   ^ invalid.illegal.colon-inside-set.python
 #                                     ^ punctuation.section.set.end.python
 
+myset = {a := 1, b := 2}
+#       ^^^^^^^^^^^^^^^^ meta.set.python
+#       ^ punctuation.section.set.begin.python
+#          ^^ keyword.operator.assignment.inline.python
+#             ^ constant.numeric.value.python
+#              ^ punctuation.separator.set.python
+#                  ^^ keyword.operator.assignment.inline.python
+#                     ^ constant.numeric.value.python
+#                      ^ punctuation.section.set.end.python
+
+{a := 1: 2}
+# <- meta.set.python punctuation.section.set.begin.python
+#^^^^^^^^^^ meta.set.python
+#  ^^ keyword.operator.assignment.inline.python
+#      ^ invalid.illegal.colon-inside-set.python
+#         ^ punctuation.section.set.end.python
+
+{1, b := 2}
+# <- meta.set.python punctuation.section.set.begin.python
+#^^^^^^^^^^ meta.set.python
+# ^ punctuation.separator.set.python
+#     ^^ keyword.operator.assignment.inline.python
+#         ^ punctuation.section.set.end.python
+
 mapping_or_set = {
 #                ^ meta.mapping.python punctuation.section.mapping.begin.python
     1: True
 #   ^ meta.mapping.key.python meta.number.integer.decimal.python constant.numeric.value.python
-#    ^ punctuation.separator.mapping.key-value.python
+#    ^ punctuation.separator.key-value.python
 }
 # <- meta.mapping.python punctuation.section.mapping.end.python
 
@@ -1813,8 +1892,8 @@ complex_mapping = {(): "value"}
 
 more_complex_mapping = {**{1: 1}, 2: 2}
 #                      ^ meta.mapping.python
-#                               ^ meta.mapping.python punctuation.separator.mapping.python
-#                                  ^ meta.mapping.python punctuation.separator.mapping.key-value.python
+#                               ^ meta.mapping.python punctuation.separator.sequence.python
+#                                  ^ meta.mapping.python punctuation.separator.key-value.python
 
 more_complex_set = {
 #                  ^ meta.set.python
@@ -2002,7 +2081,7 @@ d = {**d, **dict()}
 #    ^^^ - meta.mapping.key
 #    ^^ keyword.operator.unpacking.mapping.python
 #      ^ meta.qualified-name.python
-#       ^ punctuation.separator.mapping.python
+#       ^ punctuation.separator.sequence.python
 #         ^^^^^^^^ - meta.mapping.key
 #         ^^ keyword.operator.unpacking.mapping.python
 #           ^^^^ support.type.python
@@ -2025,6 +2104,21 @@ generator = (
     range(100)
 )
 
+class Cls:
+    __slots__ = "item",
+#               ^^^^^^ meta.string.python string.quoted.double.python
+#                     ^ punctuation.separator.sequence.python
+
+    __slots__ = "item",
+
+    def method():
+# <- meta.function.python
+#^^^^^^^^^^^^^^^^ meta.function
+#   ^^^ keyword.declaration.function.python
+#       ^^^^^^ entity.name.function.python
+#             ^ punctuation.section.parameters.begin.python
+#              ^ punctuation.section.parameters.end.python
+#               ^ punctuation.section.function.begin.python
 
 ##################
 # Exception handling
@@ -2267,20 +2361,80 @@ foo.bar(baz., True)
 
 primes: List[int] = []
 #     ^ punctuation.separator.annotation.variable.python
+#     ^^^^^^^^^^^^ meta.variable.annotation.python
+#       ^^^^ meta.qualified-name.python
 #                 ^ keyword.operator.assignment
 
 captain: str  # Note: no initial value!
 #      ^ punctuation.separator.annotation.variable.python
+#      ^^^^^^^ meta.variable.annotation.python
+#             ^^^^^^^ comment
+#        ^^^ meta.qualified-name.python
+
+foo: str | None = None
+#  ^^^^^^^^^^^^^ meta.variable.annotation.python
+#               ^^^^^^^ - meta.variable
+#  ^ punctuation.separator.annotation.variable.python
+#    ^^^ support.type.python
+#        ^ keyword.operator.arithmetic.python
+#          ^^^^ constant.language.null.python
+#               ^ keyword.operator.assignment.python
+#                 ^^^^ constant.language.null.python
+
+bar: str | None = 'b'
+#  ^^^^^^^^^^^^^ meta.variable.annotation.python
+#               ^^^^^^ - meta.variable
+#  ^ punctuation.separator.annotation.variable.python
+#    ^^^ support.type.python
+#        ^ keyword.operator.arithmetic.python
+#          ^^^^ constant.language.null.python
+#               ^ keyword.operator.assignment.python
+#                 ^^^ string.quoted.single.python
+
+foo: \
+#  ^^^ meta.variable.annotation.python
+foo: \
+    bar = zoo
+# <- meta.variable.annotation.python
+#^^^^^^^ meta.variable.annotation.python
+#       ^ keyword.operator.assignment
+
+zoo: \
+#  ^^^ meta.variable.annotation.python
+zoo: \
+    loo \
+# <- meta.variable.annotation.python
+#^^^^^^^^^ meta.variable.annotation.python
+zoo: \
+    loo \
+    = too
+# <- meta.variable.annotation.python
+#^^^ meta.variable.annotation.python
+#   ^ keyword.operator.assignment
+
+foo: int; print("foo")
+#       ^ punctuation.terminator.statement.python
+#       ^^^^^^^^^^^^^^ - meta.variable.annotation.python
 
 class Starship:
     stats: ClassVar[Dict[str, int]] = {}
 #        ^ punctuation.separator.annotation.variable.python
+#        ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.variable.annotation.python
 #                                   ^ keyword.operator.assignment
 
 
 ##################
 # Assignment Expressions
 ##################
+
+True = False
+#    ^ invalid.illegal.not-allowed-here.python
+
+False = True
+#     ^ invalid.illegal.not-allowed-here.python
+
+None = True
+#    ^ invalid.illegal.not-allowed-here.python
 
 # Examples from https://www.python.org/dev/peps/pep-0572/
 
@@ -2345,10 +2499,6 @@ def foo(x: y:=f(x)) -> a:=None: pass
 foo(x = y := f(x), y=x:=2)
 #         ^^ invalid.illegal.not-allowed-here.python
 #                     ^^ invalid.illegal.not-allowed-here.python
-{a := 1: 2}
-#  ^^ invalid.illegal.not-allowed-here.python
-{1, b := 2}
-#     ^^ invalid.illegal.not-allowed-here.python
 [1][x:=0]
 #    ^^ invalid.illegal.not-allowed-here.python
 def foo(answer = p := 42):  pass

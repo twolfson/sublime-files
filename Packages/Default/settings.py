@@ -198,13 +198,6 @@ class EditSettingsListener(sublime_plugin.ViewEventListener):
         other_view_id = view_settings.get('edit_settings_other_view_id')
         views = window.views()
         views_left = len(views)
-        for other in views:
-            if other.id() == other_view_id:
-                window.focus_view(other)
-                # Prevent the handler from running on the other view
-                other.settings().erase('edit_settings_view')
-                # Run after timeout so the UI doesn't block with the view half closed
-                sublime.set_timeout(lambda: window.run_command("close"), 50)
 
         # Don't close the window if the user opens another view in the window
         # or adds a folder, since they likely didn't realize this is a settings
@@ -217,6 +210,14 @@ class EditSettingsListener(sublime_plugin.ViewEventListener):
                 if window.id() == sublime.active_window().id():
                     window.run_command("close_window")
             sublime.set_timeout(close_window, 50)
+        else:
+            for other in views:
+                if other.id() == other_view_id:
+                    window.focus_view(other)
+                    # Prevent the handler from running on the other view
+                    other.settings().erase('edit_settings_view')
+                    # Run after timeout so the UI doesn't block with the view half closed
+                    sublime.set_timeout(lambda: window.run_command('close'), 50)
 
 
 class OpenFileSettingsCommand(sublime_plugin.WindowCommand):

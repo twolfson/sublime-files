@@ -53,6 +53,9 @@
 	// Characters that are considered to separate words
 	"word_separators": "./\\()\"'-:,.;<>~!@#$%^&*|+=[]{}`~?",
 
+	// Characters that are considered to separate sub-words
+	"sub_word_separators": "_",
+
 	// Set to false to prevent line numbers being drawn in the gutter
 	"line_numbers": true,
 
@@ -74,8 +77,15 @@
 	// - false: Disables modified line indicators
 	"mini_diff": true,
 
-	// Columns in which to display vertical rulers
+	// Columns in which to display vertical rulers. You can also pair the column
+	// with a ruler style (See "ruler_style"), eg: [[80, "solid"]]
 	"rulers": [],
+
+	// Controls how ruler lines are drawn
+	// - "dotted": Drawn as a dotted line
+	// - "stippled": Drawn as a stippled line
+	// - "solid": Drawn as a solid line
+	"ruler_style": "dotted",
 
 	// Set to true to turn spell checking on by default
 	"spell_check": false,
@@ -150,6 +160,9 @@
 	// Always visualise the viewport on the minimap, as opposed to only
 	// showing it on mouse over
 	"always_show_minimap_viewport": false,
+
+	// Whether the minimap should scroll horizontally to match the viewport.
+	"minimap_horizontal_scrolling": false,
 
 	// If enabled, will highlight any line with a caret
 	"highlight_line": false,
@@ -515,6 +528,12 @@
 	// number of results from using too much memory. Use 0 to remove this limit.
 	"find_in_files_max_result_size": 16777216, // 16MiB
 
+	// Files over this size will be skipped. This prevents searches from using
+	// up all available memory when large files are present. Note that on
+	// computers with many cores more than one file will be loaded at once. Use
+	// 0 to remove this limit.
+	"find_in_files_max_file_size": 104857600, // 100MiB
+
 	// When drag_text is enabled, clicking on selected text will begin a
 	// drag-drop operation.
 	"drag_text": true,
@@ -559,7 +578,7 @@
 	// scroll slower, or set to larger than 1 to scroll faster
 	"scroll_speed": 1.0,
 
-	// Controls side bar animation when expanding or collapsing folders
+	// Controls sidebar animation when expanding or collapsing folders
 	"tree_animation_enabled": true,
 
 	// Controls animation throughout the application
@@ -574,7 +593,7 @@
 	// Determines which side the close button is on
 	"show_tab_close_buttons_on_left": false,
 
-	// Show folders in the side bar in bold
+	// Show folders in the sidebar in bold
 	"bold_folder_labels": false,
 
 	// Draw divider lines between sections of the UI when using the Adaptive theme
@@ -587,6 +606,10 @@
 	// contains an entire project, thus allowing multiple projects in a single
 	// window. Valid values are "system", "preferred" and "disabled".
 	"native_tabs": "system",
+
+	// Whether new tabs should favor opening after the current tab or at the end
+	// of the list of tabs.
+	"open_tabs_after_current": true,
 
 	// Valid values are "system", "enabled" and "disabled"
 	"overlay_scroll_bars": "system",
@@ -620,6 +643,13 @@
 	// Display syntax in the status bar
 	"show_syntax": true,
 
+	// Show Line, Column in the status bar in full length, compact or completely
+	// hidden. Valid values are "enabled", "compact" and "disabled"
+	"show_line_column": "enabled",
+
+	// Display misspelled words in the status bar
+	"show_spelling_errors": true,
+
 	// Magnifies the entire user interface. Sublime Text must be restarted for
 	// this to take effect. 1.0 is normal scale, 0.0 allows for auto-detection
 	// based on text scale with older Linux configurations that don't fully
@@ -643,10 +673,6 @@
 	// immediately without prompting. Unsaved modifications and open files will
 	// be preserved and restored when next starting.
 	//
-	// Closing a window with an associated project will also close the window
-	// without prompting, preserving unsaved changes in the workspace file
-	// alongside the project.
-	//
 	// Hot exit has different modes to choose from:
 	// - "always": Always perform a hot exit when the application exits. This
 	//             includes when the last window is closed on relevant
@@ -656,6 +682,11 @@
 	//                   setting is only used on Windows and Linux.
 	// - "disabled": Disable hot exit.
 	"hot_exit": "always",
+
+	// Closing projects with hot_exit_projects enabled will cause it to close
+	// immediately without prompting. Unsaved modifications and open files will
+	// be preserved in the workspace file and restored when reopened.
+	"hot_exit_projects": true,
 
 	// remember_full_screen will allow Sublime Text to start in full screen
 	// mode if it was exited in full screen mode. When set to false, Sublime
@@ -670,6 +701,10 @@
 	// remember_layout makes Sublime Text start with the same layout it closed
 	// with. Only applies when hot_exit is disabled.
 	"remember_layout": false,
+
+	// Whether the system's native recent files/folders list should be updated
+	// by Sublime Text.
+	"update_system_recent_files": true,
 
 	// Mac only. If the user's default shell should be invoked to obtain the
 	// user's customized environment variables. May be a boolean, or a string
@@ -725,7 +760,7 @@
 	"show_full_path": true,
 
 	// Show the relative path to files in the title bar. This overrides
-	// show_full_path for files that are listed in the side bar, however
+	// show_full_path for files that are listed in the sidebar, however
 	// show_full_path is still used for other files.
 	"show_rel_path": false,
 
@@ -760,7 +795,7 @@
 	// integrations.
 	"sublime_merge_path": "",
 
-	// Preview file contents when clicking on a file in the side bar. Double
+	// Preview file contents when clicking on a file in the sidebar. Double
 	// clicking or editing the preview will open the file and assign it a tab.
 	// - true: Always preview on click, including right click
 	// - false: Never preview
@@ -779,16 +814,16 @@
 	// a large limit will increase memory usage. Use 0 to remove any limit.
 	"console_max_history_lines": 3000,
 
-	// folder_exclude_patterns and file_exclude_patterns control which files
-	// are listed in folders on the side bar. These can also be set on a per-
+	// folder_exclude_patterns and file_exclude_patterns control which files are
+	// listed in folders on the sidebar. These can also be set on a per-
 	// project basis.
 	"folder_exclude_patterns": [".svn", ".git", ".hg", "CVS", ".Trash", ".Trash-*"],
 	"file_exclude_patterns": ["*.pyc", "*.pyo", "*.exe", "*.dll", "*.obj","*.o", "*.a", "*.lib", "*.so", "*.dylib", "*.ncb", "*.sdf", "*.suo", "*.pdb", "*.idb", ".DS_Store", ".directory", "desktop.ini", "*.class", "*.psd", "*.db", "*.sublime-workspace"],
-	// These files will still show up in the side bar, but won't be included in
+	// These files will still show up in the sidebar, but won't be included in
 	// Goto Anything or Find in Files
 	"binary_file_patterns": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.ttf", "*.tga", "*.dds", "*.ico", "*.eot", "*.pdf", "*.swf", "*.jar", "*.zip"],
 
-	// File indexing parses all files in the side bar, and builds an index of
+	// File indexing parses all files in the sidebar, and builds an index of
 	// their symbols. This is required for Goto Definition to work.
 	"index_files": true,
 
@@ -797,7 +832,7 @@
 	// setting to disable all workers. This requires a restart to take effect.
 	"index_workers": 0,
 
-	// Sets whether the indexer should exclude files ignored by git
+	// Sets whether the indexer should exclude files ignored by git.
 	"index_exclude_gitignore": true,
 
 	// Whether unknown file extensions should be checked for indexing or skipped
@@ -808,6 +843,9 @@
 
 	// index_exclude_patterns indicate which files won't be indexed.
 	"index_exclude_patterns": ["*.log"],
+
+	// Determines whether Goto Anything should exclude files ignored by git.
+	"goto_anything_exclude_gitignore": false,
 
 	// When Vintage, the vi emulation package, is enabled
 	// (see ignored_packages, below), this setting controls if files are opened

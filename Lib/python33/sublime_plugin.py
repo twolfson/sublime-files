@@ -1612,7 +1612,7 @@ class TextChangeListener:
     def is_attached(self):
         """ Check whether the listener is receiving events from a buffer.
 
-        May not be called from __init__.
+        May not be called from `__init__`.
         """
         return self.__key is not None
 

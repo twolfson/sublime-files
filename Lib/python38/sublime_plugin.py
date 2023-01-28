@@ -1,3 +1,6 @@
+# Don't evaluate type annotations at runtime
+from __future__ import annotations
+
 import importlib
 import io
 import marshal
@@ -10,6 +13,11 @@ import zipfile
 
 import sublime
 import sublime_api
+
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sublime_types import DIP, Vector, Point, Value, CommandArgs, Kind, Event, CompletionValue
 
 
 api_ready = False
@@ -143,6 +151,8 @@ def add_profiling(event_handler):
 
     :return:
         The decorated method
+
+    :meta private:
     """
 
     def profiler(*args):
@@ -183,6 +193,8 @@ def trap_exceptions(event_handler):
 
     :return:
         The decorated method
+
+    :meta private:
     """
 
     def exception_handler(*args):
@@ -215,9 +227,10 @@ def decorate_handler(cls, method_name):
 
     :param cls:
         The class object to decorate
-
     :param method_name:
         A unicode string of the name of the method to decorate
+
+    :meta private:
     """
 
     # We have to use __dict__ rather than getattr(), otherwise the function
@@ -750,6 +763,8 @@ def on_init(module):
 
     :param module:
         A unicode string of the name of a plugin module to filter listeners by
+
+    :meta private:
     """
 
     buffers = sublime._buffers()
@@ -1178,7 +1193,14 @@ def on_exit(log_path):
 
 
 class CommandInputHandler:
-    def name(self):
+    """
+    """
+
+    def name(self) -> str:
+        """
+        The command argument name this input handler is editing. Defaults to
+        ``foo_bar`` for an input handler named ``FooBarInputHandler``.
+        """
         clsname = self.__class__.__name__
         name = clsname[0].lower()
         last_upper = False
@@ -1193,29 +1215,63 @@ class CommandInputHandler:
             name = name[0:-14]
         return name
 
-    def next_input(self, args):
-        return None
-
-    def placeholder(self):
+    def placeholder(self) -> str:
+        """
+        Placeholder text is shown in the text entry box before the user has
+        entered anything. Empty by default.
+        """
         return ""
 
-    def initial_text(self):
+    def initial_text(self) -> str:
+        """
+        Initial text shown in the text entry box. Empty by default.
+        """
         return ""
 
-    def initial_selection(self):
+    def initial_selection(self) -> list[tuple[int, int]]:
+        """
+        A list of 2-element tuples, defining the initially selected parts of the
+        initial text.
+
+        .. since:: 4081
+        """
         return []
 
-    def preview(self, arg):
+    def preview(self, text: str) -> str | sublime.Html:
+        """
+        Called whenever the user changes the text in the entry box. The returned
+        value (either plain text or HTML) will be shown in the preview area of
+        the *Command Palette*.
+        """
         return ""
 
-    def validate(self, arg):
+    def validate(self, text: str) -> bool:
+        """
+        Called whenever the user presses enter in the text entry box.
+        Return :py:`False` to disallow the current value.
+        """
         return True
 
     def cancel(self):
-        pass
+        """
+        Called when the input handler is canceled, either by the user pressing
+        backspace or escape.
+        """
 
-    def confirm(self, arg):
-        pass
+    def confirm(self, text: str):
+        """
+        Called when the input is accepted, after the user has pressed enter and
+        the text has been validated.
+        """
+
+    def next_input(self, args) -> Optional[CommandInputHandler]:
+        """
+        Return the next input after the user has completed this one. May return
+        :py:`None` to indicate no more input is required, or
+        `sublime_plugin.BackInputHandler()` to indicate that the input handler
+        should be popped off the stack instead.
+        """
+        return None
 
     def create_input_handler_(self, args):
         return self.next_input(args)
@@ -1244,17 +1300,39 @@ class CommandInputHandler:
         else:
             self.confirm(v)
 
-    def want_event(self):
+    def want_event(self) -> bool:
+        """
+        Whether the `validate()` and `confirm()` methods should received a
+        second `Event` parameter. Returns :py:`False` by default.
+
+        .. since:: 4096
+        """
         return False
 
 
 class BackInputHandler(CommandInputHandler):
+    """
+    """
+
     def name(self):
         return "_Back"
 
 
 class TextInputHandler(CommandInputHandler):
-    def description(self, text):
+    """
+    TextInputHandlers can be used to accept textual input in the *Command
+    Palette*. Return a subclass of this from `Command.input()`.
+
+    *For an input handler to be shown to the user, the command returning the
+    input handler MUST be made available in the Command Palette by adding the
+    command to a :path:`Default.sublime-commands` file.*
+    """
+    def description(self, text: str) -> str:
+        """
+        The text to show in the *Command Palette* when this input handler is not
+        at the top of the input handler stack. Defaults to the text the user
+        entered.
+        """
         return text
 
     def setup_(self, args):
@@ -1275,10 +1353,45 @@ class TextInputHandler(CommandInputHandler):
 
 
 class ListInputHandler(CommandInputHandler):
-    def list_items(self):
+    """
+    ListInputHandlers can be used to accept a choice input from a list items in
+    the *Command Palette*. Return a subclass of this from `Command.input()`.
+
+    *For an input handler to be shown to the user, the command returning the
+    input handler MUST be made available in the Command Palette by adding the
+    command to a :path:`Default.sublime-commands` file.*
+    """
+
+    def list_items(self) -> list[str] | \
+            tuple[list[str], int] | \
+            list[tuple[str, Value]] | \
+            tuple[list[tuple[str, Value]], int] | \
+            list[sublime.ListInputItem] | \
+            tuple[list[sublime.ListInputItem], int]:
+        """
+        This method should return the items to show in the list.
+
+        The returned value may be a ``list`` of item, or a 2-element ``tuple``
+        containing a list of items, and an ``int`` index of the item to
+        pre-select.
+
+        The each item in the list may be one of:
+
+        * A string used for both the row text and the value passed to the
+          command
+        * A 2-element tuple containing a string for the row text, and a `Value`
+          to pass to the command
+        * .. since:: 4095
+            A `sublime.ListInputItem` object
+        """
         return []
 
-    def description(self, v, text):
+    def description(self, value, text: str) -> str:
+        """
+        The text to show in the *Command Palette* when this input handler is not
+        at the top of the input handler stack. Defaults to the text of the list
+        item the user selected.
+        """
         return text
 
     def setup_(self, args):
@@ -1315,7 +1428,7 @@ class ListInputHandler(CommandInputHandler):
                 else:
                     item_tuples.append((item.text, item.value))
             else:
-                raise TypeError("items must contain only str, list, tuple or ListInputItem objects")
+                raise TypeError("items must contain only str, list, tuple or sublime.ListInputItem objects")
 
         props = {
             "initial_text": self.initial_text(),
@@ -1334,7 +1447,14 @@ class ListInputHandler(CommandInputHandler):
 
 
 class Command:
-    def name(self):
+    """
+    """
+
+    def name(self) -> str:
+        """
+        Return the name of the command. By default this is derived from the name
+        of the class.
+        """
         clsname = self.__class__.__name__
         name = clsname[0].lower()
         last_upper = False
@@ -1365,7 +1485,12 @@ class Command:
 
         return ret
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
+        """
+        Return whether the command is able to be run at this time. Command
+        arguments are passed as keyword arguments. The default implementation
+        simply always returns :py:`True`.
+        """
         return True
 
     def is_visible_(self, args):
@@ -1384,7 +1509,12 @@ class Command:
 
         return ret
 
-    def is_visible(self):
+    def is_visible(self) -> bool:
+        """
+        Return whether the command should be shown in the menu at this time.
+        Command arguments are passed as keyword arguments. The default
+        implementation always returns :py:`True`.
+        """
         return True
 
     def is_checked_(self, args):
@@ -1403,7 +1533,13 @@ class Command:
 
         return ret
 
-    def is_checked(self):
+    def is_checked(self) -> bool:
+        """
+        Return whether a checkbox should be shown next to the menu item. Command
+        arguments are passed as keyword arguments. The :path:`.sublime-menu`
+        file must have the ``"checkbox"`` key set to :json:`true` for this to
+        be used.
+        """
         return False
 
     def description_(self, args):
@@ -1419,7 +1555,12 @@ class Command:
         except TypeError:
             return ""
 
-    def description(self):
+    def description(self) -> Optional[str]:
+        """
+        Return a description of the command with the given arguments. Command
+        arguments are passed as keyword arguments. Used in the menu, if no
+        caption is provided. Return :py:`None` to get the default description.
+        """
         return ""
 
     def filter_args(self, args):
@@ -1430,20 +1571,48 @@ class Command:
 
         return args
 
-    def want_event(self):
+    def want_event(self) -> bool:
+        """
+        Return whether to receive an `Event` argument when the command is
+        triggered by a mouse action. The event information allows commands to
+        determine which portion of the view was clicked on. The default
+        implementation returns :py:`False`.
+        """
         return False
 
-    def input(self, args):
+    def input(self, args: dict) -> Optional[CommandInputHandler]:
+        """
+        If this returns something other than :py:`None`, the user will be
+        prompted for an input before the command is run in the *Command
+        Palette*.
+
+        .. since:: 3154
+        """
         return None
 
-    def input_description(self):
+    def input_description(self) -> str:
+        """
+        Allows a custom name to be show to the left of the cursor in the input
+        box, instead of the default one generated from the command name.
+
+        .. since:: 3154
+        """
         return ""
 
     def create_input_handler_(self, args):
         return self.input(args)
 
+    def run(self):
+        """
+        Called when the command is run. Command arguments are passed as keyword
+        arguments.
+        """
+
 
 class ApplicationCommand(Command):
+    """
+    A `Command` instantiated just once.
+    """
     def run_(self, edit_token, args):
         args = self.filter_args(args)
         try:
@@ -1451,7 +1620,7 @@ class ApplicationCommand(Command):
                 return self.run(**args)
             else:
                 return self.run()
-        except (TypeError) as e:
+        except TypeError as e:
             if 'required positional argument' in str(e):
                 if sublime_api.can_accept_input(self.name(), args):
                     sublime.active_window().run_command(
@@ -1466,12 +1635,20 @@ class ApplicationCommand(Command):
             raise
 
     def run(self):
-        pass
+        """ :meta private: """
 
 
 class WindowCommand(Command):
+    """
+    A `Command` instantiated once per window. The `Window` object may be
+    retrieved via `self.window <window>`.
+    """
+
     def __init__(self, window):
-        self.window = window
+        """ :meta private: """
+
+        self.window: Window = window
+        """ The `Window` this command is attached to. """
 
     def run_(self, edit_token, args):
         args = self.filter_args(args)
@@ -1480,7 +1657,7 @@ class WindowCommand(Command):
                 return self.run(**args)
             else:
                 return self.run()
-        except (TypeError) as e:
+        except TypeError as e:
             if 'required positional argument' in str(e):
                 if sublime_api.window_can_accept_input(self.window.id(), self.name(), args):
                     sublime_api.window_run_command(
@@ -1496,12 +1673,20 @@ class WindowCommand(Command):
             raise
 
     def run(self):
-        pass
+        """ :meta private: """
 
 
 class TextCommand(Command):
+    """
+    A `Command` instantiated once per `View`. The `View` object may be retrieved
+    via `self.view <view>`.
+    """
+
     def __init__(self, view):
-        self.view = view
+        """ :meta private: """
+
+        self.view: View = view
+        """ The `View` this command is attached to. """
 
     def run_(self, edit_token, args):
         args = self.filter_args(args)
@@ -1518,7 +1703,7 @@ class TextCommand(Command):
                     return self.run(edit)
                 finally:
                     self.view.end_edit(edit)
-        except (TypeError) as e:
+        except TypeError as e:
             if 'required positional argument' in str(e):
                 if sublime_api.view_can_accept_input(self.view.id(), self.name(), args):
                     sublime_api.window_run_command(
@@ -1533,75 +1718,578 @@ class TextCommand(Command):
                     return
             raise
 
-    def run(self, edit):
-        pass
+    def run(self, edit: sublime.Edit):
+        """
+        Called when the command is run. Command arguments are passed as keyword
+        arguments.
+        """
 
 
 class EventListener:
-    pass
+    """
+    .. method:: on_init(views: List[View])
+
+        Called once with a list of views that were loaded before the
+        EventListener was instantiated
+
+        .. since:: 4050
+
+    .. method:: on_exit()
+
+        Called once after the API has shut down, immediately before the
+        plugin_host process exits
+
+        .. since:: 4050
+
+    .. method:: on_new(view: View)
+
+        Called when a new file is created.
+
+    .. method:: on_new_async(view: View)
+
+        Called when a new buffer is created. Runs in a separate thread, and does
+        not block the application.
+
+    .. method:: on_associate_buffer(buffer: View)
+
+        Called when a buffer is associated with a file. buffer will be a Buffer
+        object.
+
+        .. since:: 4084
+
+    .. method:: on_associate_buffer_async(buffer: View)
+
+        Called when a buffer is associated with file. Runs in a separate thread,
+        and does not block the application. buffer will be a Buffer object.
+
+        .. since:: 4084
+
+    .. method:: on_clone(view: View)
+
+        Called when a view is cloned from an existing one.
+
+    .. method:: on_clone_async(view: View)
+
+        Called when a view is cloned from an existing one. Runs in a separate
+        thread, and does not block the application.
+
+    .. method:: on_load(view: View)
+
+        Called when the file is finished loading.
+
+    .. method:: on_load_async(view: View)
+
+        Called when the file is finished loading. Runs in a separate thread, and
+        does not block the application.
+
+    .. method:: on_reload(view: View)
+
+        Called when the View is reloaded.
+
+        .. since:: 4050
+
+    .. method:: on_reload_async(view: View)
+
+        Called when the View is reloaded. Runs in a separate thread, and does
+        not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_revert(view: View)
+
+        Called when the View is reverted.
+
+        .. since:: 4050
+
+    .. method:: on_revert_async(view: View)
+
+        Called when the View is reverted. Runs in a separate thread, and does
+        not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_move(view: View)
+
+        Called right before a view is moved between two windows, passed the View
+        object.
+
+        .. since:: 4050
+
+    .. method:: on_post_move(view: View)
+
+        Called right after a view is moved between two windows, passed the View
+        object.
+
+        .. since:: 4050
+
+    .. method:: on_post_move_async(view: View)
+
+        Called right after a view is moved between two windows, passed the View
+        object. Runs in a separate thread, and does not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_close(view: View)
+
+        Called when a view is about to be closed. The view will still be in the
+        window at this point.
+
+    .. method:: on_close(view: View)
+
+        Called when a view is closed (note, there may still be other views into
+        the same buffer).
+
+    .. method:: on_pre_save(view: View)
+
+        Called just before a view is saved.
+
+    .. method:: on_pre_save_async(view: View)
+
+        Called just before a view is saved. Runs in a separate thread, and does
+        not block the application.
+
+    .. method:: on_post_save(view: View)
+
+        Called after a view has been saved.
+
+    .. method:: on_post_save_async(view: View)
+
+        Called after a view has been saved. Runs in a separate thread, and does
+        not block the application.
+
+    .. method:: on_modified(view: View)
+
+        Called after changes have been made to a view.
+
+    .. method:: on_modified_async(view: View)
+
+        Called after changes have been made to a view. Runs in a separate
+        thread, and does not block the application.
+
+    .. method:: on_selection_modified(view: View)
+
+        Called after the selection has been modified in a view.
+
+    .. method:: on_selection_modified_async(view: View)
+
+        Called after the selection has been modified in a view. Runs in a
+        separate thread, and does not block the application.
+
+    .. method:: on_activated(view: View)
+
+        Called when a view gains input focus.
+
+    .. method:: on_activated_async(view: View)
+
+        Called when a view gains input focus. Runs in a separate thread, and
+        does not block the application.
+
+    .. method:: on_deactivated(view: View)
+
+        Called when a view loses input focus.
+
+    .. method:: on_deactivated_async(view: View)
+
+        Called when a view loses input focus. Runs in a separate thread, and
+        does not block the application.
+
+    .. method:: on_hover(view: View, point: Point, hover_zone: HoverZone)
+
+        Called when the user's mouse hovers over the view for a short period.
+
+        :param view: The view
+        :param point:
+            The closest point in the view to the mouse location. The mouse may
+            not actually be located adjacent based on the value of
+            ``hover_zone``.
+        :param hover_zone:
+            Which element in Sublime Text the mouse has hovered over.
+
+    .. method:: on_query_context(view: View, key: str, operator: QueryOperator, operand: str, match_all: bool) -> Optional[bool]
+
+        Called when determining to trigger a key binding with the given context
+        key. If the plugin knows how to respond to the context, it should
+        return either True of False. If the context is unknown, it should
+        return None.
+
+        :param key:
+            The context key to query. This generally refers to specific state
+            held by a plugin.
+        :param operator:
+            The operator to check against the operand; whether to check
+            equality, inequality, etc.
+        :param operand: The value against which to check using the ``operator``.
+        :param match_all:
+            This should be used if the context relates to the selections: does
+            every selection have to match(``match_all == True``), or is at
+            least one matching enough (``match_all == False``)?
+        :returns:
+            ``True`` or ``False`` if the plugin handles this context key and it
+            either does or doesn't match. If the context is unknown return
+            ``None``.
+
+    .. method:: on_query_completions(view: View, prefix: str, locations: List[Point]) -> Union[None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
+
+        Called whenever completions are to be presented to the user.
+
+        :param prefix: The text already typed by the user.
+        :param locations: The list of points being completed. Since this method
+                          is called for all completions no matter the syntax,
+                          ``self.view.match_selector(point, relevant_scope)``
+                          should be called to determine if the point is
+                          relevant.
+        :returns: A list of completions in one of the valid formats or ``None`` if no completions are provided.
+
+    .. method:: on_text_command(view: View, command_name: str, args: CommandArgs) -> (str, CommandArgs)
+
+        Called when a text command is issued. The listener may return a (command, arguments) tuple to rewrite the command, or None to run the command unmodified.
+
+    .. method:: on_window_command(window: Window, command_name: str, args: CommandArgs) -> (str, CommandArgs)
+
+        Called when a window command is issued. The listener may return a (command, arguments) tuple to rewrite the command, or None to run the command unmodified.
+
+    .. method:: on_post_text_command(view: View, command_name: str, args: CommandArgs)    Called after a text command has been executed.
+    .. method:: on_post_window_command(window: Window, command_name: str, args: CommandArgs)      Called after a window command has been executed.
+
+    .. method:: on_new_window(window: Window)
+
+        Called when a window is created, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_new_window_async(window: Window)
+
+        Called when a window is created, passed the Window object. Runs in a separate thread, and does not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_close_window(window: Window)
+
+        Called right before a window is closed, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_new_project(window: Window)
+
+        Called right after a new project is created, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_new_project_async(window: Window)
+
+        Called right after a new project is created, passed the Window object. Runs in a separate thread, and does not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_load_project(window: Window)
+
+        Called right after a project is loaded, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_load_project_async(window: Window)
+
+        Called right after a project is loaded, passed the Window object. Runs in a separate thread, and does not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_save_project(window: Window)
+
+        Called right before a project is saved, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_post_save_project(window: Window)
+
+        Called right after a project is saved, passed the Window object.
+
+        .. since:: 4050
+
+    .. method:: on_post_save_project_async(window: Window)
+
+        Called right after a project is saved, passed the Window object. Runs in a separate thread, and does not block the application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_close_project(window: Window)
+
+        Called right before a project is closed, passed the Window object.
+    """
 
 
 class ViewEventListener:
-    @classmethod
-    def is_applicable(cls, settings):
-        return True
+    """
+     A class that provides similar event handling to `EventListener`, but bound
+     to a specific view. Provides class method-based filtering to control what
+     views objects are created for.
 
-    @classmethod
-    def applies_to_primary_view_only(cls):
-        return True
+    .. method:: on_load()
 
-    def __init__(self, view):
-        self.view = view
+        Called when the file is finished loading.
 
+        .. since:: 3155
 
-class TextChangeListener:
-    """ Base implementation of a text change listener.
+    .. method:: on_load_async()
 
-    An instance may be added to a view using `sublime.View.add_text_listener`.
+        Same as `on_load` but runs in a separate thread, not blocking the
+        application.
 
-    Has the following callbacks:
+        .. since:: 3155
 
-    on_text_changed(changes):
-        Called when text is changed in a buffer.
+    .. method:: on_reload()
 
-        :param changes:
-            A list of TextChange
+        Called when the file is reloaded.
 
-    on_text_changed_async(changes):
-        Async version of on_text_changed_async.
+        .. since:: 4050
 
-    on_revert():
-        Called when the buffer is reverted.
+    .. method:: on_reload_async()
 
-        A revert does not trigger text changes. If the contents of the buffer
-        are required here use View.substr()
+        Same as `on_reload` but runs in a separate thread, not blocking the
+        application.
 
-    on_revert_async():
-        Async version of on_revert_async.
+        .. since:: 4050
 
-    on_reload():
-        Called when the buffer is reloaded.
+    .. method:: on_revert()
 
-        A reload does not trigger text changes. If the contents of the buffer
-        are required here use View.substr()
+        Called when the file is reverted.
 
-    on_reload_async():
-        Async version of on_reload_async.
+        .. since:: 4050
+
+    .. method:: on_revert_async()
+
+        Same as `on_revert` but runs in a separate thread, not blocking the
+        application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_move()
+
+        Called right before a view is moved between two windows.
+
+        .. since:: 4050
+
+    .. method:: on_post_move()
+
+        Called right after a view is moved between two windows.
+
+        .. since:: 4050
+
+    .. method:: on_post_move_async()
+
+        Same as `on_post_move` but runs in a separate thread, not blocking the
+        application.
+
+        .. since:: 4050
+
+    .. method:: on_pre_close()
+
+        Called when a view is about to be closed. The view will still be in the
+        window at this point.
+
+        .. since:: 3155
+
+    .. method:: on_close()
+
+        Called when a view is closed (note, there may still be other views into
+        the same buffer).
+
+        .. since:: 3155
+
+    .. method:: on_pre_save()
+
+        Called just before a view is saved.
+
+        .. since:: 3155
+
+    .. method:: on_pre_save_async()
+
+        Same as `on_pre_save` but runs in a separate thread, not blocking the
+        application.
+
+        .. since:: 3155
+
+    .. method:: on_post_save()
+
+        Called after a view has been saved.
+
+        .. since:: 3155
+
+    .. method:: on_post_save_async()
+
+        Same as `on_post_save` but runs in a separate thread, not blocking the
+        application.
+
+        .. since:: 3155
+
+    .. method:: on_modified()
+
+        Called after changes have been made to the view.
+
+    .. method:: on_modified_async()
+
+        Same as `on_modified` but runs in a separate thread, not blocking the
+        application.
+
+    .. method:: on_selection_modified()
+
+        Called after the selection has been modified in the view.
+
+    .. method:: on_selection_modified_async()
+
+        Called after the selection has been modified in the view. Runs in a separate thread, and does not block the application.
+
+    .. method:: on_activated()
+
+        Called when a view gains input focus.
+
+    .. method:: on_activated_async()
+
+        Called when the view gains input focus. Runs in a separate thread, and does not block the application.
+
+    .. method:: on_deactivated()
+
+        Called when the view loses input focus.
+
+    .. method:: on_deactivated_async()
+
+        Called when the view loses input focus. Runs in a separate thread, and does not block the application.
+
+    .. method:: on_hover(point: Point, hover_zone: HoverZone)
+
+        Called when the user's mouse hovers over the view for a short period.
+
+        :param point:
+            The closest point in the view to the mouse location. The mouse may
+            not actually be located adjacent based on the value of
+            ``hover_zone``.
+        :param hover_zone:
+            Which element in Sublime Text the mouse has hovered over.
+
+    .. method:: on_query_context(key: str, operator: QueryOperator, operand: str, match_all: bool) -> Optional[bool]
+
+        Called when determining to trigger a key binding with the given context
+        key. If the plugin knows how to respond to the context, it should
+        return either True of False. If the context is unknown, it should
+        return None.
+
+        :param key: The context key to query. This generally refers to specific
+                    state held by a plugin.
+        :param operator: The operator to check against the operand; whether to
+                         check equality, inequality, etc.
+        :param operand: The value against which to check using the ``operator``.
+        :param match_all: This should be used if the context relates to the
+                          selections: does every selection have to match
+                          (``match_all == True``), or is at least one matching
+                          enough (``match_all == False``)?
+        :returns: ``True`` or ``False`` if the plugin handles this context key
+                  and it either does or doesn't match. If the context is unknown
+                  return ``None``.
+
+    .. method:: on_query_completions(prefix: str, locations: List[Point]) -> Union[None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
+
+        Called whenever completions are to be presented to the user.
+
+        :param prefix: The text already typed by the user.
+        :param locations: The list of points being completed. Since this method
+                          is called for all completions no matter the syntax,
+                          ``self.view.match_selector(point, relevant_scope)``
+                          should be called to determine if the point is
+                          relevant.
+        :returns: A list of completions in one of the valid formats or ``None`` if no completions are provided.
+
+    .. method:: on_text_command(command_name: str, args: CommandArgs) -> Tuple[str, CommandArgs]
+
+        Called when a text command is issued. The listener may return a ``(command, arguments)`` tuple to rewrite the command, or ``None`` to run the command unmodified.
+
+        .. since:: 3155
+
+    .. method:: on_post_text_command(command_name: str, args: CommandArgs)
+
+        Called after a text command has been executed.
     """
 
     @classmethod
-    def is_applicable(cls, buffer):
+    def is_applicable(cls, settings: sublime.Settings) -> bool:
+        """
+        :returns: Whether this listener should apply to a view with the given `Settings`.
+        """
+        return True
+
+    @classmethod
+    def applies_to_primary_view_only(cls) -> bool:
+        """
+        :returns: Whether this listener should apply only to the primary view
+                  for a file or all of its clones as well.
+        """
+        return True
+
+    def __init__(self, view: sublime.View):
+        self.view: sublime.View = view
+
+
+class TextChangeListener:
+    """
+    A class that provides event handling about text changes made to a specific
+    Buffer. Is separate from `ViewEventListener` since multiple views can
+    share a single buffer.
+
+    .. since:: 4081
+
+    .. method:: on_text_changed(changes: List[TextChange])
+
+        Called once after changes has been made to a buffer, with detailed
+        information about what has changed.
+
+    .. method:: on_text_changed_async(changes: List[TextChange]):
+
+        Same as `on_text_changed` but runs in a separate thread, not blocking
+        the application.
+
+    .. method:: on_revert()
+
+        Called when the buffer is reverted.
+
+        A revert does not trigger text changes. If the contents of the buffer
+        are required here use `View.substr`.
+
+    .. method:: on_revert_async()
+
+        Same as `on_revert` but runs in a separate thread, not blocking the
+        application.
+
+    .. method:: on_reload()
+
+        Called when the buffer is reloaded.
+
+        A reload does not trigger text changes. If the contents of the buffer
+        are required here use `View.substr`.
+
+    .. method:: on_reload_async()
+
+        Same as `on_reload` but runs in a separate thread, not blocking the
+        application.
+    """
+
+    @classmethod
+    def is_applicable(cls, buffer: sublime.Buffer):
+        """
+        :returns: Whether this listener should apply to the provided buffer.
+        """
         return True
 
     def __init__(self):
+        """ """
         self.__key = None
-        self.buffer = None
+        self.buffer: sublime.Buffer = None
 
     def detach(self):
-        """ Remove this listener from the buffer.
+        """
+        Remove this listener from the buffer.
 
         Async callbacks may still be called after this, as they are queued
         separately.
+
+        :raises ValueError: if the listener is not attached.
         """
         if self.__key is None:
             raise ValueError('TextChangeListener is not attached')
@@ -1615,11 +2303,11 @@ class TextChangeListener:
             text_change_listeners[self.buffer.buffer_id] = new_listeners
         self.__key = None
 
-    def attach(self, buffer):
-        """ Attach this listener to a buffer.
+    def attach(self, buffer: sublime.Buffer):
+        """
+        Attach this listener to a buffer.
 
-        :param buffer:
-            A sublime.Buffer instance.
+        :raises ValueError: if the listener is already attached.
         """
         if not isinstance(buffer, sublime.Buffer):
             raise TypeError('Must be a buffer')
@@ -1633,15 +2321,18 @@ class TextChangeListener:
         text_change_listeners[buffer.buffer_id].append(self)
         self.__key = sublime_api.buffer_add_text_listener(buffer.buffer_id, self)
 
-    def is_attached(self):
-        """ Check whether the listener is receiving events from a buffer.
-
-        May not be called from __init__.
+    def is_attached(self) -> bool:
+        """
+        :returns:
+            whether the listener is receiving events from a buffer. May not be
+            called from ``__init__``.
         """
         return self.__key is not None
 
 
 class MultizipImporter(importlib.abc.MetaPathFinder):
+    """ :meta private: """
+
     def __init__(self):
         self.loaders = []
 
@@ -1699,6 +2390,8 @@ class MultizipImporter(importlib.abc.MetaPathFinder):
 class ZipResourceReader(importlib.abc.ResourceReader):
     """
     Implements the resource reader interface introduced in Python 3.7
+
+    :meta private:
     """
 
     def __init__(self, loader, fullname):
@@ -1770,6 +2463,8 @@ class ZipLoader(importlib.abc.InspectLoader):
     .sublime-package zip files, and supports overrides where a loose file in
     the Packages/ folder of the data dir may be loaded instead of a file in
     the .sublime-package file.
+
+    :meta private:
     """
 
     def __init__(self, zippath):

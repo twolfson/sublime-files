@@ -181,7 +181,7 @@
 	},
 
 	{ "keys": ["tab"], "command": "insert", "args": {"characters": "\t"} },
-	{ "keys": ["tab"], "command": "auto_complete", "args": {"mini": true, "default": "\t"},
+	{ "keys": ["tab"], "command": "auto_complete", "args": {"mini": true, "default": "\t",  "commit_single": true},
 		"context":
 		[
 			{ "key": "auto_complete_visible", "operand": false },
@@ -190,6 +190,17 @@
 			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*\\w", "match_all": true },
 		]
 	},
+
+	{ "keys": ["tab"], "command": "auto_complete", "args": {"snippets_only": true, "default": "\t", "commit_single": true},
+		"context":
+		[
+			{ "key": "auto_complete_visible", "operand": false },
+			{ "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+			{ "key": "setting.tab_completion", "operator": "equal", "operand": false },
+			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*\\w", "match_all": true },
+		]
+	},
+	
 	{ "keys": ["tab"], "command": "expand_snippet", "context":
 		[{ "key": "has_snippet" }, ]
 	},
@@ -206,7 +217,7 @@
 	},
 	{ "keys": ["tab"], "command": "move", "args": {"by": "lines", "forward": true}, "context":
 		[
-		 	{ "key": "overlay_has_focus", "operator": "equal", "operand": true }
+			{ "key": "overlay_has_focus", "operator": "equal", "operand": true }
 		]
 	},
 	{ "keys": ["tab"], "command": "next_field", "context":
@@ -346,7 +357,12 @@
 
 	{ "keys": ["ctrl+`"], "command": "show_panel", "args": {"panel": "console", "toggle": true} },
 
-	{ "keys": ["ctrl+space"], "command": "auto_complete" },
+	{ "keys": ["ctrl+space"], "command": "auto_complete", "arg": { "commit_single": false } },
+	{ "keys": ["ctrl+space"], "command": "move", "args": { "by": "lines", "forward": true }, "context":
+		[
+			{ "key": "auto_complete_visible", "operator": "equal", "operand": true }
+		]
+	},
 
 	{ "keys": ["ctrl+alt+shift+p"], "command": "show_scope_name" },
 

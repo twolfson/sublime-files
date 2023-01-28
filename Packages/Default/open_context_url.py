@@ -16,6 +16,9 @@ rex = re.compile(
 
 
 class OpenContextUrlCommand(sublime_plugin.TextCommand):
+    def name(self):
+        return 'old_open_context_url'
+
     def run(self, edit, event):
         url = self.find_url(event)
         webbrowser.open_new_tab(url)

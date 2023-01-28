@@ -12,6 +12,8 @@
 		"medium_bg": "color(var(--background) blend(black 80%))",
 		"light_bg": "color(var(--background) blend(black 90%))",
 
+		"link_fg": "hsl(215, 60%, 50%)",
+
 		"vcs_modified": "color(var(--bluish) min-contrast(var(--background) 2.5))",
 		"vcs_missing": "color(var(--redish) min-contrast(var(--background) 2.5))",
 		"vcs_staged": "color(var(--bluish) min-contrast(var(--background) 2.5))",
@@ -1998,6 +2000,27 @@
 			"layer0.tint": "var(light_bg)"
 		},
 		{
+			"class": "switch_project_panel_cancel_container",
+			"layer0.tint": "color(var(--background) blend(black 50%))",
+			"layer0.opacity": 1.0,
+			"content_margin": 4
+		},
+		{
+			"class": "switch_project_panel_cancel_container",
+			"parents": [{"class": "window", "attributes": ["file_dark"]}],
+			"layer0.tint": "color(var(--background) blend(white 91%))",
+		},
+		{
+			"class": "switch_project_panel_cancel_container",
+			"parents": [{"class": "window", "attributes": ["file_medium"]}],
+			"layer0.tint": "color(var(--background) blend(black 70%))",
+		},
+		{
+			"class": "switch_project_panel_cancel_container",
+			"parents": [{"class": "window", "attributes": ["file_light"]}],
+			"layer0.tint": "color(var(--background) blend(black 82%))",
+		},
+		{
 			"class": "panel_grid_control",
 			"inside_spacing": 4,
 			"outside_hspacing": 4,
@@ -2644,6 +2667,12 @@
 			"class": "label_control",
 			"parents": [{"class": "button_control", "attributes": ["disabled"]}],
 			"opacity": 0.7,
+		},
+
+		// Link Labels
+		{
+			"class": "link_label",
+			"fg": "color(var(--background) blend(var(link_fg) 10%))",
 		},
 
 		// Tool tips

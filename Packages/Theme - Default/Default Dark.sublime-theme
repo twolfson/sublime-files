@@ -7,6 +7,7 @@
 
 		"ui_bg": "color(var(base_hue) l(20%))",
 		"text_fg": "hsl(0, 0%, 85%)",
+		"link_fg": "hsl(215, 45%, 65%)",
 
 		"button_bg": "color(var(base_hue) l(30%))",
 

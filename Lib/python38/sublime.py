@@ -1,10 +1,21 @@
+"""
+"""
+
+# Don't evaluate type annotations at runtime
+from __future__ import annotations
+
 import collections
 import html
 import json
 import sys
 import io
+import enum
+from typing import Callable, Optional, Any, Iterator, Literal, TYPE_CHECKING
 
 import sublime_api
+
+if TYPE_CHECKING:
+    from sublime_types import DIP, Vector, Point, Value, CommandArgs, Kind, Event, CompletionValue
 
 
 class _LogWriter(io.TextIOBase):
@@ -26,224 +37,806 @@ class _LogWriter(io.TextIOBase):
             self.flush()
 
 
-sys.stdout = _LogWriter()
-sys.stderr = _LogWriter()
+sys.stdout = _LogWriter()  # type: ignore
+sys.stderr = _LogWriter()  # type: ignore
 
-HOVER_TEXT = 1
-HOVER_GUTTER = 2
-HOVER_MARGIN = 3
 
-ENCODED_POSITION = 1
-TRANSIENT = 4
-FORCE_GROUP = 8
-# Only valid with ADD_TO_SELECTION or REPLACE_MRU
-SEMI_TRANSIENT = 16
-ADD_TO_SELECTION = 32
-REPLACE_MRU = 64
-# Only valid with ADD_TO_SELECTION
-CLEAR_TO_RIGHT = 128
+class HoverZone(enum.IntEnum):
+    """
+    A zone in an open text sheet where the mouse may hover.
 
-IGNORECASE = 2
-LITERAL = 1
+    See `EventListener.on_hover` and `ViewEventListener.on_hover`.
 
-MONOSPACE_FONT = 1
-KEEP_OPEN_ON_FOCUS_LOST = 2
-WANT_EVENT = 4
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``HOVER_`` prefix.
 
+    .. since:: 4132 3.8
+    """
+
+    TEXT = 1
+    """ The mouse is hovered over the text. """
+    GUTTER = 2
+    """ The mouse is hovered over the gutter. """
+    MARGIN = 3
+    """ The mouse is hovered in the white space to the right of a line. """
+
+
+HOVER_TEXT = HoverZone.TEXT
+HOVER_GUTTER = HoverZone.GUTTER
+HOVER_MARGIN = HoverZone.MARGIN
+
+
+class NewFileFlags(enum.IntFlag):
+    """
+    Flags for creating/opening files in various ways.
+
+    See `Window.new_html_sheet`, `Window.new_file` and `Window.open_file`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+
+    NONE = 0
+    """ """
+    ENCODED_POSITION = 1
+    """
+    Indicates that the file name should be searched for a ``:row`` or
+    ``:row:col`` suffix.
+    """
+    TRANSIENT = 4
+    """
+    Open the file as a preview only: it won't have a tab assigned it until
+    modified.
+    """
+    FORCE_GROUP = 8
+    """
+    Don't select the file if it is open in a different group. Instead make a new
+    clone of that file in the desired group.
+    """
+    SEMI_TRANSIENT = 16
+    """
+    If a sheet is newly created, it will be set to semi-transient.
+    Semi-transient sheets generally replace other semi-transient sheets. This
+    is used for the side-bar preview. Only valid with `ADD_TO_SELECTION` or
+    `REPLACE_MRU`.
+
+    .. since:: 4096
+    """
+    ADD_TO_SELECTION = 32
+    """
+    Add the file to the currently selected sheets in the group.
+
+    .. since:: 4050
+    """
+    REPLACE_MRU = 64
+    """
+    Causes the sheet to replace the most-recently used sheet in the current sheet selection.
+
+    .. since:: 4096
+    """
+    CLEAR_TO_RIGHT = 128
+    """
+    All currently selected sheets to the right of the most-recently used sheet
+    will be unselected before opening the file. Only valid in combination with
+    `ADD_TO_SELECTION`.
+
+    .. since:: 4100
+    """
+    FORCE_CLONE = 256
+    """
+    Don't select the file if it is open. Instead make a new clone of that file in the desired
+    group.
+
+    .. :since:: next
+    """
+
+
+ENCODED_POSITION = NewFileFlags.ENCODED_POSITION
+TRANSIENT = NewFileFlags.TRANSIENT
+FORCE_GROUP = NewFileFlags.FORCE_GROUP
+SEMI_TRANSIENT = NewFileFlags.SEMI_TRANSIENT
+ADD_TO_SELECTION = NewFileFlags.ADD_TO_SELECTION
+REPLACE_MRU = NewFileFlags.REPLACE_MRU
+CLEAR_TO_RIGHT = NewFileFlags.CLEAR_TO_RIGHT
+FORCE_CLONE = NewFileFlags.FORCE_CLONE
+
+
+class FindFlags(enum.IntFlag):
+    """
+    Flags for use when searching through a `View`.
+
+    See `View.find` and `View.find_all`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+    NONE = 0
+    """ """
+    IGNORECASE = 2
+    """ Whether case should be considered when matching the find pattern. """
+    LITERAL = 1
+    """ Whether the find pattern should be matched literally or as a regex. """
+
+
+IGNORECASE = FindFlags.IGNORECASE
+LITERAL = FindFlags.LITERAL
+
+
+class QuickPanelFlags(enum.IntFlag):
+    """
+    Flags for use with a quick panel.
+
+    See `Window.show_quick_panel`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+
+    NONE = 0
+    """ """
+    MONOSPACE_FONT = 1
+    """ Use a monospace font. """
+    KEEP_OPEN_ON_FOCUS_LOST = 2
+    """ Keep the quick panel open if the window loses input focus. """
+    WANT_EVENT = 4
+    """
+    Pass a second parameter to the ``on_done`` callback, a `Event`.
+
+    .. since:: 4096
+    """
+
+
+MONOSPACE_FONT = QuickPanelFlags.MONOSPACE_FONT
+KEEP_OPEN_ON_FOCUS_LOST = QuickPanelFlags.KEEP_OPEN_ON_FOCUS_LOST
+WANT_EVENT = QuickPanelFlags.WANT_EVENT
+
+
+class PopupFlags(enum.IntFlag):
+    """
+    Flags for use with popups.
+
+    See `View.show_popup`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+    NONE = 0
+    """ """
+    COOPERATE_WITH_AUTO_COMPLETE = 2
+    """ Causes the popup to display next to the auto complete menu. """
+    HIDE_ON_MOUSE_MOVE = 4
+    """
+    Causes the popup to hide when the mouse is moved, clicked or scrolled.
+    """
+    HIDE_ON_MOUSE_MOVE_AWAY = 8
+    """
+    Causes the popup to hide when the mouse is moved (unless towards the popup),
+    or when clicked or scrolled.
+    """
+    KEEP_ON_SELECTION_MODIFIED = 16
+    """
+    Prevent the popup from hiding when the selection is modified.
+
+    .. since:: 4057
+    """
+    HIDE_ON_CHARACTER_EVENT = 32
+    """
+    Hide the popup when a character is typed.
+
+    .. since:: 4057
+    """
+
+
+# Deprecated
 HTML = 1
-COOPERATE_WITH_AUTO_COMPLETE = 2
-HIDE_ON_MOUSE_MOVE = 4
-HIDE_ON_MOUSE_MOVE_AWAY = 8
-KEEP_ON_SELECTION_MODIFIED = 16
-HIDE_ON_CHARACTER_EVENT = 32
+COOPERATE_WITH_AUTO_COMPLETE = PopupFlags.COOPERATE_WITH_AUTO_COMPLETE
+HIDE_ON_MOUSE_MOVE = PopupFlags.HIDE_ON_MOUSE_MOVE
+HIDE_ON_MOUSE_MOVE_AWAY = PopupFlags.HIDE_ON_MOUSE_MOVE_AWAY
+KEEP_ON_SELECTION_MODIFIED = PopupFlags.KEEP_ON_SELECTION_MODIFIED
+HIDE_ON_CHARACTER_EVENT = PopupFlags.HIDE_ON_CHARACTER_EVENT
 
-DRAW_EMPTY = 1
-HIDE_ON_MINIMAP = 2
-DRAW_EMPTY_AS_OVERWRITE = 4
-PERSISTENT = 16
+
+class RegionFlags(enum.IntFlag):
+    """
+    Flags for use with added regions. See `View.add_regions`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+    NONE = 0
+    """ """
+    DRAW_EMPTY = 1
+    """ Draw empty regions with a vertical bar. By default, they aren't drawn at all. """
+    HIDE_ON_MINIMAP = 2
+    """ Don't show the regions on the minimap. """
+    DRAW_EMPTY_AS_OVERWRITE = 4
+    """ Draw empty regions with a horizontal bar instead of a vertical one. """
+    PERSISTENT = 16
+    """ Save the regions in the session. """
+    DRAW_NO_FILL = 32
+    """ Disable filling the regions, leaving only the outline. """
+    HIDDEN = 128
+    """ Don't draw the regions.  """
+    DRAW_NO_OUTLINE = 256
+    """ Disable drawing the outline of the regions. """
+    DRAW_SOLID_UNDERLINE = 512
+    """ Draw a solid underline below the regions. """
+    DRAW_STIPPLED_UNDERLINE = 1024
+    """ Draw a stippled underline below the regions. """
+    DRAW_SQUIGGLY_UNDERLINE = 2048
+    """ Draw a squiggly underline below the regions. """
+    NO_UNDO = 8192
+    """ """
+
+
+DRAW_EMPTY = RegionFlags.DRAW_EMPTY
+HIDE_ON_MINIMAP = RegionFlags.HIDE_ON_MINIMAP
+DRAW_EMPTY_AS_OVERWRITE = RegionFlags.DRAW_EMPTY_AS_OVERWRITE
+PERSISTENT = RegionFlags.PERSISTENT
+DRAW_NO_FILL = RegionFlags.DRAW_NO_FILL
 # Deprecated, use DRAW_NO_FILL instead
-DRAW_OUTLINED = 32
-DRAW_NO_FILL = 32
-DRAW_NO_OUTLINE = 256
-DRAW_SOLID_UNDERLINE = 512
-DRAW_STIPPLED_UNDERLINE = 1024
-DRAW_SQUIGGLY_UNDERLINE = 2048
-NO_UNDO = 8192
-HIDDEN = 128
-
-OP_EQUAL = 0
-OP_NOT_EQUAL = 1
-OP_REGEX_MATCH = 2
-OP_NOT_REGEX_MATCH = 3
-OP_REGEX_CONTAINS = 4
-OP_NOT_REGEX_CONTAINS = 5
-CLASS_WORD_START = 1
-CLASS_WORD_END = 2
-CLASS_PUNCTUATION_START = 4
-CLASS_PUNCTUATION_END = 8
-CLASS_SUB_WORD_START = 16
-CLASS_SUB_WORD_END = 32
-CLASS_LINE_START = 64
-CLASS_LINE_END = 128
-CLASS_EMPTY_LINE = 256
-
-INHIBIT_WORD_COMPLETIONS = 8
-INHIBIT_EXPLICIT_COMPLETIONS = 16
-DYNAMIC_COMPLETIONS = 32
-INHIBIT_REORDER = 128
-
-DIALOG_CANCEL = 0
-DIALOG_YES = 1
-DIALOG_NO = 2
-
-UI_ELEMENT_SIDE_BAR = 1
-UI_ELEMENT_MINIMAP = 2
-UI_ELEMENT_TABS = 4
-UI_ELEMENT_STATUS_BAR = 8
-UI_ELEMENT_MENU = 16
-UI_ELEMENT_OPEN_FILES = 32
-
-LAYOUT_INLINE = 0
-LAYOUT_BELOW = 1
-LAYOUT_BLOCK = 2
-
-KIND_ID_AMBIGUOUS = 0
-KIND_ID_KEYWORD = 1
-KIND_ID_TYPE = 2
-KIND_ID_FUNCTION = 3
-KIND_ID_NAMESPACE = 4
-KIND_ID_NAVIGATION = 5
-KIND_ID_MARKUP = 6
-KIND_ID_VARIABLE = 7
-KIND_ID_SNIPPET = 8
-
-# These should only be used for QuickPanelItem
-# and ListInputItem, not for CompletionItem
-KIND_ID_COLOR_REDISH = 9
-KIND_ID_COLOR_ORANGISH = 10
-KIND_ID_COLOR_YELLOWISH = 11
-KIND_ID_COLOR_GREENISH = 12
-KIND_ID_COLOR_CYANISH = 13
-KIND_ID_COLOR_BLUISH = 14
-KIND_ID_COLOR_PURPLISH = 15
-KIND_ID_COLOR_PINKISH = 16
-KIND_ID_COLOR_DARK = 17
-KIND_ID_COLOR_LIGHT = 18
-
-KIND_AMBIGUOUS = (KIND_ID_AMBIGUOUS, "", "")
-KIND_KEYWORD = (KIND_ID_KEYWORD, "", "")
-KIND_TYPE = (KIND_ID_TYPE, "", "")
-KIND_FUNCTION = (KIND_ID_FUNCTION, "", "")
-KIND_NAMESPACE = (KIND_ID_NAMESPACE, "", "")
-KIND_NAVIGATION = (KIND_ID_NAVIGATION, "", "")
-KIND_MARKUP = (KIND_ID_MARKUP, "", "")
-KIND_VARIABLE = (KIND_ID_VARIABLE, "", "")
-KIND_SNIPPET = (KIND_ID_SNIPPET, "s", "Snippet")
-
-SYMBOL_SOURCE_ANY = 0
-SYMBOL_SOURCE_INDEX = 1
-SYMBOL_SOURCE_OPEN_FILES = 2
-
-SYMBOL_TYPE_ANY = 0
-SYMBOL_TYPE_DEFINITION = 1
-SYMBOL_TYPE_REFERENCE = 2
-
-COMPLETION_FORMAT_TEXT = 0
-COMPLETION_FORMAT_SNIPPET = 1
-COMPLETION_FORMAT_COMMAND = 2
-
-COMPLETION_FLAG_KEEP_PREFIX = 1
+DRAW_OUTLINED = DRAW_NO_FILL
+DRAW_NO_OUTLINE = RegionFlags.DRAW_NO_OUTLINE
+DRAW_SOLID_UNDERLINE = RegionFlags.DRAW_SOLID_UNDERLINE
+DRAW_STIPPLED_UNDERLINE = RegionFlags.DRAW_STIPPLED_UNDERLINE
+DRAW_SQUIGGLY_UNDERLINE = RegionFlags.DRAW_SQUIGGLY_UNDERLINE
+NO_UNDO = RegionFlags.NO_UNDO
+HIDDEN = RegionFlags.HIDDEN
 
 
-def version():
+class QueryOperator(enum.IntEnum):
+    """
+    Enumeration of operators able to be used when querying contexts.
+
+    See `EventListener.on_query_context` and
+    `ViewEventListener.on_query_context`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``OP_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    EQUAL = 0
+    """ """
+    NOT_EQUAL = 1
+    """ """
+    REGEX_MATCH = 2
+    """ """
+    NOT_REGEX_MATCH = 3
+    """ """
+    REGEX_CONTAINS = 4
+    """ """
+    NOT_REGEX_CONTAINS = 5
+    """ """
+
+
+OP_EQUAL = QueryOperator.EQUAL
+OP_NOT_EQUAL = QueryOperator.NOT_EQUAL
+OP_REGEX_MATCH = QueryOperator.REGEX_MATCH
+OP_NOT_REGEX_MATCH = QueryOperator.NOT_REGEX_MATCH
+OP_REGEX_CONTAINS = QueryOperator.REGEX_CONTAINS
+OP_NOT_REGEX_CONTAINS = QueryOperator.NOT_REGEX_CONTAINS
+
+
+class PointClassification(enum.IntFlag):
+    """
+    Flags that identify characteristics about a `Point` in a text sheet. See
+    `View.classify`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``CLASS_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    NONE = 0
+    """ """
+    WORD_START = 1
+    """ The point is the start of a word. """
+    WORD_END = 2
+    """ The point is the end of a word. """
+    PUNCTUATION_START = 4
+    """ The point is the start of a sequence of punctuation characters. """
+    PUNCTUATION_END = 8
+    """ The point is the end of a sequence of punctuation characters. """
+    SUB_WORD_START = 16
+    """ The point is the start of a sub-word. """
+    SUB_WORD_END = 32
+    """ The point is the end of a sub-word. """
+    LINE_START = 64
+    """ The point is the start of a line. """
+    LINE_END = 128
+    """ The point is the end of a line. """
+    EMPTY_LINE = 256
+    """ The point is an empty line. """
+
+
+CLASS_WORD_START = PointClassification.WORD_START
+CLASS_WORD_END = PointClassification.WORD_END
+CLASS_PUNCTUATION_START = PointClassification.PUNCTUATION_START
+CLASS_PUNCTUATION_END = PointClassification.PUNCTUATION_END
+CLASS_SUB_WORD_START = PointClassification.SUB_WORD_START
+CLASS_SUB_WORD_END = PointClassification.SUB_WORD_END
+CLASS_LINE_START = PointClassification.LINE_START
+CLASS_LINE_END = PointClassification.LINE_END
+CLASS_EMPTY_LINE = PointClassification.EMPTY_LINE
+
+
+class AutoCompleteFlags(enum.IntFlag):
+    """
+    Flags controlling how asynchronous completions function. See
+    `CompletionList`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration (without a prefix).
+
+    .. since:: 4132 3.8
+    """
+    NONE = 0
+    """ """
+    INHIBIT_WORD_COMPLETIONS = 8
+    """
+    Prevent Sublime Text from showing completions based on the contents of the
+    view.
+    """
+    INHIBIT_EXPLICIT_COMPLETIONS = 16
+    """
+    Prevent Sublime Text from showing completions based on
+    :path:`.sublime-completions` files.
+    """
+    DYNAMIC_COMPLETIONS = 32
+    """
+    If completions should be re-queried as the user types.
+
+    .. since:: 4057
+    """
+    INHIBIT_REORDER = 128
+    """
+    Prevent Sublime Text from changing the completion order.
+
+    .. since:: 4074
+    """
+
+
+INHIBIT_WORD_COMPLETIONS = AutoCompleteFlags.INHIBIT_WORD_COMPLETIONS
+INHIBIT_EXPLICIT_COMPLETIONS = AutoCompleteFlags.INHIBIT_EXPLICIT_COMPLETIONS
+DYNAMIC_COMPLETIONS = AutoCompleteFlags.DYNAMIC_COMPLETIONS
+INHIBIT_REORDER = AutoCompleteFlags.INHIBIT_REORDER
+
+
+class CompletionItemFlags(enum.IntFlag):
+    """ :meta private: """
+    NONE = 0
+    KEEP_PREFIX = 1
+
+
+COMPLETION_FLAG_KEEP_PREFIX = CompletionItemFlags.KEEP_PREFIX
+
+
+class DialogResult(enum.IntEnum):
+    """
+    The result from a *yes / no / cancel* dialog. See `yes_no_cancel_dialog`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``DIALOG_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    CANCEL = 0
+    """ """
+    YES = 1
+    """ """
+    NO = 2
+    """ """
+
+
+DIALOG_CANCEL = DialogResult.CANCEL
+DIALOG_YES = DialogResult.YES
+DIALOG_NO = DialogResult.NO
+
+
+class UIElement(enum.IntEnum):
+    """ :meta private: """
+    SIDE_BAR = 1
+    MINIMAP = 2
+    TABS = 4
+    STATUS_BAR = 8
+    MENU = 16
+    OPEN_FILES = 32
+
+
+class PhantomLayout(enum.IntEnum):
+    """
+    How a `Phantom` should be positioned. See `PhantomSet`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``LAYOUT_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    INLINE = 0
+    """
+    The phantom is positioned inline with the text at the beginning of its
+    `Region`.
+    """
+    BELOW = 1
+    """
+    The phantom is positioned below the line, left-aligned with the beginning of
+    its `Region`.
+    """
+    BLOCK = 2
+    """
+    The phantom is positioned below the line, left-aligned with the beginning of
+    the line.
+    """
+
+
+LAYOUT_INLINE = PhantomLayout.INLINE
+LAYOUT_BELOW = PhantomLayout.BELOW
+LAYOUT_BLOCK = PhantomLayout.BLOCK
+
+
+class KindId(enum.IntEnum):
+    """
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``KIND_ID_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    AMBIGUOUS = 0
+    """ """
+    KEYWORD = 1
+    """ """
+    TYPE = 2
+    """ """
+    FUNCTION = 3
+    """ """
+    NAMESPACE = 4
+    """ """
+    NAVIGATION = 5
+    """ """
+    MARKUP = 6
+    """ """
+    VARIABLE = 7
+    """ """
+    SNIPPET = 8
+    """ """
+
+    # These should only be used for QuickPanelItem
+    # and ListInputItem, not for CompletionItem
+    COLOR_REDISH = 9
+    """ """
+    COLOR_ORANGISH = 10
+    """ """
+    COLOR_YELLOWISH = 11
+    """ """
+    COLOR_GREENISH = 12
+    """ """
+    COLOR_CYANISH = 13
+    """ """
+    COLOR_BLUISH = 14
+    """ """
+    COLOR_PURPLISH = 15
+    """ """
+    COLOR_PINKISH = 16
+    """ """
+    COLOR_DARK = 17
+    """ """
+    COLOR_LIGHT = 18
+    """ """
+
+
+KIND_ID_AMBIGUOUS = KindId.AMBIGUOUS
+KIND_ID_KEYWORD = KindId.KEYWORD
+KIND_ID_TYPE = KindId.TYPE
+KIND_ID_FUNCTION = KindId.FUNCTION
+KIND_ID_NAMESPACE = KindId.NAMESPACE
+KIND_ID_NAVIGATION = KindId.NAVIGATION
+KIND_ID_MARKUP = KindId.MARKUP
+KIND_ID_VARIABLE = KindId.VARIABLE
+KIND_ID_SNIPPET = KindId.SNIPPET
+KIND_ID_COLOR_REDISH = KindId.COLOR_REDISH
+KIND_ID_COLOR_ORANGISH = KindId.COLOR_ORANGISH
+KIND_ID_COLOR_YELLOWISH = KindId.COLOR_YELLOWISH
+KIND_ID_COLOR_GREENISH = KindId.COLOR_GREENISH
+KIND_ID_COLOR_CYANISH = KindId.COLOR_CYANISH
+KIND_ID_COLOR_BLUISH = KindId.COLOR_BLUISH
+KIND_ID_COLOR_PURPLISH = KindId.COLOR_PURPLISH
+KIND_ID_COLOR_PINKISH = KindId.COLOR_PINKISH
+KIND_ID_COLOR_DARK = KindId.COLOR_DARK
+KIND_ID_COLOR_LIGHT = KindId.COLOR_LIGHT
+
+KIND_AMBIGUOUS = (KindId.AMBIGUOUS, "", "")
+"""
+.. since:: 4052
+"""
+KIND_KEYWORD = (KindId.KEYWORD, "", "")
+"""
+.. since:: 4052
+"""
+KIND_TYPE = (KindId.TYPE, "", "")
+"""
+.. since:: 4052
+"""
+KIND_FUNCTION = (KindId.FUNCTION, "", "")
+"""
+.. since:: 4052
+"""
+KIND_NAMESPACE = (KindId.NAMESPACE, "", "")
+"""
+.. since:: 4052
+"""
+KIND_NAVIGATION = (KindId.NAVIGATION, "", "")
+"""
+.. since:: 4052
+"""
+KIND_MARKUP = (KindId.MARKUP, "", "")
+"""
+.. since:: 4052
+"""
+KIND_VARIABLE = (KindId.VARIABLE, "", "")
+"""
+.. since:: 4052
+"""
+KIND_SNIPPET = (KindId.SNIPPET, "s", "Snippet")
+"""
+.. since:: 4052
+"""
+
+
+class SymbolSource(enum.IntEnum):
+    """
+    See `Window.symbol_locations`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``SYMBOL_SOURCE_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    ANY = 0
+    """
+    Use any source - both the index and open files.
+
+    .. since:: 4085
+    """
+    INDEX = 1
+    """
+    Use the index created when scanning through files in a project folder.
+
+    .. since:: 4085
+    """
+    OPEN_FILES = 2
+    """
+    Use the open files, unsaved or otherwise.
+
+    .. since:: 4085
+    """
+
+
+SYMBOL_SOURCE_ANY = SymbolSource.ANY
+SYMBOL_SOURCE_INDEX = SymbolSource.INDEX
+SYMBOL_SOURCE_OPEN_FILES = SymbolSource.OPEN_FILES
+
+
+class SymbolType(enum.IntEnum):
+    """
+    See `Window.symbol_locations` and `View.indexed_symbol_regions`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``SYMBOL_TYPE_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+    ANY = 0
+    """ Any symbol type - both definitions and references.
+
+    .. since:: 4085
+    """
+    DEFINITION = 1
+    """
+    Only definitions.
+
+    .. since:: 4085
+    """
+    REFERENCE = 2
+    """
+    Only references.
+
+    .. since:: 4085
+    """
+
+
+SYMBOL_TYPE_ANY = SymbolType.ANY
+SYMBOL_TYPE_DEFINITION = SymbolType.DEFINITION
+SYMBOL_TYPE_REFERENCE = SymbolType.REFERENCE
+
+
+class CompletionFormat(enum.IntEnum):
+    """
+    The format completion text can be in. See `CompletionItem`.
+
+    For backwards compatibility these values are also available outside this
+    enumeration with a ``COMPLETION_FORMAT_`` prefix.
+
+    .. since:: 4132 3.8
+    """
+
+    TEXT = 0
+    """
+    Plain text, upon completing the text is inserted verbatim.
+
+    .. since:: 4050
+    """
+    SNIPPET = 1
+    """
+    A snippet, with ``$`` variables. See also
+    `CompletionItem.snippet_completion`.
+
+    .. since:: 4050
+    """
+    COMMAND = 2
+    """
+    A command string, in the format returned by `format_command()`. See also
+    `CompletionItem.command_completion()`.
+
+    .. since:: 4050
+    """
+
+
+COMPLETION_FORMAT_TEXT = CompletionFormat.TEXT
+COMPLETION_FORMAT_SNIPPET = CompletionFormat.SNIPPET
+COMPLETION_FORMAT_COMMAND = CompletionFormat.COMMAND
+
+
+def version() -> str:
+    """
+    :returns: The version number.
+    """
     return sublime_api.version()
 
 
-def platform():
+def platform() -> Literal["osx", "linux", "windows"]:
+    """
+    :returns: The platform which the plugin is being run on.
+    """
     return sublime_api.platform()
 
 
-def arch():
+def arch() -> Literal["x32", "x64", "arm64"]:
+    """
+    :returns: The CPU architecture.
+    """
     return sublime_api.architecture()
 
 
-def channel():
+def channel() -> Literal["dev", "stable"]:
+    """
+    :returns: The release channel of this build of Sublime Text.
+    """
     return sublime_api.channel()
 
 
-def executable_path():
+def executable_path() -> str:
+    """
+    .. since:: 4081
+        This may be called at import time.
+
+    :returns: The path to the main Sublime Text executable.
+    """
     return sublime_api.executable_path()
 
 
-def executable_hash():
+def executable_hash() -> tuple[str, str, str]:
+    """
+    .. since:: 4081
+        This may be called at import time.
+
+    :returns: A tuple uniquely identifying the installation of Sublime Text.
+    """
     import hashlib
     return (
         version(), platform() + '_' + arch(),
         hashlib.md5(open(executable_path(), 'rb').read()).hexdigest())
 
 
-def packages_path():
+def packages_path() -> str:
+    """
+    .. since:: 4081
+        This may be called at import time.
+
+    :returns: The path to the "Packages" folder.
+    """
     return sublime_api.packages_path()
 
 
-def installed_packages_path():
+def installed_packages_path() -> str:
+    """
+    .. since:: 4081
+        This may be called at import time.
+
+    :returns: The path to the "Installed Packages" folder.
+    """
     return sublime_api.installed_packages_path()
 
 
-def cache_path():
-    """ Returns the path where Sublime Text stores cache files """
+def cache_path() -> str:
+    """
+    .. since:: 4081
+        This may be called at import time.
+
+    :returns: The path where Sublime Text stores cache files.
+    """
     return sublime_api.cache_path()
 
 
-def status_message(msg):
+def status_message(msg: str):
+    """ Show a message in the status bar. """
     sublime_api.status_message(msg)
 
 
-def error_message(msg):
+def error_message(msg: str):
+    """ Display an error dialog. """
     sublime_api.error_message(msg)
 
 
-def message_dialog(msg):
+def message_dialog(msg: str):
+    """ Display a message dialog. """
     sublime_api.message_dialog(msg)
 
 
-def ok_cancel_dialog(msg, ok_title="", title=""):
+def ok_cancel_dialog(msg: str, ok_title="", title="") -> bool:
     """
-    Show a popup dialog with an "ok" and "cancel" button.
+    Show a *ok / cancel* question dialog.
 
-    msg: str - The message to show in the dialog.
-    ok_title: str - Optional replacement string for the "ok" button.
-    title: str - Optional title for the dialog. Note Linux and macOS do not have
-                 a title in their dialog.
+    :param msg: The message to show in the dialog.
+    :param ok_title: Text to display on the *ok* button.
+    :param title: Title for the dialog. Windows only. :since:`4099`
+
+    :returns: Whether the user pressed the *ok* button.
     """
     return sublime_api.ok_cancel_dialog(msg, title, ok_title)
 
 
-def yes_no_cancel_dialog(msg, yes_title="", no_title="", title=""):
+def yes_no_cancel_dialog(msg: str, yes_title="", no_title="", title="") -> DialogResult:
     """
-    Show a popup dialog with a "yes", "no" and "cancel" button.
+    Show a *yes / no / cancel* question dialog.
 
-    msg: str - The message to show in the dialog.
-    yes_title: str - Optional replacement string for the "yes" button.
-    no_title: str - Optional replacement string for the "no" button.
-    title: str - Optional title for the dialog. Note Linux and macOS do not have
-                 a title in their dialog.
+    :param msg: The message to show in the dialog.
+    :param yes_title: Text to display on the *yes* button.
+    :param no_title: Text to display on the *no* button.
+    :param title: Title for the dialog. Windows only. :since:`4099`
     """
-    return sublime_api.yes_no_cancel_dialog(msg, title, yes_title, no_title)
+    return DialogResult(sublime_api.yes_no_cancel_dialog(msg, title, yes_title, no_title))
 
 
-def open_dialog(callback, file_types=[], directory=None, multi_select=False, allow_folders=False):
+def open_dialog(
+        callback: Callable[[str | list[str] | None], None],
+        file_types: list[tuple[str, list[str]]] = [],
+        directory: Optional[str] = None,
+        multi_select=False,
+        allow_folders=False):
     """
     Show the open file dialog.
 
-    callback - Called with selected path or `None` once open dialog is closed.
-    file_types: [(str, [str])] - A list of allowed file types, consisting of a
-                                 description and a list of allowed extensions.
-    directory: str | None - The directory the dialog should start in. Will use
-                            the virtual working directory if not provided.
-    multi_select: bool - Whether to allow selecting multiple files. Function
-                         will call callback with a list if this is True.
-    allow_folders: bool - Whether to also allow selecting folders. Only works on
+    .. since:: 4075
+
+    :param callback: Called with selected path(s) or ``None`` once the dialog is closed.
+    :param file_types: A list of allowed file types, consisting of a description
+                       and a list of allowed extensions.
+    :param directory: The directory the dialog should start in.  Will use the
+                      virtual working directory if not provided.
+    :param multi_select: Whether to allow selecting multiple files. When ``True``
+                         the callback will be called with a list.
+    :param allow_folders: Whether to also allow selecting folders. Only works on
                           macOS. If you only want to select folders use
                           `select_folder_dialog`.
     """
@@ -260,30 +853,42 @@ def open_dialog(callback, file_types=[], directory=None, multi_select=False, all
     sublime_api.open_dialog(file_types, directory or '', flags, cb)
 
 
-def save_dialog(callback, file_types=[], directory=None, name=None, extension=None):
+def save_dialog(
+        callback: Callable[[str | None], None],
+        file_types: list[tuple[str, list[str]]] = [],
+        directory: Optional[str] = None,
+        name: Optional[str] = None,
+        extension: Optional[str] = None):
     """
-    Show the save file dialog.
+    Show the save file dialog
 
-    callback - Called with selected path or `None` once open dialog is closed.
-    file_types: [(str, [str])] - A list of allowed file types, consisting of a
-                                 description and a list of allowed extensions.
-    directory: str | None - The directory the dialog should start in. Will use
-                            the virtual working directory if not provided.
-    name: str | None - The default name of the file in the save dialog.
-    extension: str | None - The default extension used in the save dialog.
+    .. since:: 4075
+
+    :param callback: Called with selected path or ``None`` once the dialog is closed.
+    :param file_types: A list of allowed file types, consisting of a description
+                       and a list of allowed extensions.
+    :param directory: The directory the dialog should start in.  Will use the
+                      virtual working directory if not provided.
+    :param name: The default name of the file in the save dialog.
+    :param extension: The default extension used in the save dialog.
     """
     sublime_api.save_dialog(file_types, directory or '', name or '', extension or '', callback)
 
 
-def select_folder_dialog(callback, directory=None, multi_select=False):
+def select_folder_dialog(
+        callback: Callable[[str | list[str] | None], None],
+        directory: Optional[str] = None,
+        multi_select=False):
     """
     Show the select folder dialog.
 
-    callback - Called with selected path or `None` once open dialog is closed.
-    directory: str | None - The directory the dialog should start in. Will use
-                            the virtual working directory if not provided.
-    multi_select: bool - Whether to allow selecting multiple folders. Function
-                         will call callback with a list if this is True.
+    .. since:: 4075
+
+    :param callback: Called with selected path(s) or ``None`` once the dialog is closed.
+    :param directory: The directory the dialog should start in.  Will use the
+                      virtual working directory if not provided.
+    :param multi_select: Whether to allow selecting multiple files. When ``True``
+                         the callback will be called with a list.
     """
     cb = callback
     if not multi_select:
@@ -292,11 +897,20 @@ def select_folder_dialog(callback, directory=None, multi_select=False):
     sublime_api.select_folder_dialog(directory or '', multi_select, cb)
 
 
-def run_command(cmd, args=None):
+def run_command(cmd: str, args: CommandArgs = None):
+    """
+    Run the named `ApplicationCommand`.
+    """
     sublime_api.run_command(cmd, args)
 
 
-def format_command(cmd, args=None):
+def format_command(cmd: str, args: CommandArgs = None) -> str:
+    """
+    Create a "command string" from a ``cmd`` name and ``args`` arguments. This
+    is used when constructing a command-based `CompletionItem`.
+
+    .. since:: 4075
+    """
     if args is None:
         return cmd
     else:
@@ -309,333 +923,565 @@ def format_command(cmd, args=None):
         return f'{cmd} {arg_str}'
 
 
-def html_format_command(cmd, args=None):
+def html_format_command(cmd: str, args: CommandArgs = None) -> str:
+    """
+    :returns: An escaped "command string" for usage in HTML popups and sheets.
+
+    .. since:: 4075
+    """
     return html.escape(format_command(cmd, args), quote=True)
 
 
-def command_url(cmd, args=None):
+def command_url(cmd: str, args: CommandArgs = None) -> str:
+    """
+    :returns: A HTML embeddable URL for a command.
+
+    .. since:: 4075
+    """
     return f'subl:{html_format_command(cmd, args)}'
 
 
-def get_clipboard_async(callback, size_limit=16777216):
+def get_clipboard_async(callback: Callable[[str], None], size_limit: int = 16777216):
     """
-    Calls callback with the contents of the clipboard. For performance reasons
-    if the size of the clipboard content is bigger than size_limit, an empty
-    string will be returned.
+    Get the contents of the clipboard in a callback.
+
+    For performance reasons if the size of the clipboard content is bigger than
+    ``size_limit``, an empty string will be passed to the callback.
+
+    .. since:: 4075
     """
     sublime_api.get_clipboard_async(callback, size_limit)
 
 
-def get_clipboard(size_limit=16777216):
+def get_clipboard(size_limit: int = 16777216) -> str:
     """
-    Returns the content of the clipboard. For performance reasons if the size of
-    the clipboard content is bigger than size_limit, an empty string will be
-    returned.
+    Get the contents of the clipboard.
 
-    Warning: Deprecated in favor of get_clipboard_async
+    For performance reasons if the size of the clipboard content is bigger than
+    ``size_limit``, an empty string will be returned.
+
+    :deprecated: Use `get_clipboard_async` instead. :since:`4075`
     """
     return sublime_api.get_clipboard(size_limit)
 
 
-def set_clipboard(text):
-    return sublime_api.set_clipboard(text)
+def set_clipboard(text: str):
+    """ Set the contents of the clipboard. """
+    sublime_api.set_clipboard(text)
 
 
-def log_commands(flag=None):
+def log_commands(flag: Optional[bool] = None):
+    """
+    Control whether commands are logged to the console when run.
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
+    """
     if flag is None:
         flag = not get_log_commands()
     sublime_api.log_commands(flag)
 
 
-def get_log_commands():
+def get_log_commands() -> bool:
+    """
+    Get whether command logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_commands()
 
 
-def log_input(flag=None):
+def log_input(flag: Optional[bool] = None):
     """
-    Enables or disables input logging. This is useful to find the names of
-    certain keys on the keyboard
+    Control whether all key presses will be logged to the console. Use this to
+    find the names of certain keys on the keyboard.
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
     """
     if flag is None:
         flag = not get_log_input()
     sublime_api.log_input(flag)
 
 
-def get_log_input():
+def get_log_input() -> bool:
+    """
+    Get whether input logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_input()
 
 
-def log_fps(flag=None):
+def log_fps(flag: Optional[bool] = None):
     """
-    Enables or disables fps logging.
+    Control whether rendering timings like frames per second get logged.
+
+    .. since:: 4099
+
+    :param flag: Whether to log. Pass ``None`` to toggle logging.
     """
     if flag is None:
         flag = not get_log_fps()
     sublime_api.log_fps(flag)
 
 
-def get_log_fps():
+def get_log_fps() -> bool:
+    """
+    Get whether fps logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_fps()
 
 
-def log_result_regex(flag=None):
+def log_result_regex(flag: Optional[bool] = None):
     """
-    Enables or disables result regex logging. This is useful when trying to
-    debug file_regex and line_regex in build systems
+    Control whether result regex logging is enabled. Use this to debug
+    ``"file_regex"`` and ``"line_regex"`` in build systems.
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
     """
     if flag is None:
         flag = not get_log_result_regex()
     sublime_api.log_result_regex(flag)
 
 
-def get_log_result_regex():
+def get_log_result_regex() -> bool:
+    """
+    Get whether result regex logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_result_regex()
 
 
-def log_indexing(flag=None):
+def log_indexing(flag: Optional[bool] = None):
+    """
+    Control whether indexing logs are printed to the console.
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
+    """
     if flag is None:
         flag = not get_log_indexing()
     sublime_api.log_indexing(flag)
 
 
-def get_log_indexing():
+def get_log_indexing() -> bool:
+    """
+    Get whether indexing logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_indexing()
 
 
-def log_build_systems(flag=None):
+def log_build_systems(flag: Optional[bool] = None):
+    """
+    Control whether build system logs are printed to the console.
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
+    """
     if flag is None:
         flag = not get_log_build_systems()
     sublime_api.log_build_systems(flag)
 
 
-def get_log_build_systems():
+def get_log_build_systems() -> bool:
+    """
+    Get whether build system logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_build_systems()
 
 
-def log_control_tree(flag=None):
+def log_control_tree(flag: Optional[bool] = None):
+    """
+    Control whether control tree logging is enabled. When enabled clicking with
+    ctrl+alt will log the control tree under the mouse to the console.
+
+    .. since:: 4064
+
+    :param flag: Whether to log. :since:`Passing None toggles logging. <4099>`
+    """
     if flag is None:
         flag = not get_log_control_tree()
     sublime_api.log_control_tree(flag)
 
 
-def get_log_control_tree():
+def get_log_control_tree() -> bool:
+    """
+    Get whether control tree logging is enabled.
+
+    .. since:: 4099
+    """
     return sublime_api.get_log_control_tree()
 
 
-def ui_info():
+def ui_info() -> dict:
+    """
+    .. since:: 4096
+
+    :returns: Information about the user interface including top-level keys
+              ``system``, ``theme`` and ``color_scheme``.
+    """
     return sublime_api.ui_info()
 
 
-def score_selector(scope_name, selector):
+def score_selector(scope_name: str, selector: str) -> int:
+    """
+    Match the ``selector`` against the given ``scope_name``, returning a score for how well they match.
+
+    A score of ``0`` means no match, above ``0`` means a match. Different
+    selectors may be compared against the same scope: a higher score means the
+    selector is a better match for the scope.
+    """
     return sublime_api.score_selector(scope_name, selector)
 
 
-def load_resource(name):
+def load_resource(name: str) -> str:
+    """
+    Loads the given resource. The name should be in the format "Packages/Default/Main.sublime-menu".
+
+    :raises FileNotFoundError: if resource is not found
+    """
     s = sublime_api.load_resource(name)
     if s is None:
         raise FileNotFoundError(f'resource "{name}" not found')
     return s
 
 
-def load_binary_resource(name):
+def load_binary_resource(name) -> bytes:
+    """
+    Loads the given resource. The name should be in the format "Packages/Default/Main.sublime-menu".
+
+    :raises FileNotFoundError: if resource is not found
+    """
     bytes = sublime_api.load_binary_resource(name)
     if bytes is None:
         raise FileNotFoundError(f'resource "{name}" not found')
     return bytes
 
 
-def find_resources(pattern):
+def find_resources(pattern: str) -> list[str]:
+    """
+    Finds resources whose file name matches the given glob pattern.
+    """
     return sublime_api.find_resources(pattern)
 
 
-def encode_value(val, pretty=False):
-    return sublime_api.encode_value(val, pretty)
+def encode_value(value: Value, pretty=False) -> str:
+    """
+    Encode a JSON compatible `Value` into a string representation.
+
+    :param pretty: Whether the result should include newlines and be indented.
+    """
+    return sublime_api.encode_value(value, pretty)
 
 
-def decode_value(data):
-    val, err = sublime_api.decode_value(data)
+def decode_value(data: str) -> Value:
+    """
+    Decode a JSON string into an object. Note that comments and trailing commas
+    are allowed.
+
+    :raises ValueError: If the string is not valid JSON.
+    """
+    value, err = sublime_api.decode_value(data)
 
     if err:
         raise ValueError(err)
 
-    return val
+    return value
 
 
-def expand_variables(val, variables):
-    return sublime_api.expand_variables(val, variables)
+def expand_variables(value: Value, variables: dict[str, str]) -> Value:
+    """
+    Expands any variables in ``value`` using the variables defined in the
+    dictionary ``variables``. value may also be a list or dict, in which case the
+    structure will be recursively expanded. Strings should use snippet syntax,
+    for example: ``expand_variables("Hello, ${name}", {"name": "Foo"})``.
+    """
+    return sublime_api.expand_variables(value, variables)
 
 
-def load_settings(base_name):
+def load_settings(base_name: str) -> Settings:
+    """
+    Loads the named settings. The name should include a file name and extension,
+    but not a path. The packages will be searched for files matching the
+    base_name, and the results will be collated into the settings object.
+
+    Subsequent calls to load_settings() with the base_name will return the same
+    object, and not load the settings from disk again.
+    """
     settings_id = sublime_api.load_settings(base_name)
     return Settings(settings_id)
 
 
-def save_settings(base_name):
+def save_settings(base_name: str):
+    """
+    Flush any in-memory changes to the named settings object to disk.
+    """
     sublime_api.save_settings(base_name)
 
 
-def set_timeout(f, timeout_ms=0):
+def set_timeout(callback: Callable, delay: int = 0):
     """
-    Schedules a function to be called in the future. Sublime Text will block
-    while the function is running
+    Run the ``callback`` in the main thread after the given ``delay``
+    (in milliseconds). Callbacks with an equal delay will be run in the order
+    they were added.
     """
-    sublime_api.set_timeout(f, timeout_ms)
+    sublime_api.set_timeout(callback, delay)
 
 
-def set_timeout_async(f, timeout_ms=0):
+def set_timeout_async(callback: Callable, delay: int = 0):
     """
-    Schedules a function to be called in the future. The function will be
-    called in a worker thread, and Sublime Text will not block while the
-    function is running
+    Runs the callback on an alternate thread after the given delay
+    (in milliseconds).
     """
-    sublime_api.set_timeout_async(f, timeout_ms)
+    sublime_api.set_timeout_async(callback, delay)
 
 
-def active_window():
+def active_window() -> Window:
+    """
+    :returns: The most recently used `Window`.
+    """
     return Window(sublime_api.active_window())
 
 
-def windows():
+def windows() -> list[Window]:
+    """
+    :returns: A list of all the open windows.
+    """
     return [Window(id) for id in sublime_api.windows()]
 
 
-def get_macro():
+def get_macro() -> list[dict]:
+    """
+    :returns: A list of the commands and args that compromise the currently
+              recorded macro. Each ``dict`` will contain the keys ``"command"``
+              and ``"args"``.
+    """
     return sublime_api.get_macro()
 
 
 class Window:
-    def __init__(self, id):
-        self.window_id = id
-        self.settings_object = None
-        self.template_settings_object = None
+    """
+    """
 
-    def __hash__(self):
+    def __init__(self, id: int):
+        self.window_id = id
+        self.settings_object: Optional[Settings] = None
+        self.template_settings_object: Optional[Settings] = None
+
+    def __hash__(self) -> int:
         return self.window_id
 
     def __eq__(self, other):
         return isinstance(other, Window) and other.window_id == self.window_id
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.window_id != 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Window({self.window_id!r})'
 
-    def id(self):
+    def id(self) -> int:
+        """
+        :returns: A number that uniquely identifies this window.
+        """
         return self.window_id
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
+        """
+        Check whether this window is still valid. Will return ``False`` for a
+        closed window, for example.
+        """
         return sublime_api.window_num_groups(self.window_id) != 0
 
-    def hwnd(self):
-        """ Platform specific window handle, only returns a meaningful result under Windows """
+    def hwnd(self) -> int:
+        """
+        :returns: A platform specific window handle. Windows only.
+        """
         return sublime_api.window_system_handle(self.window_id)
 
-    def active_sheet(self):
+    def active_sheet(self) -> Optional[Sheet]:
+        """
+        :returns: The currently focused `Sheet`.
+        """
         sheet_id = sublime_api.window_active_sheet(self.window_id)
         if sheet_id == 0:
             return None
         else:
             return make_sheet(sheet_id)
 
-    def active_view(self):
+    def active_view(self) -> Optional[View]:
+        """
+        :returns: The currently edited `View`.
+        """
         view_id = sublime_api.window_active_view(self.window_id)
         if view_id == 0:
             return None
         else:
             return View(view_id)
 
-    def new_html_sheet(self, name, contents, flags=0, group=-1):
+    def new_html_sheet(self, name: str, contents: str, flags=NewFileFlags.NONE, group=-1) -> Sheet:
+        """
+        Construct a sheet with HTML contents rendered using `minihtml`.
+
+        .. since:: 4065
+
+        :param name: The name of the sheet to show in the tab.
+        :param contents: The HTML contents of the sheet.
+        :param flags: Only `NewFileFlags.TRANSIENT` and
+                      `NewFileFlags.ADD_TO_SELECTION` are allowed.
+        :param group: The group to add the sheet to. ``-1`` for the active group.
+        """
         return make_sheet(sublime_api.window_new_html_sheet(
             self.window_id, name, contents, flags, group))
 
-    def run_command(self, cmd, args=None):
+    def run_command(self, cmd: str, args: CommandArgs = None):
+        """
+        Run the named `WindowCommand` with the (optional) given args. This
+        method is able to run any sort of command, dispatching the command via
+        input focus.
+        """
         sublime_api.window_run_command(self.window_id, cmd, args)
 
-    def new_file(self, flags=0, syntax=""):
-        """ flags must be either 0 or TRANSIENT """
+    def new_file(self, flags=NewFileFlags.NONE, syntax="") -> View:
+        """
+        Create a new empty file.
+
+        :param flags: Either ``0``, `NewFileFlags.TRANSIENT` or `NewFileFlags.ADD_TO_SELECTION`.
+        :param syntax: The name of the syntax to apply to the file.
+        :returns: The view for the file.
+        """
         return View(sublime_api.window_new_file(self.window_id, flags, syntax))
 
-    def open_file(self, fname, flags=0, group=-1):
+    def open_file(self, fname: str, flags=NewFileFlags.NONE, group=-1) -> View:
         """
-        valid bits for flags are:
-        ENCODED_POSITION: fname name may have :row:col or :row suffix
-        TRASIENT: don't add the file to the list of open buffers
-        FORCE_GROUP: don't select the file if it's opened in a different group
-        SEMI_TRANSIENT: open the file in semi-transient mode
-        ADD_TO_SELECTION: add the file to the selected sheets
-        REPLACE_MRU: replace the active sheet in the group
-        CLEAR_TO_RIGHT: unselect all files to the right of the active sheet
+        Open the named file. If the file is already opened, it will be brought
+        to the front. Note that as file loading is asynchronous, operations on
+        the returned view won't be possible until its ``is_loading()`` method
+        returns ``False``.
+
+        :param fname: The path to the file to open.
+        :param flags: `NewFileFlags`
+        :param group: The group to add the sheet to. ``-1`` for the active group.
         """
         return View(sublime_api.window_open_file(self.window_id, fname, flags, group))
 
-    def find_open_file(self, fname):
-        view_id = sublime_api.window_find_open_file(self.window_id, fname)
+    def find_open_file(self, fname: str, group=-1) -> Optional[View]:
+        """
+        Find a opened file by file name.
+
+        :param fname: The path to the file to open.
+        :param group: The group in which to search for the file. ``-1`` for any group.
+
+        :returns: The `View` to the file or ``None`` if the file isn't open.
+        """
+        view_id = sublime_api.window_find_open_file(self.window_id, fname, group)
         if view_id == 0:
             return None
         else:
             return View(view_id)
 
-    def file_history(self):
+    def file_history(self) -> list[str]:
+        """
+        Get the list of previously opened files. This is the same list
+        as *File > Open Recent*.
+        """
         return sublime_api.window_file_history(self.window_id)
 
-    def num_groups(self):
+    def num_groups(self) -> int:
+        """
+        :returns: The number of view groups in the window.
+        """
         return sublime_api.window_num_groups(self.window_id)
 
-    def active_group(self):
+    def active_group(self) -> int:
+        """
+        :returns: The index of the currently selected group.
+        """
         return sublime_api.window_active_group(self.window_id)
 
-    def focus_group(self, idx):
+    def focus_group(self, idx: int):
+        """
+        Focus the specified group, making it active.
+        """
         sublime_api.window_focus_group(self.window_id, idx)
 
-    def focus_sheet(self, sheet):
+    def focus_sheet(self, sheet: Sheet):
+        """
+        Switches to the given `Sheet`.
+        """
         if sheet:
             sublime_api.window_focus_sheet(self.window_id, sheet.sheet_id)
 
-    def focus_view(self, view):
+    def focus_view(self, view: View):
+        """
+        Switches to the given `View`.
+        """
         if view:
             sublime_api.window_focus_view(self.window_id, view.view_id)
 
-    def select_sheets(self, sheets):
+    def select_sheets(self, sheets: list[Sheet]):
+        """
+        Change the selected sheets for the entire window.
+
+        .. since:: 4083
+        """
         sublime_api.window_select_sheets(self.window_id, [s.sheet_id for s in sheets])
 
     def bring_to_front(self):
+        """
+        Bring the window in front of any other windows.
+        """
         sublime_api.window_bring_to_front(self.window_id)
 
-    def get_sheet_index(self, sheet):
+    def get_sheet_index(self, sheet: Sheet) -> tuple[int, int]:
+        """
+        :returns: The a tuple of the group and index within the group of the
+                  given `Sheet`.
+        """
         if sheet:
             return sublime_api.window_get_sheet_index(self.window_id, sheet.sheet_id)
         else:
             return (-1, -1)
 
-    def get_view_index(self, view):
+    def get_view_index(self, view: View) -> tuple[int, int]:
+        """
+        :returns: The a tuple of the group and index within the group of the
+                  given `View`.
+        """
         if view:
             return sublime_api.window_get_view_index(self.window_id, view.view_id)
         else:
             return (-1, -1)
 
-    def set_sheet_index(self, sheet, group, idx):
-        sublime_api.window_set_sheet_index(self.window_id, sheet.sheet_id, group, idx)
-
-    def set_view_index(self, view, group, idx):
-        sublime_api.window_set_view_index(self.window_id, view.view_id, group, idx)
-
-    def move_sheets_to_group(self, sheets, group, insertion_idx=-1, select=True):
+    def set_sheet_index(self, sheet: Sheet, group: int, index: int):
         """
-        Moves all unique provided sheets to specified group at insertion index provided.
-        If an index is not provided defaults to last index of the destination group.
+        Move the given `Sheet` to the given ``group`` at the given ``index``.
+        """
+        sublime_api.window_set_sheet_index(self.window_id, sheet.sheet_id, group, index)
 
-        :param sheets:
-                A List of Sheet objects
+    def set_view_index(self, view: View, group: int, index: int):
+        """
+        Move the given `View` to the given ``group`` at the given ``index``.
+        """
+        sublime_api.window_set_view_index(self.window_id, view.view_id, group, index)
 
-        :param group:
-                An int specifying the destination group
+    def move_sheets_to_group(self, sheets: list[Sheet], group: int, insertion_idx=-1, select=True):
+        """
+        Moves all provided sheets to specified group at insertion index
+        provided. If an index is not provided defaults to last index of the
+        destination group.
 
-        :param insertion_idx:
-                An int specifying the insertion index
+        .. since:: 4123
 
-        :param select:
-                A bool specifying whether the moved sheets should be selected
+        :param sheets: The sheets to move.
+        :param group: The index of the group to move the sheets to.
+        :param insertion_idx: The point inside the group at which to insert the sheets.
+        :param select: Whether the sheets should be selected after moving them.
+
         """
         sheet_ids = []
         for sheet in sheets:
@@ -644,110 +1490,222 @@ class Window:
             sheet_ids.append(sheet.id())
         sublime_api.window_move_sheets_to_group(self.window_id, sheet_ids, group, insertion_idx, select)
 
-    def sheets(self):
+    def sheets(self) -> list[Sheet]:
+        """
+        :returns: All open sheets in the window.
+        """
         sheet_ids = sublime_api.window_sheets(self.window_id)
         return [make_sheet(x) for x in sheet_ids]
 
-    def views(self, *, include_transient=False):
+    def views(self, *, include_transient=False) -> list[View]:
+        """
+        :param include_transient: Whether the transient sheet should be included.
+
+            .. since:: 4081
+        :returns: All open sheets in the window.
+        """
         view_ids = sublime_api.window_views(self.window_id, include_transient)
         return [View(x) for x in view_ids]
 
-    def selected_sheets(self):
+    def selected_sheets(self) -> list[Sheet]:
+        """
+        .. since:: 4083
+
+        :returns: All selected sheets in the window.
+        """
         sheet_ids = sublime_api.window_selected_sheets(self.window_id)
         return [make_sheet(s) for s in sheet_ids]
 
-    def selected_sheets_in_group(self, group):
+    def selected_sheets_in_group(self, group: int) -> list[Sheet]:
+        """
+        .. since:: 4083
+
+        :returns: All selected sheets in the specified group.
+        """
         sheet_ids = sublime_api.window_selected_sheets_in_group(self.window_id, group)
         return [make_sheet(s) for s in sheet_ids]
 
-    def active_sheet_in_group(self, group):
+    def active_sheet_in_group(self, group: int) -> Optional[Sheet]:
+        """
+        :returns: The currently focused `Sheet` in the given group.
+        """
         sheet_id = sublime_api.window_active_sheet_in_group(self.window_id, group)
         if sheet_id == 0:
             return None
         else:
             return make_sheet(sheet_id)
 
-    def active_view_in_group(self, group):
+    def active_view_in_group(self, group: int) -> Optional[View]:
+        """
+        :returns: The currently focused `View` in the given group.
+        """
         view_id = sublime_api.window_active_view_in_group(self.window_id, group)
         if view_id == 0:
             return None
         else:
             return View(view_id)
 
-    def sheets_in_group(self, group):
+    def sheets_in_group(self, group: int) -> list[Sheet]:
+        """
+        :returns: A list of all sheets in the specified group.
+        """
         sheet_ids = sublime_api.window_sheets_in_group(self.window_id, group)
         return [make_sheet(x) for x in sheet_ids]
 
-    def views_in_group(self, group):
+    def views_in_group(self, group: int) -> list[View]:
+        """
+        :returns: A list of all views in the specified group.
+        """
         view_ids = sublime_api.window_views_in_group(self.window_id, group)
         return [View(x) for x in view_ids]
 
-    def transient_sheet_in_group(self, group):
+    def transient_sheet_in_group(self, group: int) -> Optional[Sheet]:
+        """
+        :returns: The transient sheet in the specified group.
+        """
         sheet_id = sublime_api.window_transient_sheet_in_group(self.window_id, group)
         if sheet_id != 0:
             return make_sheet(sheet_id)
         else:
             return None
 
-    def transient_view_in_group(self, group):
+    def transient_view_in_group(self, group: int) -> Optional[View]:
+        """
+        :returns: The transient view in the specified group.
+        """
         view_id = sublime_api.window_transient_view_in_group(self.window_id, group)
         if view_id != 0:
             return View(view_id)
         else:
             return None
 
-    def layout(self):
+    def promote_sheet(self, sheet: Sheet):
+        """
+        Promote the 'Sheet' parameter if semi-transient or transient.
+
+        :since: next
+        """
+        sublime_api.window_promote_sheet(self.window_id, sheet.id())
+
+    def layout(self) -> dict[str, Value]:
+        """
+        Get the group layout of the window.
+        """
         return sublime_api.window_get_layout(self.window_id)
 
     def get_layout(self):
-        """ get_layout() is deprecated, use layout() """
+        """
+        :deprecated: Use `layout()` instead
+        """
         return sublime_api.window_get_layout(self.window_id)
 
-    def set_layout(self, layout):
+    def set_layout(self, layout: dict[str, Value]):
+        """
+        Set the group layout of the window.
+        """
         sublime_api.window_set_layout(self.window_id, layout)
 
-    def create_output_panel(self, name, unlisted=False):
+    def create_output_panel(self, name: str, unlisted=False) -> View:
+        """
+        Find the view associated with the named output panel, creating it if
+        required. The output panel can be shown by running the ``show_panel``
+        window command, with the ``panel`` argument set to the name with
+        an ``"output."`` prefix.
+
+        The optional ``unlisted`` parameter is a boolean to control if the output
+        panel should be listed in the panel switcher.
+        """
         return View(sublime_api.window_create_output_panel(self.window_id, name, unlisted))
 
-    def find_output_panel(self, name):
+    def find_output_panel(self, name: str) -> Optional[View]:
+        """
+        :returns:
+            The `View` associated with the named output panel, or ``None`` if
+            the output panel does not exist.
+        """
         view_id = sublime_api.window_find_output_panel(self.window_id, name)
         return View(view_id) if view_id else None
 
-    def destroy_output_panel(self, name):
+    def destroy_output_panel(self, name: str):
+        """
+        Destroy the named output panel, hiding it if currently open.
+        """
         sublime_api.window_destroy_output_panel(self.window_id, name)
 
-    def active_panel(self):
+    def active_panel(self) -> Optional[str]:
+        """
+        Returns the name of the currently open panel, or None if no panel is
+        open. Will return built-in panel names (e.g. ``"console"``, ``"find"``,
+        etc) in addition to output panels.
+        """
         name = sublime_api.window_active_panel(self.window_id)
         return name or None
 
-    def panels(self):
+    def panels(self) -> list[str]:
+        """
+        Returns a list of the names of all panels that have not been marked as
+        unlisted. Includes certain built-in panels in addition to output
+        panels.
+        """
         return sublime_api.window_panels(self.window_id)
 
-    def get_output_panel(self, name):
-        """ deprecated, use create_output_panel """
+    def get_output_panel(self, name: str):
+        """ :deprecated: Use `create_output_panel` instead. """
         return self.create_output_panel(name)
 
-    def show_input_panel(self, caption, initial_text, on_done, on_change, on_cancel):
-        """ on_done and on_change should accept a string argument, on_cancel should have no arguments """
+    def show_input_panel(self, caption: str, initial_text: str,
+                         on_done: Optional[Callable[[str], None]],
+                         on_change: Optional[Callable[[str], None]],
+                         on_cancel: Optional[Callable[[], None]]):
+        """
+        Shows the input panel, to collect a line of input from the user.
+
+        :param caption: The label to put next to the input widget.
+        :param initial_text: The initial text inside the input widget.
+        :param on_done: Called with the final input when the user presses ``enter``.
+        :param on_change: Called with the input when it's changed.
+        :param on_cancel: Called when the user cancels input using ``esc``
+        :returns: The `View` used for the input widget.
+        """
         return View(sublime_api.window_show_input_panel(
             self.window_id, caption, initial_text, on_done, on_change, on_cancel))
 
-    def show_quick_panel(self, items, on_select, flags=0, selected_index=-1, on_highlight=None, placeholder=None):
+    def show_quick_panel(self,
+                         items: list[str] | list[list[str]] | list[QuickPanelItem],
+                         on_select: Callable[[int], None],
+                         flags=QuickPanelFlags.NONE,
+                         selected_index=-1,
+                         on_highlight: Optional[Callable[[int], None]] = None,
+                         placeholder: Optional[str] = None):
         """
-        on_select is called when the the quick panel is finished, and should
-        accept a single integer, specifying which item was selected, or -1 for
-        none. If flags includes WANT_EVENT, on_select should accept a second
-        parameter, which will be a dict with the key "modifier_keys" giving
-        access to keyboard modifiers pressed when the item was selected.
+        Show a quick panel to select an item in a list. on_select will be called
+        once, with the index of the selected item. If the quick panel was
+        cancelled, on_select will be called with an argument of -1.
 
-        on_highlight is called when the quick panel is still active, and
-        indicates the current highlighted index
+        :param items:
+            May be either a list of strings, or a list of lists of strings where
+            the first item is the trigger and all subsequent strings are
+            details shown below.
 
-        flags is a bitwise OR of MONOSPACE_FONT, KEEP_OPEN_ON_FOCUS_LOST and
-        WANT_EVENT
+            .. since:: 4083
+                May be a `QuickPanelItem`.
+        :param on_select:
+            Called with the selected item's index when the quick panel is
+            completed. If the panel was cancelled this is called with ``-1``.
+
+            .. since:: 4096
+                A second `Event` argument may be passed when the
+                `QuickPanelFlags.WANT_EVENT` flag is present.
+        :param flags: `QuickPanelFlags` controlling behavior.
+        :param selected_index: The initially selected item. ``-1`` for no selection.
+        :param on_highlight:
+            Called every time the highlighted item in the quick panel is changed.
+        :param placeholder:
+            Text displayed in the filter input field before any query is typed.
+            :since:`4081`
         """
 
-        item_tuples = []
+        item_tuples: list[str | tuple | QuickPanelItem] = []
         if len(items) > 0:
             for item in items:
                 if isinstance(item, str):
@@ -777,109 +1735,125 @@ class Window:
             self.window_id, item_tuples, on_select, on_highlight,
             flags, selected_index, placeholder or '')
 
-    def is_sidebar_visible(self):
-        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR)
+    def is_sidebar_visible(self) -> bool:
+        """ :returns: Whether the sidebar is visible. """
+        return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.SIDE_BAR)
 
-    def set_sidebar_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR, flag)
+    def set_sidebar_visible(self, flag: bool):
+        """ Hides or shows the sidebar. """
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.SIDE_BAR, flag)
 
-    def is_minimap_visible(self):
-        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP)
+    def is_minimap_visible(self) -> bool:
+        """ :returns: Whether the minimap is visible. """
+        return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.MINIMAP)
 
-    def set_minimap_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP, flag)
+    def set_minimap_visible(self, flag: bool):
+        """ Hides or shows the minimap. """
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MINIMAP, flag)
 
-    def is_status_bar_visible(self):
-        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR)
+    def is_status_bar_visible(self) -> bool:
+        """ :returns: Whether the status bar is visible. """
+        return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.STATUS_BAR)
 
-    def set_status_bar_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR, flag)
+    def set_status_bar_visible(self, flag: bool):
+        """ Hides or shows the status bar. """
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.STATUS_BAR, flag)
 
-    def get_tabs_visible(self):
-        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_TABS)
+    def get_tabs_visible(self) -> bool:
+        """ :returns: Whether the tabs are visible. """
+        return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.TABS)
 
-    def set_tabs_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_TABS, flag)
+    def set_tabs_visible(self, flag: bool):
+        """ Hides or shows the tabs. """
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.TABS, flag)
 
-    def is_menu_visible(self):
-        return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MENU)
+    def is_menu_visible(self) -> bool:
+        """ :returns: Whether the menu is visible. """
+        return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.MENU)
 
-    def set_menu_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MENU, flag)
+    def set_menu_visible(self, flag: bool):
+        """ Hides or shows the menu. """
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MENU, flag)
 
-    def folders(self):
+    def folders(self) -> list[str]:
+        """ :returns: A list of the currently open folders in this `Window`. """
         return sublime_api.window_folders(self.window_id)
 
-    def project_file_name(self):
+    def project_file_name(self) -> Optional[str]:
+        """ :returns: The name of the currently opened project file, if any. """
         name = sublime_api.window_project_file_name(self.window_id)
         if len(name) == 0:
             return None
         else:
             return name
 
-    def project_data(self):
-        return sublime_api.window_get_project_data(self.window_id)
+    def workspace_file_name(self) -> Optional[str]:
+        """
+        .. since:: 4050
 
-    def set_project_data(self, v):
-        sublime_api.window_set_project_data(self.window_id, v)
-
-    def workspace_file_name(self):
+        :returns: The name of the currently opened workspace file, if any.
+        """
         name = sublime_api.window_workspace_file_name(self.window_id)
         if len(name) == 0:
             return None
         return name
 
-    def settings(self):
-        """ Per-window settings, the contents are persisted in the session """
+    def project_data(self) -> Value:
+        """
+        :returns: The project data associated with the current window. The data
+                  is in the same format as the contents of a
+                  :path:`.sublime-project` file.
+        """
+        return sublime_api.window_get_project_data(self.window_id)
+
+    def set_project_data(self, data: Value):
+        """
+        Updates the project data associated with the current window. If the
+        window is associated with a :path:`.sublime-project` file, the project
+        file will be updated on disk, otherwise the window will store the data
+        internally.
+        """
+        sublime_api.window_set_project_data(self.window_id, data)
+
+    def settings(self) -> Settings:
+        """
+        :returns: The `Settings` object for this `Window`. Any changes to this
+                  settings object will be specific to this window.
+        """
         if not self.settings_object:
             self.settings_object = Settings(
                 sublime_api.window_settings(self.window_id))
 
         return self.settings_object
 
-    def template_settings(self):
-        """ Per-window settings that are persisted in the session, and duplicated into new windows """
+    def template_settings(self) -> Settings:
+        """
+        :returns: Per-window settings that are persisted in the session, and
+                  duplicated into new windows.
+        """
         if not self.template_settings_object:
             self.template_settings_object = Settings(
                 sublime_api.window_template_settings(self.window_id))
 
         return self.template_settings_object
 
-    def symbol_locations(self, sym, source=SYMBOL_SOURCE_ANY, type=SYMBOL_TYPE_ANY,
-                         kind_id=KIND_ID_AMBIGUOUS, kind_letter=''):
+    def symbol_locations(self,
+                         sym: str,
+                         source=SymbolSource.ANY,
+                         type=SymbolType.ANY,
+                         kind_id=KindId.AMBIGUOUS,
+                         kind_letter='') -> list[SymbolLocation]:
         """
-        :param sym:
-            A unicode string of a symbol name
+        Find all locations where the symbol ``sym`` is located.
 
-        :param source:
-            The source to query for symbols. One of the values:
-             - sublime.SYMBOL_SOURCE_ANY
-             - sublime.SYMBOL_SOURCE_INDEX
-             - sublime.SYMBOL_SOURCE_OPEN_FILES
+        .. since:: 4085
 
-        :param type:
-            The type of symbol to return. One of the values:
-             - sublime.SYMBOL_TYPE_ANY
-             - sublime.SYMBOL_TYPE_DEFINITION
-             - sublime.SYMBOL_TYPE_REFERENCE
-
-        :param kind_id:
-            The kind to filter the list by. One of the values:
-             - sublime.KIND_ID_AMBIGUOUS
-             - sublime.KIND_ID_KEYWORD
-             - sublime.KIND_ID_TYPE
-             - sublime.KIND_ID_FUNCTION
-             - sublime.KIND_ID_NAMESPACE
-             - sublime.KIND_ID_NAVIGATION
-             - sublime.KIND_ID_MARKUP
-             - sublime.KIND_ID_VARIABLE
-             - sublime.KIND_ID_SNIPPET
-
-        :param kind_letter:
-            A unicode character of the kind letter to filter the list by.
-
-        :return:
-            A list of sublime.SymbolLocation() objects
+        :param sym: The name of the symbol.
+        :param source: Sources which should be searched for the symbol.
+        :param type: The type of symbol to find
+        :param kind_id: The `KindId` of the symbol.
+        :param kind_letter: The letter representing the kind of the symbol. See `Kind`.
+        :return: the found symbol locations.
         """
 
         letter = 0
@@ -890,65 +1864,139 @@ class Window:
 
         return sublime_api.window_symbol_locations(self.window_id, sym, source, type, kind_id, letter)
 
-    def lookup_symbol_in_index(self, sym):
-        """ Finds all files and locations where sym is defined, using the symbol index """
-        return sublime_api.window_lookup_symbol(self.window_id, sym)
+    def lookup_symbol_in_index(self, symbol: str) -> list[SymbolLocation]:
+        """
+        :returns: All locations where the symbol is defined across files in the current project.
+        :deprecated: Use `symbol_locations()` instead.
+        """
+        return sublime_api.window_lookup_symbol(self.window_id, symbol)
 
-    def lookup_symbol_in_open_files(self, sym):
-        """ Finds all files and locations where sym is defined, searching through open files """
-        return sublime_api.window_lookup_symbol_in_open_files(self.window_id, sym)
+    def lookup_symbol_in_open_files(self, symbol: str) -> list[SymbolLocation]:
+        """
+        :returns: All locations where the symbol is defined across open files.
+        :deprecated: Use `symbol_locations()` instead.
+        """
+        return sublime_api.window_lookup_symbol_in_open_files(self.window_id, symbol)
 
-    def lookup_references_in_index(self, sym):
-        """ Finds all files and locations where sym is referenced, using the symbol index """
-        return sublime_api.window_lookup_references(self.window_id, sym)
+    def lookup_references_in_index(self, symbol: str) -> list[SymbolLocation]:
+        """
+        :returns: All locations where the symbol is referenced across files in the current project.
+        :deprecated: Use `symbol_locations()` instead.
+        """
+        return sublime_api.window_lookup_references(self.window_id, symbol)
 
-    def lookup_references_in_open_files(self, sym):
-        """ Finds all files and locations where sym is referenced, searching through open files """
-        return sublime_api.window_lookup_references_in_open_files(self.window_id, sym)
+    def lookup_references_in_open_files(self, symbol: str) -> list[SymbolLocation]:
+        """
+        :returns: All locations where the symbol is referenced across open files.
+        :deprecated: Use `symbol_locations()` instead.
+        """
+        return sublime_api.window_lookup_references_in_open_files(self.window_id, symbol)
 
-    def extract_variables(self):
+    def extract_variables(self) -> dict[str, str]:
+        """
+        Get the ``dict`` of contextual keys of the window.
+
+        May contain:
+        * ``"packages"``
+        * ``"platform"``
+        * ``"file"``
+        * ``"file_path"``
+        * ``"file_name"``
+        * ``"file_base_name"``
+        * ``"file_extension"``
+        * ``"folder"``
+        * ``"project"``
+        * ``"project_path"``
+        * ``"project_name"``
+        * ``"project_base_name"``
+        * ``"project_extension"``
+
+        This ``dict`` is suitable for use with `expand_variables()`.
+        """
         return sublime_api.window_extract_variables(self.window_id)
 
-    def status_message(self, msg):
+    def status_message(self, msg: str):
+        """ Show a message in the status bar. """
         sublime_api.window_status_message(self.window_id, msg)
 
 
 class Edit:
-    def __init__(self, token):
-        self.edit_token = token
+    """
+    A grouping of buffer modifications.
 
-    def __repr__(self):
+    Edit objects are passed to `TextCommand`\\ s, and can not be created by the
+    user. Using an invalid Edit object, or an Edit object from a different
+    `View`, will cause the functions that require them to fail.
+    """
+
+    def __init__(self, token):
+        self.edit_token: int = token
+
+    def __repr__(self) -> str:
         return f'Edit({self.edit_token!r})'
 
 
 class Region:
+    """
+    A singular selection region. This region has a order - ``b`` may be before
+    or at ``a``.
+
+    Also commonly used to represent an area of the text buffer, where ordering
+    and ``xpos`` are generally ignored.
+    """
+
     __slots__ = ['a', 'b', 'xpos']
 
-    def __init__(self, a, b=None, xpos=-1):
+    def __init__(self, a: Point, b: Optional[Point] = None, xpos: DIP = -1):
+        """ """
         if b is None:
             b = a
-        self.a = a
-        self.b = b
-        self.xpos = xpos
+
+        self.a: Point = a
+        """ The first end of the region. """
+        self.b: Point = b
+        """
+        The second end of the region. In a selection this is the location of the
+        caret. May be less than ``a``.
+        """
+        self.xpos: DIP = xpos
+        """
+        In a selection this is the target horizontal position of the region.
+        This affects behavior when pressing the up or down keys. Use ``-1`` if
+        undefined.
+        """
 
     def __iter__(self):
+        """
+        Iterate through all the points in the region.
+
+        .. since:: 4023 3.8
+        """
         return iter((self.a, self.b))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "(" + str(self.a) + ", " + str(self.b) + ")"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.xpos == -1:
             return f'Region({self.a}, {self.b})'
         return f'Region({self.a}, {self.b}, xpos={self.xpos})'
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """ :returns: The size of the region. """
         return self.size()
 
-    def __eq__(self, rhs):
+    def __eq__(self, rhs: object) -> bool:
+        """
+        :returns: Whether the two regions are identical. Ignores ``xpos``.
+        """
         return isinstance(rhs, Region) and self.a == rhs.a and self.b == rhs.b
 
-    def __lt__(self, rhs):
+    def __lt__(self, rhs: Region) -> bool:
+        """
+        :returns: Whether this region starts before the rhs. The end of the
+                  region is used to resolve ties.
+        """
         lhs_begin = self.begin()
         rhs_begin = rhs.begin()
 
@@ -957,7 +2005,13 @@ class Region:
         else:
             return lhs_begin < rhs_begin
 
-    def __contains__(self, v):
+    def __contains__(self, v: Region | Point) -> bool:
+        """
+        :returns: Whether the provided `Region` or `Point` is entirely contained
+                  within this region.
+
+        .. since:: 4023 3.8
+        """
         if isinstance(v, Region):
             return v.a in self and v.b in self
         elif isinstance(v, int):
@@ -971,57 +2025,65 @@ class Region:
                 "in <Region> requires int or Region as left operand"
                 f", not {fq_name}")
 
-    def to_tuple(self):
-        """ Returns a tuple of this region (excluding xpos).
+    def to_tuple(self) -> tuple[Point, Point]:
+        """
+        .. since:: 4075
 
-        Use this to uniquely identify a region in a set or similar. Regions
-        can't be used for that directly as they may be mutated.
+        :returns: This region as a tuple ``(a, b)``.
         """
         return (self.a, self.b)
 
-    def empty(self):
+    def empty(self) -> bool:
+        """ :returns: Whether the region is empty, ie. ``a == b``. """
         return self.a == self.b
 
-    def begin(self):
+    def begin(self) -> Point:
+        """ :returns: The smaller of ``a`` and ``b``. """
         if self.a < self.b:
             return self.a
         else:
             return self.b
 
-    def end(self):
+    def end(self) -> Point:
+        """ :returns: The larger of ``a`` and ``b``. """
         if self.a < self.b:
             return self.b
         else:
             return self.a
 
-    def size(self):
+    def size(self) -> int:
+        """ Equivalent to `__len__`. """
         return abs(self.a - self.b)
 
-    def contains(self, x):
+    def contains(self, x: Point) -> bool:
+        """ Equivalent to `__contains__`. """
         return x in self
 
-    def cover(self, rhs):
-        a = min(self.begin(), rhs.begin())
-        b = max(self.end(), rhs.end())
+    def cover(self, region: Region) -> Region:
+        """ :returns: A `Region` spanning both regions. """
+        a = min(self.begin(), region.begin())
+        b = max(self.end(), region.end())
 
         if self.a < self.b:
             return Region(a, b)
         else:
             return Region(b, a)
 
-    def intersection(self, rhs):
-        if self.end() <= rhs.begin():
+    def intersection(self, region: Region) -> Region:
+        """ :returns: A `Region` covered by both regions. """
+        if self.end() <= region.begin():
             return Region(0)
-        if self.begin() >= rhs.end():
+        if self.begin() >= region.end():
             return Region(0)
 
-        return Region(max(self.begin(), rhs.begin()), min(self.end(), rhs.end()))
+        return Region(max(self.begin(), region.begin()), min(self.end(), region.end()))
 
-    def intersects(self, rhs):
+    def intersects(self, region: Region) -> bool:
+        """ :returns: Whether the provided region intersects this region. """
         lb = self.begin()
         le = self.end()
-        rb = rhs.begin()
-        re = rhs.end()
+        rb = region.begin()
+        re = region.end()
 
         return (
             (lb == rb and le == re) or
@@ -1030,14 +2092,35 @@ class Region:
 
 
 class HistoricPosition:
+    """
+    Provides a snapshot of the row and column info for a `Point`, before changes
+    were made to a `View`. This is primarily useful for replaying changes to a
+    document.
+
+    .. since:: 4050
+    """
+
     __slots__ = ['pt', 'row', 'col', 'col_utf16', 'col_utf8']
 
     def __init__(self, pt, row, col, col_utf16, col_utf8):
-        self.pt = pt
-        self.row = row
-        self.col = col
-        self.col_utf16 = col_utf16
-        self.col_utf8 = col_utf8
+        self.pt: Point = pt
+        """ The offset from the beginning of the `View`. """
+        self.row: int = row
+        """ The row the ``.py`` was in when the `HistoricPosition` was recorded. """
+        self.col: int = col
+        """ The column the ``.py`` was in when the `HistoricPosition` was recorded, in Unicode characters. """
+        self.col_utf16: int = col_utf16
+        """
+        The value of ``.col``, but in UTF-16 code units.
+
+        .. since:: 4075
+        """
+        self.col_utf8: int = col_utf8
+        """
+        The value of ``.col``, but in UTF-8 code units.
+
+        .. since:: 4075
+        """
 
     def __repr__(self):
         return (f'HistoricPosition(pt={self.pt!r}, row={self.row!r}, '
@@ -1046,14 +2129,38 @@ class HistoricPosition:
 
 
 class TextChange:
+    """
+    Represents a change that occurred to the text of a `View`. This is primarily
+    useful for replaying changes to a document.
+
+    .. since:: 4050
+    """
+
     __slots__ = ['a', 'b', 'len_utf16', 'len_utf8', 'str']
 
     def __init__(self, pa, pb, len_utf16, len_utf8, str):
-        self.a = pa
-        self.b = pb
-        self.len_utf16 = len_utf16
-        self.len_utf8 = len_utf8
-        self.str = str
+        self.a: HistoricPosition = pa
+        """ The beginning `HistoricPosition` of the region that was modified. """
+        self.b: HistoricPosition = pb
+        """ The ending `HistoricPosition` of the region that was modified. """
+        self.len_utf16: int = len_utf16
+        """
+        The length of the old contents, in UTF-16 code units.
+
+        .. since:: 4075
+        """
+        self.len_utf8: int = len_utf8
+        """
+        The length of the old contents, in UTF-8 code units.
+
+        .. since:: 4075
+        """
+        self.str: str = str
+        """
+        A string of the *new* contents of the region specified by ``.a`` and ``.b``.
+
+        :meta noindex:
+        """
 
     def __repr__(self):
         return (f'TextChange({self.a!r}, {self.b!r}, '
@@ -1062,63 +2169,93 @@ class TextChange:
 
 
 class Selection:
+    """
+    Maintains a set of sorted non-overlapping Regions. A selection may be
+    empty.
+
+    This is primarily used to represent the textual selection.
+    """
+
     def __init__(self, id):
         self.view_id = id
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Region]:
+        """
+        Iterate through all the regions in the selection.
+
+        .. since:: 4023 3.8
+        """
         i = 0
         n = len(self)
         while i < n:
             yield sublime_api.view_selection_get(self.view_id, i)
             i += 1
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """ :returns: The number of regions in the selection. """
         return sublime_api.view_selection_size(self.view_id)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Region:
+        """ :returns: The region at the given ``index``. """
         r = sublime_api.view_selection_get(self.view_id, index)
         if r.a == -1:
             raise IndexError()
         return r
 
-    def __delitem__(self, index):
+    def __delitem__(self, index: int):
+        """ Delete the region at the given ``index``. """
         sublime_api.view_selection_erase(self.view_id, index)
 
-    def __eq__(self, rhs):
-        return rhs is not None and list(self) == list(rhs)
+    def __eq__(self, rhs: object) -> bool:
+        """ :returns: Whether the selections are identical. """
+        return rhs is not None and isinstance(rhs, Selection) and list(self) == list(rhs)
 
-    def __lt__(self, rhs):
+    def __lt__(self, rhs: Optional[Selection]) -> bool:
+        """ """
         return rhs is not None and list(self) < list(rhs)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
+        """ The selection is ``True`` when not empty. """
         return self.view_id != 0 and len(self) > 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self!r}[{', '.join(map(str, self))}]"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Selection({self.view_id!r})'
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
+        """ :returns: Whether this selection is for a valid view. """
         return sublime_api.view_buffer_id(self.view_id) != 0
 
     def clear(self):
+        """ Remove all regions from the selection. """
         sublime_api.view_selection_clear(self.view_id)
 
-    def add(self, x):
+    def add(self, x: Region | Point):
+        """
+        Add a `Region` or `Point` to the selection. It will be merged with the
+        existing regions if intersecting.
+        """
         if isinstance(x, Region):
             sublime_api.view_selection_add_region(self.view_id, x.a, x.b, x.xpos)
         else:
             sublime_api.view_selection_add_point(self.view_id, x)
 
-    def add_all(self, regions):
+    def add_all(self, regions: Iterator[Region]):
+        """ Add all the regions from the given iterable. """
         for r in regions:
             self.add(r)
 
-    def subtract(self, region):
+    def subtract(self, region: Region):
+        """
+        Subtract a region from the selection, such that the whole region is no
+        longer contained within the selection.
+        """
         sublime_api.view_selection_subtract_region(self.view_id, region.a, region.b)
 
-    def contains(self, region):
+    def contains(self, region: Region) -> bool:
+        """ :returns: Whether the provided region is contained within the selection. """
         return sublime_api.view_selection_contains(self.view_id, region.a, region.b)
 
 
@@ -1134,254 +2271,486 @@ def make_sheet(sheet_id):
 
 
 class Sheet:
+    """
+    Represents a content container, i.e. a tab, within a window. Sheets may
+    contain a View, or an image preview.
+    """
+
     def __init__(self, id):
         self.sheet_id = id
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.sheet_id
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Sheet) and other.sheet_id == self.sheet_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Sheet({self.sheet_id!r})'
 
-    def id(self):
+    def id(self) -> int:
+        """ :returns: A number that uniquely identifies this sheet. """
         return self.sheet_id
 
-    def window(self):
+    def window(self) -> Optional[Window]:
+        """
+        :returns: The `Window` containing this sheet. May be ``None`` if the
+                  sheet has been closed.
+        """
         window_id = sublime_api.sheet_window(self.sheet_id)
         if window_id == 0:
             return None
         else:
             return Window(window_id)
 
-    def view(self):
+    def view(self) -> Optional[View]:
+        """
+        :returns: The `View` contained within the sheet if any.
+        """
         view_id = sublime_api.sheet_view(self.sheet_id)
         if view_id == 0:
             return None
         else:
             return View(view_id)
 
-    def file_name(self):
+    def file_name(self) -> Optional[str]:
+        """
+        :returns:
+            The full name of the file associated with the sheet, or ``None``
+            if it doesn't exist on disk.
+
+        .. since:: 4088
+        """
         fn = sublime_api.sheet_file_name(self.sheet_id)
         if len(fn) == 0:
             return None
         return fn
 
-    def is_semi_transient(self):
+    def is_semi_transient(self) -> bool:
+        """
+        :returns: Whether this sheet is semi-transient.
+
+        .. since:: 4080
+        """
         return sublime_api.sheet_is_semi_transient(self.sheet_id)
 
-    def is_transient(self):
+    def is_transient(self) -> bool:
+        """
+        :returns: Whether this sheet is transient.
+
+        .. since:: 4080
+        """
         return sublime_api.sheet_is_transient(self.sheet_id)
 
-    def group(self):
+    def is_selected(self) -> bool:
+        """
+        :returns: Whether this sheet is currently selected.
+
+        :since: next
+        """
+        return sublime_api.sheet_is_selected(self.sheet_id)
+
+    def group(self) -> Optional[int]:
+        """
+        :returns: The (layout) group that the sheet is contained within.
+
+        .. since:: 4100
+        """
         group_num = sublime_api.sheet_group(self.sheet_id)
         if group_num == -1:
             return None
         return group_num
 
     def close(self, on_close=lambda did_close: None):
+        """
+        Closes the sheet.
+
+        :param on_close:
+
+        .. since:: 4088
+        """
         sublime_api.sheet_close(self.sheet_id, on_close)
 
 
 class TextSheet(Sheet):
+    """
+    Specialization for sheets containing editable text, ie. a `View`.
+
+    .. since:: 4065
+    """
+
     def __repr__(self):
         return f'TextSheet({self.sheet_id!r})'
 
-    def set_name(self, name):
+    def set_name(self, name: str):
+        """ Set the name displayed in the tab. Only affects unsaved files. """
         sublime_api.sheet_set_name(self.sheet_id, name)
 
 
 class ImageSheet(Sheet):
+    """
+    Specialization for sheets containing an image.
+
+    .. since:: 4065
+    """
+
     def __repr__(self):
         return f'ImageSheet({self.sheet_id!r})'
 
 
 class HtmlSheet(Sheet):
+    """
+    Specialization for sheets containing HTML.
+
+    .. since:: 4065
+    """
+
     def __repr__(self):
         return f'HtmlSheet({self.sheet_id!r})'
 
-    def set_name(self, name):
+    def set_name(self, name: str):
+        """ Set the name displayed in the tab. """
         sublime_api.sheet_set_name(self.sheet_id, name)
 
-    def set_contents(self, contents):
+    def set_contents(self, contents: str):
+        """ Set the HTML content of the sheet. """
         sublime_api.html_sheet_set_contents(self.sheet_id, contents)
 
 
+class ContextStackFrame:
+    """
+    Represents a single stack frame in the syntax highlighting. See
+    `View.context_backtrace`.
+
+    .. since:: 4127
+    """
+
+    __slots__ = ['context_name', 'source_file', 'source_location']
+
+    def __init__(self, context_name, source_file, source_location):
+        self.context_name: str = context_name
+        """ The name of the context. """
+        self.source_file: str = source_file
+        """ The name of the file the context is defined in. """
+        self.source_location: tuple[int, int] = source_location
+        """
+        The location of the context inside the source file as a pair of row and
+        column. Maybe be ``(-1, -1)`` if the location is unclear, like in
+        ``tmLanguage`` based syntaxes.
+        """
+
+    def __repr__(self) -> str:
+        return (f'ContextStackFrame({self.context_name!r},'
+                f' {self.source_file!r}, {self.source_location!r})')
+
+
 class View:
+    """
+    Represents a view into a text `Buffer`.
+
+    Note that multiple views may refer to the same `Buffer`, but they have their
+    own unique selection and geometry. A list of these may be gotten using
+    `View.clones()` or `Buffer.views()`.
+    """
+
     def __init__(self, id):
         self.view_id = id
         self.selection = Selection(id)
         self.settings_object = None
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.size()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.view_id
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, View) and other.view_id == self.view_id
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.view_id != 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'View({self.view_id!r})'
 
-    def id(self):
+    def id(self) -> int:
+        """ :returns: A number that uniquely identifies this view. """
         return self.view_id
 
-    def buffer_id(self):
+    def buffer_id(self) -> int:
+        """
+        :returns: A number that uniquely identifies this view's `Buffer`.
+        """
         return sublime_api.view_buffer_id(self.view_id)
 
-    def buffer(self):
+    def buffer(self) -> Buffer:
+        """ :returns: The `Buffer` for which this is a view. """
         return Buffer(self.buffer_id())
 
-    def sheet_id(self):
+    def sheet_id(self) -> int:
+        """
+        .. since:: 4083
+
+        :returns:
+            The ID of the `Sheet` for this `View`, or ``0`` if not part of any
+            sheet.
+        """
         return sublime_api.view_sheet_id(self.view_id)
 
-    def sheet(self):
+    def sheet(self) -> Optional[Sheet]:
+        """
+        .. since:: 4083
+
+        :returns: The `Sheet` for this view, if displayed in a sheet.
+        """
         return make_sheet(self.sheet_id())
 
-    def element(self):
+    def element(self) -> Optional[str]:
+        """
+        .. since:: 4050
+
+        :returns:
+            ``None`` for normal views that are part of a `Sheet`. For views that
+            comprise part of the UI a string is returned from the following
+            list:
+
+            * ``"console:input"`` - The console input.
+            * ``"goto_anything:input"`` - The input for the Goto Anything.
+            * ``"command_palette:input"`` - The input for the Command Palette.
+            * ``"find:input"`` - The input for the Find panel.
+            * ``"incremental_find:input"`` - The input for the Incremental Find panel.
+            * ``"replace:input:find"`` - The Find input for the Replace panel.
+            * ``"replace:input:replace"`` - The Replace input for the Replace panel.
+            * ``"find_in_files:input:find"`` - The Find input for the Find in Files panel.
+            * ``"find_in_files:input:location"`` - The Where input for the Find in Files panel.
+            * ``"find_in_files:input:replace"`` - The Replace input for the Find in Files panel.
+            * ``"find_in_files:output"`` - The output panel for Find in Files (buffer or output panel).
+            * ``"input:input"`` - The input for the Input panel.
+            * ``"exec:output"`` - The output for the exec command.
+            * ``"output:output"`` - A general output panel.
+
+            The console output, indexer status output and license input controls
+            are not accessible via the API.
+        """
         e = sublime_api.view_element(self.view_id)
         if e == "":
             return None
         return e
 
-    def is_valid(self):
-        """ Returns true if the View is still a valid handle. Will return False for a closed view, for example. """
+    def is_valid(self) -> bool:
+        """
+        Check whether this view is still valid. Will return ``False`` for a
+        closed view, for example.
+        """
         return sublime_api.view_buffer_id(self.view_id) != 0
 
-    def is_primary(self):
+    def is_primary(self) -> bool:
+        """
+        :returns: Whether view is the primary view into a `Buffer`. Will only be
+                  ``False`` if the user has opened multiple views into a file.
+        """
         return sublime_api.view_is_primary(self.view_id)
 
-    def window(self):
+    def window(self) -> Optional[Window]:
+        """
+        :returns: A reference to the window containing the view, if any.
+        """
         window_id = sublime_api.view_window(self.view_id)
         if window_id == 0:
             return None
         else:
             return Window(window_id)
 
-    def clones(self):
-        """ Get a list of all the other views with the same buffer. """
+    def clones(self) -> list[View]:
+        """ :returns: All the other views into the same `Buffer`. See `View`. """
         return list(map(View, sublime_api.view_clones(self.view_id)))
 
-    def file_name(self):
+    def file_name(self) -> Optional[str]:
+        """
+        :returns: The full name of the file associated with the sheet, or
+                  ``None`` if it doesn't exist on disk.
+        """
         name = sublime_api.view_file_name(self.view_id)
         if len(name) == 0:
             return None
         else:
             return name
 
-    def close(self, on_close=lambda did_close: None):
+    def close(self, on_close=lambda did_close: None) -> bool:
+        """ Closes the view. """
         window_id = sublime_api.view_window(self.view_id)
         return sublime_api.window_close_file(window_id, self.view_id, on_close)
 
-    def retarget(self, new_fname):
+    def retarget(self, new_fname: str):
+        """ Change the file path the buffer will save to. """
         sublime_api.view_retarget(self.view_id, new_fname)
 
-    def name(self):
+    def name(self) -> str:
+        """ :returns: The name assigned to the buffer, if any. """
         return sublime_api.view_get_name(self.view_id)
 
-    def set_name(self, name):
+    def set_name(self, name: str):
+        """
+        Assign a name to the buffer. Displayed as in the tab for unsaved files.
+        """
         sublime_api.view_set_name(self.view_id, name)
 
     def reset_reference_document(self):
+        """
+        Clears the state of the `incremental diff <incremental_diff>` for the
+        view.
+        """
         sublime_api.view_reset_reference_document(self.view_id)
 
-    def set_reference_document(self, reference):
+    def set_reference_document(self, reference: str):
+        """
+        Uses the string reference to calculate the initial diff for the
+        `incremental diff <incremental_diff>`.
+        """
         sublime_api.view_set_reference_document(self.view_id, reference)
 
-    def is_loading(self):
+    def is_loading(self) -> bool:
+        """
+        :returns: Whether the buffer is still loading from disk, and not ready
+                  for use.
+        """
         return sublime_api.view_is_loading(self.view_id)
 
-    def is_dirty(self):
+    def is_dirty(self) -> bool:
+        """
+        :returns: Whether there are any unsaved modifications to the buffer.
+        """
         return sublime_api.view_is_dirty(self.view_id)
 
-    def is_read_only(self):
+    def is_read_only(self) -> bool:
+        """ :returns: Whether the buffer may not be modified. """
         return sublime_api.view_is_read_only(self.view_id)
 
-    def set_read_only(self, read_only):
+    def set_read_only(self, read_only: bool):
+        """ Set the read only property on the buffer. """
         return sublime_api.view_set_read_only(self.view_id, read_only)
 
-    def is_scratch(self):
+    def is_scratch(self) -> bool:
+        """
+        :returns: Whether the buffer is a scratch buffer. See `set_scratch()`.
+        """
         return sublime_api.view_is_scratch(self.view_id)
 
-    def set_scratch(self, scratch):
+    def set_scratch(self, scratch: bool):
         """
-        Sets the scratch flag on the text buffer. When a modified scratch buffer
-        is closed, it will be closed without prompting to save.
+        Sets the scratch property on the buffer. When a modified scratch buffer
+        is closed, it will be closed without prompting to save. Scratch buffers
+        never report as being dirty.
         """
         return sublime_api.view_set_scratch(self.view_id, scratch)
 
-    def encoding(self):
+    def encoding(self) -> str:
+        """
+        :returns: The encoding currently associated with the buffer.
+        """
         return sublime_api.view_encoding(self.view_id)
 
-    def set_encoding(self, encoding_name):
-        return sublime_api.view_set_encoding(self.view_id, encoding_name)
+    def set_encoding(self, encoding_name: str):
+        """
+        Applies a new encoding to the file. This will be used when the file is
+        saved.
+        """
+        sublime_api.view_set_encoding(self.view_id, encoding_name)
 
-    def line_endings(self):
+    def line_endings(self) -> str:
+        """ :returns: The encoding currently associated with the file. """
         return sublime_api.view_line_endings(self.view_id)
 
-    def set_line_endings(self, line_ending_name):
-        return sublime_api.view_set_line_endings(self.view_id, line_ending_name)
+    def set_line_endings(self, line_ending_name: str):
+        """ Sets the line endings that will be applied when next saving. """
+        sublime_api.view_set_line_endings(self.view_id, line_ending_name)
 
-    def size(self):
+    def size(self) -> int:
+        """ :returns: The number of character in the file. """
         return sublime_api.view_size(self.view_id)
 
-    def begin_edit(self, edit_token, cmd, args=None):
+    def begin_edit(self, edit_token: int, cmd: str, args: CommandArgs = None) -> Edit:
         sublime_api.view_begin_edit(self.view_id, edit_token, cmd, args)
         return Edit(edit_token)
 
-    def end_edit(self, edit):
+    def end_edit(self, edit: Edit):
         sublime_api.view_end_edit(self.view_id, edit.edit_token)
         edit.edit_token = 0
 
-    def is_in_edit(self):
+    def is_in_edit(self) -> bool:
         return sublime_api.view_is_in_edit(self.view_id)
 
-    def insert(self, edit, pt, text):
+    def insert(self, edit: Edit, pt: Point, text: str) -> int:
+        """
+        Insert the given string into the buffer.
+
+        :param edit: An `Edit` object provided by a `TextCommand`.
+        :param point: The text point in the view where to insert.
+        :param text: The text to insert.
+        :returns: The actual number of characters inserted. This may differ
+                  from the provided text due to tab translation.
+        :raises ValueError: If the `Edit` object is in an invalid state, ie. outside of a `TextCommand`.
+        """
         if edit.edit_token == 0:
             raise ValueError("Edit objects may not be used after the TextCommand's run method has returned")
 
         return sublime_api.view_insert(self.view_id, edit.edit_token, pt, text)
 
-    def erase(self, edit, r):
+    def erase(self, edit: Edit, region: Region):
+        """ Erases the contents of the provided `Region` from the buffer. """
         if edit.edit_token == 0:
             raise ValueError("Edit objects may not be used after the TextCommand's run method has returned")
 
-        sublime_api.view_erase(self.view_id, edit.edit_token, r)
+        sublime_api.view_erase(self.view_id, edit.edit_token, region)
 
-    def replace(self, edit, r, text):
+    def replace(self, edit: Edit, region: Region, text: str):
+        """ Replaces the contents of the `Region` in the buffer with the provided string. """
         if edit.edit_token == 0:
             raise ValueError("Edit objects may not be used after the TextCommand's run method has returned")
 
-        sublime_api.view_replace(self.view_id, edit.edit_token, r, text)
+        sublime_api.view_replace(self.view_id, edit.edit_token, region, text)
 
-    def change_count(self):
-        """ The change_count is incremented whenever the underlying buffer is modified """
+    def change_count(self) -> int:
+        """
+        Each time the buffer is modified, the change count is incremented. The
+        change count can be used to determine if the buffer has changed since
+        the last it was inspected.
+
+        :returns: The current change count.
+        """
         return sublime_api.view_change_count(self.view_id)
 
-    def change_id(self):
-        """ Returns a token that represents the current state of the buffer """
+    def change_id(self) -> tuple[int, int, int]:
+        """
+        Get a 3-element tuple that can be passed to `transform_region_from()` to
+        obtain a region equivalent to a region of the view in the past. This is
+        primarily useful for plugins providing text modification that must
+        operate in an asynchronous fashion and must be able to handle the view
+        contents changing between the request and response.
+        """
         return sublime_api.view_change_id(self.view_id)
 
-    def transform_region_from(self, r, when):
-        """ Given a Region, and a change_id() that describes what version of
-        the buffer the region is in relation to, transforms the region into
-        the current state of the buffer """
-        return sublime_api.view_transform_region_from(self.view_id, r, when)
+    def transform_region_from(self, region: Region, change_id: tuple[int, int, int]) -> Region:
+        """
+        Transforms a region from a previous point in time to an equivalent
+        region in the current state of the View. The ``change_id`` must have
+        been obtained from `change_id()` at the point in time the region is
+        from.
+        """
+        return sublime_api.view_transform_region_from(self.view_id, region, change_id)
 
-    def run_command(self, cmd, args=None):
+    def run_command(self, cmd: str, args: CommandArgs = None):
+        """ Run the named `TextCommand` with the (optional) given ``args``. """
         sublime_api.view_run_command(self.view_id, cmd, args)
 
-    def sel(self):
+    def sel(self) -> Selection:
+        """ :returns: The views `Selection`. """
         return self.selection
 
-    def substr(self, x):
+    def substr(self, x: Region | Point) -> str:
+        """
+        :returns: The string at the `Point` or within the `Region` provided.
+        """
         if isinstance(x, Region):
             return sublime_api.view_cached_substr(self.view_id, x.a, x.b)
         else:
@@ -1392,10 +2761,26 @@ class View:
             else:
                 return s
 
-    def find(self, pattern, start_pt, flags=0):
+    def find(self, pattern: str, start_pt: Point, flags=FindFlags.NONE) -> Region:
+        """
+        :param pattern: The regex or literal pattern to search by.
+        :param start_pt: The `Point` to start searching from.
+        :param flags: Controls various behaviors of find. See `FindFlags`.
+        :returns: The first `Region` matching the provided pattern.
+        """
         return sublime_api.view_find(self.view_id, pattern, start_pt, flags)
 
-    def find_all(self, pattern, flags=0, fmt=None, extractions=None):
+    def find_all(self, pattern: str, flags=FindFlags.NONE, fmt: Optional[str] = None,
+                 extractions: Optional[list[str]] = None) -> list[Region]:
+        """
+        :param pattern: The regex or literal pattern to search by.
+        :param flags: Controls various behaviors of find. See `FindFlags`.
+        :param fmt: When not ``None`` all matches in the ``extractions`` list
+                       will be formatted with the provided format string.
+        :param extractions: An optionally provided list to place the contents of
+                            the find results into.
+        :returns: All (non-overlapping) regions matching the pattern.
+        """
         if fmt is None:
             return sublime_api.view_find_all(self.view_id, pattern, flags)
         else:
@@ -1403,214 +2788,462 @@ class View:
             ret = []
             for region, contents in results:
                 ret.append(region)
-                extractions.append(contents)
+                if extractions is not None:
+                    extractions.append(contents)
             return ret
 
-    def settings(self):
+    def settings(self) -> Settings:
+        """
+        :returns: The view's `Settings` object. Any changes to it will be
+                  private to this view.
+        """
         if not self.settings_object:
             self.settings_object = Settings(sublime_api.view_settings(self.view_id))
 
         return self.settings_object
 
-    def meta_info(self, key, pt):
+    def meta_info(self, key: str, pt: Point) -> Value:
+        """
+        Look up the preference ``key`` for the scope at the provided `Point`
+        from all matching ``.tmPreferences`` files.
+
+        Examples of keys are ``TM_COMMENT_START`` and ``showInSymbolList``.
+        """
         return sublime_api.view_meta_info(self.view_id, key, pt)
 
-    def extract_tokens_with_scopes(self, r):
-        return sublime_api.view_extract_tokens_with_scopes(self.view_id, r.begin(), r.end())
+    def extract_tokens_with_scopes(self, region: Region) -> list[tuple[Region, str]]:
+        """
+        :param region: The region from which to extract tokens and scopes.
+        :returns: A list of pairs containing the `Region` and the scope of each token.
 
-    def extract_scope(self, pt):
+        .. since: 3172
+        """
+        return sublime_api.view_extract_tokens_with_scopes(self.view_id, region.begin(), region.end())
+
+    def extract_scope(self, pt: Point) -> Region:
+        """ :returns: The extent of the syntax scope name assigned to the character at the given `Point`, narrower syntax scope names included. """
         return sublime_api.view_extract_scope(self.view_id, pt)
 
-    def scope_name(self, pt):
+    def expand_to_scope(self, pt: Point, selector: str) -> Optional[Region]:
+        """
+        Expand by the provided scope selector from the `Point`.
+
+        :param pt: The point from which to expand.
+        :param selector: The scope selector to match.
+        :returns: The matched `Region`, if any.
+
+        .. since: 4130
+        """
+        return sublime_api.view_expand_to_scope(self.view_id, pt, selector)
+
+    def scope_name(self, pt: Point) -> str:
+        """
+        :returns: The syntax scope name assigned to the character at the given point.
+        """
         return sublime_api.view_scope_name(self.view_id, pt)
 
-    def context_backtrace(self, pt):
-        """ Returns a list of the contexts on the stack at the specified point.
+    def context_backtrace(self, pt: Point) -> list[ContextStackFrame]:
+        """ Get a backtrace of `ContextStackFrame`\\ s at the provided `Point`.
 
-        Very slow but useful for debugging a syntax definition.
+        Note this function is particularly slow.
+
+        .. since:: 4127
         """
         return sublime_api.view_context_backtrace(self.view_id, pt)
 
-    def match_selector(self, pt, selector):
+    def match_selector(self, pt: Point, selector: str) -> bool:
+        """
+        :returns: Whether the provided scope selector matches the `Point`.
+        """
         return sublime_api.view_match_selector(self.view_id, pt, selector)
 
-    def score_selector(self, pt, selector):
+    def score_selector(self, pt: Point, selector: str) -> int:
+        """
+        Equivalent to::
+
+            sublime.score_selector(view.scope_name(pt), selector)
+
+        See `sublime.score_selector`.
+        """
         return sublime_api.view_score_selector(self.view_id, pt, selector)
 
-    def find_by_selector(self, selector):
+    def find_by_selector(self, selector: str) -> list[Region]:
+        """
+        Find all regions in the file matching the given selector.
+
+        :returns: The list of matched regions.
+        """
         return sublime_api.view_find_by_selector(self.view_id, selector)
 
-    def style(self):
+    def style(self) -> dict[str, str]:
+        """
+        See `style_for_scope`.
+
+        :returns:
+            The global style settings for the view. All colors are normalized
+            to the six character hex form with a leading hash, e.g.
+            ``#ff0000``.
+
+        .. since:: 3150
+        """
         return sublime_api.view_style(self.view_id)
 
-    def style_for_scope(self, scope):
+    def style_for_scope(self, scope: str) -> dict[str, str]:
+        """
+        Accepts a string scope name and returns a ``dict`` of style information
+        including the keys:
+
+        * ``"foreground"``
+        * ``"background"`` (only if set)
+        * ``"bold"``
+        * ``"italic"``
+        * .. since:: 4063
+            ``"glow"``
+        * .. since:: 4075
+            ``"underline"``
+        * .. since:: 4075
+            ``"stippled_underline"``
+        * .. since:: 4075
+            ``"squiggly_underline"``
+        * ``"source_line"``
+        * ``"source_column"``
+        * ``"source_file"``
+
+        The foreground and background colors are normalized to the six character
+        hex form with a leading hash, e.g. ``#ff0000``.
+        """
         return sublime_api.view_style_for_scope(self.view_id, scope)
 
-    def indented_region(self, pt):
+    def indented_region(self, pt: Point) -> Region:
         return sublime_api.view_indented_region(self.view_id, pt)
 
-    def indentation_level(self, pt):
+    def indentation_level(self, pt: Point) -> int:
         return sublime_api.view_indentation_level(self.view_id, pt)
 
-    def has_non_empty_selection_region(self):
+    def has_non_empty_selection_region(self) -> bool:
         return sublime_api.view_has_non_empty_selection_region(self.view_id)
 
-    def lines(self, r):
-        return sublime_api.view_lines(self.view_id, r)
+    def lines(self, region: Region) -> list[Region]:
+        """
+        :returns: A list of lines (in sorted order) intersecting the provided `Region`.
+        """
+        return sublime_api.view_lines(self.view_id, region)
 
-    def split_by_newlines(self, r):
-        return sublime_api.view_split_by_newlines(self.view_id, r)
+    def split_by_newlines(self, region: Region) -> list[Region]:
+        """
+        Splits the region up such that each `Region` returned exists on exactly
+        one line.
+        """
+        return sublime_api.view_split_by_newlines(self.view_id, region)
 
-    def line(self, x):
+    def line(self, x: Region | Point) -> Region:
+        """
+        :returns:
+            The line that contains the `Point` or an expanded `Region` to the
+            beginning/end of lines, excluding the newline character.
+        """
         if isinstance(x, Region):
             return sublime_api.view_line_from_region(self.view_id, x)
         else:
             return sublime_api.view_line_from_point(self.view_id, x)
 
-    def full_line(self, x):
+    def full_line(self, x: Region | Point) -> Region:
+        """
+        :returns:
+            The line that contains the `Point` or an expanded `Region` to the
+            beginning/end of lines, including the newline character.
+        """
         if isinstance(x, Region):
             return sublime_api.view_full_line_from_region(self.view_id, x)
         else:
             return sublime_api.view_full_line_from_point(self.view_id, x)
 
-    def word(self, x):
+    def word(self, x: Region | Point) -> Region:
+        """
+        :returns:
+            The word that contains the provided `Point`. If a `Region` is
+            provided it's beginning/end are expanded to word boundaries.
+        """
         if isinstance(x, Region):
             return sublime_api.view_word_from_region(self.view_id, x)
         else:
             return sublime_api.view_word_from_point(self.view_id, x)
 
-    def classify(self, pt):
-        """ Classifies pt, returning a bitwise OR of zero or more of these flags:
-        CLASS_WORD_START
-        CLASS_WORD_END
-        CLASS_PUNCTUATION_START
-        CLASS_PUNCTUATION_END
-        CLASS_SUB_WORD_START
-        CLASS_SUB_WORD_END
-        CLASS_LINE_START
-        CLASS_LINE_END
-        CLASS_EMPTY_LINE
+    def classify(self, pt: Point) -> PointClassification:
+        """ Classify the provided `Point`. See `PointClassification`. """
+        return PointClassification(sublime_api.view_classify(self.view_id, pt))
+
+    def find_by_class(self, pt: Point, forward: bool, classes: PointClassification, separators="",
+                      sub_word_separators="") -> Point:
         """
+        Find the next location that matches the provided `PointClassification`.
 
-        return sublime_api.view_classify(self.view_id, pt)
+        :param pt: The point to start searching from.
+        :param forward: Whether to search forward or backwards.
+        :param classes: The classification to search for.
+        :param separators: The word separators to use when classifying.
+        :param sub_word_separators:
+            The sub-word separators to use when classifying. :since:`4130`
+        :returns: The found point.
+        """
+        return sublime_api.view_find_by_class(self.view_id, pt, forward, classes, separators, sub_word_separators)
 
-    def find_by_class(self, pt, forward, classes, separators=""):
-        return sublime_api.view_find_by_class(self.view_id, pt, forward, classes, separators)
+    def expand_by_class(self, x: Region | Point, classes: PointClassification, separators="",
+                        sub_word_separators="") -> Region:
+        """
+        Expand the provided `Point` or `Region` to the left and right until each
+        side lands on a location that matches the provided
+        `PointClassification`. See `find_by_class`.
 
-    def expand_by_class(self, x, classes, separators=""):
+        :param classes: The classification to search by.
+        :param separators: The word separators to use when classifying.
+        :param sub_word_separators:
+            The sub-word separators to use when classifying. :since:`4130`
+        """
         if isinstance(x, Region):
-            return sublime_api.view_expand_by_class(self.view_id, x.a, x.b, classes, separators)
+            return sublime_api.view_expand_by_class(self.view_id, x.a, x.b, classes, separators, sub_word_separators)
         else:
-            return sublime_api.view_expand_by_class(self.view_id, x, x, classes, separators)
+            return sublime_api.view_expand_by_class(self.view_id, x, x, classes, separators, sub_word_separators)
 
-    def rowcol(self, tp):
+    def rowcol(self, tp: Point) -> tuple[int, int]:
+        """
+        Calculates the 0-based line and column numbers of the point. Column
+        numbers are returned as number of Unicode characters.
+        """
         return sublime_api.view_row_col(self.view_id, tp)
 
-    def rowcol_utf8(self, tp):
+    def rowcol_utf8(self, tp: Point) -> tuple[int, int]:
+        """
+        Calculates the 0-based line and column numbers of the point. Column
+        numbers are returned as UTF-8 code units.
+
+        .. since:: 4069
+        """
         return sublime_api.view_row_col_utf8(self.view_id, tp)
 
-    def rowcol_utf16(self, tp):
+    def rowcol_utf16(self, tp: Point) -> tuple[int, int]:
+        """
+        Calculates the 0-based line and column numbers of the point. Column
+        numbers are returned as UTF-16 code units.
+
+        .. since:: 4069
+        """
         return sublime_api.view_row_col_utf16(self.view_id, tp)
 
-    def text_point(self, row, col, *, clamp_column=False):
-        """ Converts a row and column into a text point """
+    def text_point(self, row: int, col: int, *, clamp_column=False) -> Point:
+        """
+        Calculates the character offset of the given, 0-based, ``row`` and
+        ``col``. ``col`` is interpreted as the number of Unicode characters to
+        advance past the beginning of the row.
+
+        :param clamp_column:
+            Whether ``col`` should be restricted to valid values for the given
+            ``row``. :since:`4075`
+        """
         return sublime_api.view_text_point(self.view_id, row, col, clamp_column)
 
-    def text_point_utf8(self, row, col_utf8, *, clamp_column=False):
-        return sublime_api.view_text_point_utf8(self.view_id, row, col_utf8, clamp_column)
+    def text_point_utf8(self, row: int, col: int, *, clamp_column=False) -> Point:
+        """
+        Calculates the character offset of the given, 0-based, ``row`` and
+        ``col``. ``col`` is interpreted as the number of UTF-8 code units to
+        advance past the beginning of the row.
 
-    def text_point_utf16(self, row, col_utf16, *, clamp_column=False):
-        return sublime_api.view_text_point_utf16(self.view_id, row, col_utf16, clamp_column)
+        :param clamp_column:
+            whether ``col`` should be restricted to valid values for the given
+            ``row``. :since:`4075`
+        """
+        return sublime_api.view_text_point_utf8(self.view_id, row, col, clamp_column)
 
-    def visible_region(self):
-        """ Returns the approximate visible region """
+    def text_point_utf16(self, row: int, col: int, *, clamp_column=False) -> Point:
+        """
+        Calculates the character offset of the given, 0-based, ``row`` and
+        ``col``. ``col`` is interpreted as the number of UTF-16 code units to
+        advance past the beginning of the row.
+
+        :param clamp_column:
+            whether ``col`` should be restricted to valid values for the given
+            ``row``. :since:`4075`
+        """
+        return sublime_api.view_text_point_utf16(self.view_id, row, col, clamp_column)
+
+    def visible_region(self) -> Region:
+        """ :returns: The currently visible area of the view. """
         return sublime_api.view_visible_region(self.view_id)
 
-    def show(self, x, show_surrounds=True, keep_to_left=False, animate=True):
-        """ Scrolls the view to reveal x, which may be a Region or point """
-        if isinstance(x, Region):
-            return sublime_api.view_show_region(self.view_id, x, show_surrounds, keep_to_left, animate)
-        if isinstance(x, Selection):
-            for i in x:
-                return sublime_api.view_show_region(self.view_id, i, show_surrounds, keep_to_left, animate)
-        else:
-            return sublime_api.view_show_point(self.view_id, x, show_surrounds, keep_to_left, animate)
+    def show(self, location: Region | Selection | Point, show_surrounds=True, keep_to_left=False, animate=True):
+        """
+        Scroll the view to show the given location.
 
-    def show_at_center(self, x, animate=True):
-        """ Scrolls the view to center on x, which may be a Region or point """
-        if isinstance(x, Region):
-            return sublime_api.view_show_region_at_center(self.view_id, x, animate)
+        :param location:
+            The location to scroll the view to. For a `Selection` only the first
+            `Region` is shown.
+        :param show_surrounds:
+            Whether to show the surrounding context around the location.
+        :param keep_to_left:
+            Whether the view should be kept to the left, if horizontal scrolling
+            is possible. :since:`4075`
+        :param animate:
+            Whether the scrolling should be animated. :since:`4075`
+        """
+        if isinstance(location, Region):
+            sublime_api.view_show_region(self.view_id, location, show_surrounds, keep_to_left, animate)
+        elif isinstance(location, Selection):
+            for i in location:
+                sublime_api.view_show_region(self.view_id, i, show_surrounds, keep_to_left, animate)
+                return
         else:
-            return sublime_api.view_show_point_at_center(self.view_id, x, animate)
+            sublime_api.view_show_point(self.view_id, location, show_surrounds, keep_to_left, animate)
 
-    def viewport_position(self):
-        """ Returns the (x, y) scroll position of the view in layout coordinates """
+    def show_at_center(self, location: Region | Point, animate=True):
+        """
+        Scroll the view to center on the location.
+
+        :param location: Which `Point` or `Region` to scroll to.
+        :param animate: Whether the scrolling should be animated. :since:`4075`
+        """
+        if isinstance(location, Region):
+            sublime_api.view_show_region_at_center(self.view_id, location, animate)
+        else:
+            sublime_api.view_show_point_at_center(self.view_id, location, animate)
+
+    def viewport_position(self) -> Vector:
+        """ :returns: The offset of the viewport in layout coordinates. """
         return sublime_api.view_viewport_position(self.view_id)
 
-    def set_viewport_position(self, xy, animate=True):
-        """ Scrolls the view to the given position in layout coordinates """
-        return sublime_api.view_set_viewport_position(self.view_id, xy, animate)
+    def set_viewport_position(self, xy: Vector, animate=True):
+        """ Scrolls the viewport to the given layout position. """
+        sublime_api.view_set_viewport_position(self.view_id, xy, animate)
 
-    def viewport_extent(self):
-        """ Returns the width and height of the viewport, in layout coordinates """
+    def viewport_extent(self) -> Vector:
+        """ :returns: The width and height of the viewport. """
         return sublime_api.view_viewport_extents(self.view_id)
 
-    def layout_extent(self):
-        """ Returns the total height and width of the document, in layout coordinates """
+    def layout_extent(self) -> Vector:
+        """ :returns: The width and height of the layout. """
         return sublime_api.view_layout_extents(self.view_id)
 
-    def text_to_layout(self, tp):
-        """ Converts a text point to layout coordinates """
+    def text_to_layout(self, tp: Point) -> Vector:
+        """ Convert a text point to a layout position. """
         return sublime_api.view_text_to_layout(self.view_id, tp)
 
-    def text_to_window(self, tp):
-        """ Converts a text point to window coordinates """
+    def text_to_window(self, tp: Point) -> Vector:
+        """ Convert a text point to a window position. """
         return self.layout_to_window(self.text_to_layout(tp))
 
-    def layout_to_text(self, xy):
-        """ Converts layout coordinates to a text point """
+    def layout_to_text(self, xy: Vector) -> Point:
+        """ Convert a layout position to a text point. """
         return sublime_api.view_layout_to_text(self.view_id, xy)
 
-    def layout_to_window(self, xy):
-        """ Converts layout coordinates to window coordinates """
+    def layout_to_window(self, xy: Vector) -> Vector:
+        """ Convert a layout position to a window position. """
         return sublime_api.view_layout_to_window(self.view_id, xy)
 
-    def window_to_layout(self, xy):
-        """ Converts window coordinates to layout coordinates """
+    def window_to_layout(self, xy: Vector) -> Vector:
+        """ Convert a window position to a layout position. """
         return sublime_api.view_window_to_layout(self.view_id, xy)
 
-    def window_to_text(self, xy):
-        """ Converts window coordinates to a text point """
+    def window_to_text(self, xy: Vector) -> Point:
+        """ Convert a window position to a text point. """
         return self.layout_to_text(self.window_to_layout(xy))
 
-    def line_height(self):
-        """ Returns the height of a line in layout coordinates """
+    def line_height(self) -> DIP:
+        """ :returns: The light height used in the layout. """
         return sublime_api.view_line_height(self.view_id)
 
-    def em_width(self):
-        """ Returns the em-width of the current font in layout coordinates """
+    def em_width(self) -> DIP:
+        """ :returns: The typical character width used in the layout. """
         return sublime_api.view_em_width(self.view_id)
 
-    def is_folded(self, sr):
-        return sublime_api.view_is_folded(self.view_id, sr)
+    def is_folded(self, region: Region) -> bool:
+        """ :returns: Whether the provided `Region` is folded. """
+        return sublime_api.view_is_folded(self.view_id, region)
 
-    def folded_regions(self):
+    def folded_regions(self) -> list[Region]:
+        """ :returns: The list of folded regions. """
         return sublime_api.view_folded_regions(self.view_id)
 
-    def fold(self, x):
+    def fold(self, x: Region | list[Region]) -> bool:
+        """
+        Fold the provided `Region` (s).
+
+        :returns: ``False`` if the regions were already folded.
+        """
         if isinstance(x, Region):
             return sublime_api.view_fold_region(self.view_id, x)
         else:
             return sublime_api.view_fold_regions(self.view_id, x)
 
-    def unfold(self, x):
+    def unfold(self, x: Region | list[Region]) -> list[Region]:
+        """
+        Unfold all text in the provided `Region` (s).
+
+        :returns: The unfolded regions.
+        """
         if isinstance(x, Region):
             return sublime_api.view_unfold_region(self.view_id, x)
         else:
             return sublime_api.view_unfold_regions(self.view_id, x)
 
-    def add_regions(self, key, regions, scope="", icon="", flags=0,
-                    annotations=[], annotation_color="", on_navigate=None, on_close=None):
+    def add_regions(self, key: str, regions: list[Region], scope="",
+                    icon="", flags=RegionFlags.NONE, annotations: list[str] = [],
+                    annotation_color="",
+                    on_navigate: Optional[Callable[[str], None]] = None,
+                    on_close: Optional[Callable[[], None]] = None):
+        """
+        Adds visual indicators to regions of text in the view. Indicators
+        include icons in the gutter, underlines under the text, borders around
+        the text and annotations. Annotations are drawn aligned to the
+        right-hand edge of the view and may contain HTML markup.
+
+        :param key:
+            An identifier for the collection of regions. If a set of regions
+            already exists for this key they will be overridden. See
+            `get_regions`.
+        :param regions: The list of regions to add. These should not overlap.
+        :param scope:
+            An optional string used to source a color to draw the regions in.
+            The scope is matched against the color scheme. Examples include:
+            ``"invalid"`` and ``"string"``. See `Scope Naming <scope_naming>`
+            for a list of common scopes. If the scope is empty, the regions
+            won't be drawn.
+
+            .. since:: 3148
+                Also supports the following pseudo-scopes, to allow picking the
+                closest color from the user‘s color scheme:
+
+                * ``"region.redish"``
+                * ``"region.orangish"``
+                * ``"region.yellowish"``
+                * ``"region.greenish"``
+                * ``"region.cyanish"``
+                * ``"region.bluish"``
+                * ``"region.purplish"``
+                * ``"region.pinkish"``
+        :param icon:
+            An optional string specifying an icon to draw in the gutter next to
+            each region. The icon will be tinted using the color associated
+            with the ``scope``. Standard icon names are ``"dot"``, ``"circle"`
+            and ``"bookmark"``. The icon may also be a full package-relative
+            path, such as ``"Packages/Theme - Default/dot.png"``.
+        :param flags:
+            Flags specifying how the region should be drawn, among other
+            behavior. See `RegionFlags`.
+        :param annotations:
+            An optional collection of strings containing HTML documents to
+            display along the right-hand edge of the view. There should be the
+            same number of annotations as regions. See `minihtml` for supported
+            HTML. :since:`4050`
+        :param annotation_color:
+            An optional string of the CSS color to use when drawing the left
+            border of the annotation. See :ref:`minihtml Reference: Colors
+            <minihtml:CSS:Colors>` for supported color formats. :since:`4050`
+        :param on_navitate:
+            Called when a link in an annotation is clicked. Will be passed the
+            ``href`` of the link. :since:`4050`
+        :param on_close:
+            Called when the annotations are closed. :since:`4050`
+        """
+
         # S2 has an add_regions overload that accepted flags as the 5th
         # positional argument, however this usage is no longer supported
         if not isinstance(icon, "".__class__):
@@ -1625,163 +3258,260 @@ class View:
         sublime_api.view_add_regions(
             self.view_id, key, regions, scope, icon, flags, annotations, annotation_color, on_navigate, on_close)
 
-    def get_regions(self, key):
+    def get_regions(self, key: str) -> list[Region]:
+        """
+        :returns: The regions associated with the given ``key``, if any.
+        """
         return sublime_api.view_get_regions(self.view_id, key)
 
-    def erase_regions(self, key):
+    def erase_regions(self, key: str):
+        """
+        Remove the regions associated with the given ``key``.
+        """
         sublime_api.view_erase_regions(self.view_id, key)
 
-    def add_phantom(self, key, region, content, layout, on_navigate=None):
+    def add_phantom(self, key: str, region: Region, content: str, layout: PhantomLayout,
+                    on_navigate: Optional[Callable[[str], None]] = None) -> int:
         return sublime_api.view_add_phantom(self.view_id, key, region, content, layout, on_navigate)
 
-    def erase_phantoms(self, key):
+    def erase_phantoms(self, key: str):
         sublime_api.view_erase_phantoms(self.view_id, key)
 
-    def erase_phantom_by_id(self, pid):
+    def erase_phantom_by_id(self, pid: int):
         sublime_api.view_erase_phantom(self.view_id, pid)
 
-    def query_phantom(self, pid):
+    def query_phantom(self, pid: int) -> list[Region]:
         return sublime_api.view_query_phantoms(self.view_id, [pid])
 
-    def query_phantoms(self, pids):
+    def query_phantoms(self, pids: list[int]) -> list[Region]:
         return sublime_api.view_query_phantoms(self.view_id, pids)
 
-    def assign_syntax(self, syntax):
-        """ Assign the syntax of the view.
+    def assign_syntax(self, syntax: str | Syntax):
+        """
+        Changes the syntax used by the view. ``syntax`` may be a packages path
+        to a syntax file, or a ``scope:`` specifier string.
 
-        Takes either the path to a syntax or an instance of Syntax.
+        .. since:: 4080
+            ``syntax`` may be a `Syntax` object.
         """
         if isinstance(syntax, Syntax):
             syntax = syntax.path
 
         sublime_api.view_assign_syntax(self.view_id, syntax)
 
-    def set_syntax_file(self, syntax_file):
-        """ Deprecated, use assign_syntax instead """
+    def set_syntax_file(self, syntax_file: str):
+        """ :deprecated: Use `assign_syntax()` instead. """
         self.assign_syntax(syntax_file)
 
-    def syntax(self):
-        """ Get the syntax used by the view. May be None. """
+    def syntax(self) -> Optional[Syntax]:
+        """ :returns: The syntax assigned to the buffer. """
         path = self.settings().get('syntax')
-        if not path:
+        if not path or not isinstance(path, str):
             return None
         return syntax_from_path(path)
 
-    def symbols(self):
+    def symbols(self) -> list[tuple[Region, str]]:
+        """
+        Extract all the symbols defined in the buffer.
+
+        :deprecated: Use `symbol_regions()` instead.
+        """
         return sublime_api.view_symbols(self.view_id)
 
-    def get_symbols(self):
-        """ Deprecated, use symbols """
+    def get_symbols(self) -> list[tuple[Region, str]]:
+        """
+        :deprecated: Use `symbol_regions()` instead.
+        """
         return self.symbols()
 
-    def indexed_symbols(self):
+    def indexed_symbols(self) -> list[tuple[Region, str]]:
+        """
+        :returns: A list of the `Region` and name of symbols.
+        :deprecated: Use `indexed_symbol_regions()` instead.
+
+        .. since:: 3148
+        """
         return sublime_api.view_indexed_symbols(self.view_id)
 
-    def indexed_references(self):
+    def indexed_references(self) -> list[tuple[Region, str]]:
+        """
+        :returns: A list of the `Region` and name of symbols.
+        :deprecated: Use `indexed_symbol_regions()` instead.
+
+        .. since:: 3148
+        """
         return sublime_api.view_indexed_references(self.view_id)
 
-    def symbol_regions(self):
+    def symbol_regions(self) -> list[SymbolRegion]:
         """
-        :return:
-            A list of sublime.SymbolRegion() objects for the symbols in this
-            view
-        """
+        :returns: Info about symbols that are part of the view's symbol list.
 
+        .. since:: 4085
+        """
         return sublime_api.view_symbol_regions(self.view_id)
 
-    def indexed_symbol_regions(self, type=SYMBOL_TYPE_ANY):
+    def indexed_symbol_regions(self, type=SymbolType.ANY) -> list[SymbolRegion]:
         """
-        :param type:
-            The type of symbol to return. One of the values:
-             - sublime.SYMBOL_TYPE_ANY
-             - sublime.SYMBOL_TYPE_DEFINITION
-             - sublime.SYMBOL_TYPE_REFERENCE
+        :param type: The type of symbol to return.
+        :returns: Info about symbols that are indexed.
 
-        :return:
-            A list of sublime.SymbolRegion() objects for the indexed symbols
-            in this view
+        .. since:: 4085
         """
-
         return sublime_api.view_indexed_symbol_regions(self.view_id, type)
 
-    def set_status(self, key, value):
+    def set_status(self, key: str, value: str):
+        """
+        Add the status ``key`` to the view. The ``value`` will be displayed in the
+        status bar, in a comma separated list of all status values, ordered by
+        key. Setting the ``value`` to ``""`` will clear the status.
+        """
         sublime_api.view_set_status(self.view_id, key, value)
 
-    def get_status(self, key):
+    def get_status(self, key: str) -> str:
+        """
+        :returns: The previous assigned value associated with the given ``key``, if any.
+
+        See `set_status()`.
+        """
         return sublime_api.view_get_status(self.view_id, key)
 
-    def erase_status(self, key):
+    def erase_status(self, key: str):
+        """ Clear the status associated with the provided ``key``. """
         sublime_api.view_erase_status(self.view_id, key)
 
-    def extract_completions(self, prefix, tp=-1):
+    def extract_completions(self, prefix: str, tp: Point = -1) -> list[str]:
+        """
+        Get a list of word-completions based on the contents of the view.
+
+        :param prefix: The prefix to filter words by.
+        :param tp: The `Point` by which to weigh words. Closer words are preferred.
+        """
         return sublime_api.view_extract_completions(self.view_id, prefix, tp)
 
-    def find_all_results(self):
+    def find_all_results(self) -> list[tuple[str, int, int]]:
         return sublime_api.view_find_all_results(self.view_id)
 
-    def find_all_results_with_text(self):
+    def find_all_results_with_text(self) -> list[tuple[str, int, int, str]]:
         return sublime_api.view_find_all_results_with_text(self.view_id)
 
-    def command_history(self, delta, modifying_only=False):
-        return sublime_api.view_command_history(self.view_id, delta, modifying_only)
+    def command_history(self, index: int, modifying_only=False) -> tuple[str, CommandArgs, int]:
+        """
+        Get info on previous run commands stored in the undo/redo stack.
 
-    def overwrite_status(self):
+        :param index:
+            The offset into the undo/redo stack. Positive values for index
+            indicate to look in the redo stack for commands.
+        :param modifying_only:
+            Whether only commands that modify the text buffer are considered.
+        :returns:
+            The command name, command arguments and repeat count for the history
+            entry. If the undo/redo history doesn't extend far enough, then
+            ``(None, None, 0)`` will be returned.
+        """
+        return sublime_api.view_command_history(self.view_id, index, modifying_only)
+
+    def overwrite_status(self) -> bool:
+        """
+        :returns: The overwrite status, which the user normally toggles via the
+                  insert key.
+        """
         return sublime_api.view_get_overwrite_status(self.view_id)
 
-    def set_overwrite_status(self, value):
+    def set_overwrite_status(self, value: bool):
+        """ Set the overwrite status. See `overwrite_status()`. """
         sublime_api.view_set_overwrite_status(self.view_id, value)
 
-    def show_popup_menu(self, items, on_select, flags=0):
+    def show_popup_menu(self, items: list[str], on_done: Callable[[int], None], flags=0):
         """
-        on_select is called when the the quick panel is finished, and should accept a
-        single integer, specifying which item was selected, or -1 for none
-        """
-        return sublime_api.view_show_popup_table(self.view_id, items, on_select, flags, -1)
+        Show a popup menu at the caret, for selecting an item in a list.
 
-    def show_popup(self, content, flags=0, location=-1,
-                   max_width=320, max_height=240,
-                   on_navigate=None, on_hide=None):
+        :param items: The list of entries to show in the list.
+        :param on_done: Called once with the index of the selected item. If the
+                        popup was cancelled ``-1`` is passed instead.
+        :param flags: must be ``0``, currently unused.
+        """
+        return sublime_api.view_show_popup_table(self.view_id, items, on_done, flags, -1)
+
+    def show_popup(self, content: str, flags=PopupFlags.NONE, location: Point = -1,
+                   max_width: DIP = 320, max_height: DIP = 240,
+                   on_navigate: Optional[Callable[[str], None]] = None,
+                   on_hide: Optional[Callable[[], None]] = None):
+        """
+        Show a popup displaying HTML content.
+
+        :param content: The HTML content to display.
+        :param flags: Flags controlling popup behavior. See `PopupFlags`.
+        :param location: The `Point` at which to display the popup. If ``-1``
+                         the popup is shown at the current postion of the caret.
+        :param max_width: The maximum width of the popup.
+        :param max_height: The maximum height of the popup.
+        :param on_navigate:
+            Called when a link is clicked in the popup. Passed the value of the
+            ``href`` attribute of the clicked link.
+        :param on_hide: Called when the popup is hidden.
+        """
         sublime_api.view_show_popup(
             self.view_id, location, content, flags, max_width, max_height,
             on_navigate, on_hide)
 
-    def update_popup(self, content):
+    def update_popup(self, content: str):
+        """
+        Update the content of the currently visible popup.
+        """
         sublime_api.view_update_popup_content(self.view_id, content)
 
-    def is_popup_visible(self):
+    def is_popup_visible(self) -> bool:
+        """
+        :returns: Whether a popup is currently shown.
+        """
         return sublime_api.view_is_popup_visible(self.view_id)
 
     def hide_popup(self):
+        """
+        Hide the current popup.
+        """
         sublime_api.view_hide_popup(self.view_id)
 
-    def is_auto_complete_visible(self):
+    def is_auto_complete_visible(self) -> bool:
+        """
+        :returns: Whether the auto-complete menu is currently visible.
+        """
         return sublime_api.view_is_auto_complete_visible(self.view_id)
 
     def preserve_auto_complete_on_focus_lost(self):
+        """
+        Sets the auto complete popup state to be preserved the next time the
+        `View` loses focus. When the `View` regains focus, the auto complete
+        window will be re-shown, with the previously selected entry
+        pre-selected.
+
+        .. since:: 4073
+        """
         sublime_api.view_preserve_auto_complete_on_focus_lost(self.view_id)
 
-    def export_to_html(self, regions=None, minihtml=False,
-                       enclosing_tags=False, font_size=True, font_family=True):
-        """ Export the view as HTML
+    def export_to_html(self,
+                       regions: Optional[Region | list[Region]] = None,
+                       minihtml=False, enclosing_tags=False,
+                       font_size=True, font_family=True):
+        """
+        Generates an HTML string of the current view contents, including styling
+        for syntax highlighting.
 
         :param regions:
-            The region(s) to export. By default it will export the whole view.
-            Can be given either a list of regions or a single region.
+            The region(s) to export. By default the whole view is exported.
         :param minihtml:
-            Whether the exported HTML should be compatible with the Sublime Text
-            HTML implementation.
+            Whether the exported HTML should be compatible with `minihtml`.
         :param enclosing_tags:
-            Whether to enclose the exported HTML in a tag with top-level
-            styling.
+            Whether a :html:`<div>` with base-styling is added. Note that
+            without this no background color is set.
         :param font_size:
             Whether to include the font size in the top level styling. Only
-            applies when enclosing_tags=True is provided.
+            applies when ``enclosing_tags`` is ``True``.
         :param font_family:
             Whether to include the font family in the top level styling. Only
-            applies when enclosing_tags=True is provided.
+            applies when ``enclosing_tags`` is ``True``.
 
-        :return:
-            A string containing the exported HTML.
+        .. since:: 4092
         """
         if regions is None:
             regions = [Region(0, self.size())]
@@ -1801,6 +3531,11 @@ class View:
         return sublime_api.view_export_to_html(self.view_id, regions, options)
 
     def clear_undo_stack(self):
+        """
+        Clear the undo/redo stack.
+
+        .. since:: 4114
+        """
         sublime_api.view_clear_undo_stack(self.view_id)
 
 
@@ -1809,70 +3544,140 @@ def _buffers():
 
 
 class Buffer:
+    """
+    Represents a text buffer. Multiple `View` objects may share the same buffer.
+
+    .. since:: 4081
+    """
+
     def __init__(self, id):
         self.buffer_id = id
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.buffer_id
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Buffer) and self.buffer_id == other.buffer_id
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Buffer({self.buffer_id!r})'
 
-    def id(self):
+    def id(self) -> int:
+        """
+        Returns a number that uniquely identifies this buffer.
+
+        .. since:: 4083
+        """
         return self.buffer_id
 
-    def file_name(self):
+    def file_name(self) -> Optional[str]:
+        """
+        The full name file the file associated with the buffer, or ``None`` if
+        it doesn't exist on disk.
+
+        .. since:: 4083
+        """
         name = sublime_api.buffer_file_name(self.buffer_id)
         if len(name) == 0:
             return None
         else:
             return name
 
-    def views(self):
+    def views(self) -> list[View]:
+        """
+        Returns a list of all views that are associated with this buffer.
+        """
         return list(map(View, sublime_api.buffer_views(self.buffer_id)))
 
-    def primary_view(self):
+    def primary_view(self) -> View:
+        """
+        The primary view associated with this buffer.
+        """
         return View(sublime_api.buffer_primary_view(self.buffer_id))
 
 
 class Settings:
+    """
+    A ``dict`` like object that a settings hierarchy.
+    """
+
     def __init__(self, id):
         self.settings_id = id
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Value:
+        """
+        Returns the named setting.
+
+        .. since:: 4023 3.8
+        """
         res = sublime_api.settings_get(self.settings_id, key)
         if res is None and not sublime_api.settings_has(self.settings_id, key):
             raise KeyError(repr(key))
         return res
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Value):
+        """
+        Set the named ``key`` to the provided ``value``.
+
+        .. since:: 4023 3.8
+        """
         sublime_api.settings_set(self.settings_id, key, value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str):
+        """
+        Deletes the provided ``key`` from the setting. Note that a parent
+        setting may also provide this key, thus deleting may not entirely
+        remove a key.
+
+        .. since:: 4078 3.8
+        """
         sublime_api.settings_erase(self.settings_id, key)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
+        """
+        Returns whether the provided ``key`` is set.
+
+        .. since:: 4023 3.8
+        """
         return sublime_api.settings_has(self.settings_id, key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Settings({self.settings_id!r})'
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Return the settings as a dict. This is not very fast.
+
+        .. since:: 4078 3.8
         """
         return sublime_api.settings_to_dict(self.settings_id)
 
-    def setdefault(self, key, value):
+    def setdefault(self, key: str, value: Value):
+        """
+        Returns the value associated with the provided ``key``. If it's not
+        present the provided ``value`` is assigned to the ``key`` and then
+        returned.
+
+        .. since:: 4023 3.8
+        """
         if sublime_api.settings_has(self.settings_id, key):
             return sublime_api.settings_get(self.settings_id, key)
         sublime_api.settings_set(self.settings_id, key, value)
         return value
 
     def update(self, other=(), /, **kwargs):
+        """
+        Update the settings from the provided argument(s).
+
+        Accepts:
+
+        * A ``dict`` or other implementation of ``collections.abc.Mapping``.
+        * An object with a ``keys()`` method.
+        * An object that iterates over key/value pairs
+        * Keyword arguments, ie. ``update(**kwargs)``.
+
+        .. since:: 4078 3.8
+        """
         if isinstance(other, collections.abc.Mapping):
             for key in other:
                 self[key] = other[key]
@@ -1886,71 +3691,121 @@ class Settings:
         for key, value in kwargs.items():
             self[key] = value
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: Value = None) -> Value:
         if default is not None:
             return sublime_api.settings_get_default(self.settings_id, key, default)
         else:
             return sublime_api.settings_get(self.settings_id, key)
 
-    def has(self, key):
+    def has(self, key: str) -> bool:
+        """ Same as `__contains__`. """
         return sublime_api.settings_has(self.settings_id, key)
 
-    def set(self, key, value):
+    def set(self, key: str, value: Value):
+        """ Same as `__setitem__`. """
         sublime_api.settings_set(self.settings_id, key, value)
 
-    def erase(self, key):
+    def erase(self, key: str):
+        """ Same as `__delitem__`. """
         sublime_api.settings_erase(self.settings_id, key)
 
-    def add_on_change(self, tag, callback):
+    def add_on_change(self, tag: str, callback: Callable[[], None]):
+        """
+        Register a callback to be run whenever a setting is changed.
+
+        :param tag: A string associated with the callback. For use with
+                    `clear_on_change`.
+        :param callback: A callable object to be run when a setting is changed.
+        """
         sublime_api.settings_add_on_change(self.settings_id, tag, callback)
 
-    def clear_on_change(self, tag):
+    def clear_on_change(self, tag: str):
+        """
+        Remove all callbacks associated with the provided ``tag``. See
+        `add_on_change`.
+        """
         sublime_api.settings_clear_on_change(self.settings_id, tag)
 
 
 class Phantom:
+    """
+    Represents an `minihtml`-based decoration to display non-editable content
+    interspersed in a `View`. Used with `PhantomSet` to actually add the
+    phantoms to the `View`. Once a `Phantom` has been constructed and added to
+    the `View`, changes to the attributes will have no effect.
+    """
+
     def __init__(self, region, content, layout, on_navigate=None):
-        self.region = region
-        self.content = content
-        self.layout = layout
-        self.on_navigate = on_navigate
+        self.region: Region = region
+        """
+        The `Region` associated with the phantom. The phantom is displayed at
+        the start of the `Region`.
+        """
+        self.content: str = content
+        """ The HTML content of the phantom. """
+        self.layout: PhantomLayout = layout
+        """ How the phantom should be placed relative to the ``region``. """
+        self.on_navigate: Optional[Callable[[str], None]] = on_navigate
+        """
+        Called when a link in the HTML is clicked. The value of the ``href``
+        attribute is passed.
+        """
         self.id = None
 
-    def __eq__(self, rhs):
+    def __eq__(self, rhs: object) -> bool:
         # Note that self.id is not considered
-        return (self.region == rhs.region and self.content == rhs.content and
+        return (isinstance(rhs, Phantom) and
+                self.region == rhs.region and self.content == rhs.content and
                 self.layout == rhs.layout and self.on_navigate == rhs.on_navigate)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'Phantom({self.region!r}, {self.content!r}, '
                 f'{self.layout!r}, on_navigate={self.on_navigate!r})')
 
-    def to_tuple(self):
-        """ Returns a tuple of this phantom.
+    def to_tuple(self) -> tuple[tuple[Point, Point], str, PhantomLayout, Optional[Callable[[str], None]]]:
+        """
+        Returns a tuple of this phantom containing the region, content, layout
+        and callback.
 
         Use this to uniquely identify a phantom in a set or similar. Phantoms
-        can't be used for that directly as they may be mutated.
-
-        The phantom's range will also be returned as a tuple.
+        can't be used for that directly as they are mutable.
         """
         return (self.region.to_tuple(), self.content, self.layout, self.on_navigate)
 
 
 class PhantomSet:
+    """
+    A collection that manages `Phantom` objects and the process of adding them,
+    updating them and removing them from a `View`.
+    """
+
     def __init__(self, view, key=""):
-        self.view = view
-        self.key = key
-        self.phantoms = []
+        """
+        """
+        self.view: View = view
+        """
+        The `View` the phantom set is attached to.
+        """
+        self.key: str = key
+        """
+        A string used to group the phantoms together.
+        """
+        self.phantoms: [Phantom] = []
 
     def __del__(self):
         for p in self.phantoms:
             self.view.erase_phantom_by_id(p.id)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'PhantomSet({self.view!r}, key={self.key!r})'
 
-    def update(self, new_phantoms):
-        new_phantoms = {p.to_tuple(): p for p in new_phantoms}
+    def update(self, phantoms: Iterator[Phantom]):
+        """
+        Update the set of phantoms. If the `Phantom.region` of existing phantoms
+        have changed they will be moved; new phantoms are added and ones not
+        present are removed.
+        """
+        new_phantoms = {p.to_tuple(): p for p in phantoms}
 
         # Update the list of phantoms that exist in the text buffer with their
         # current location
@@ -1980,22 +3835,40 @@ class PhantomSet:
 
 
 class Html:
+    """
+    Used to indicate that a string is formatted as HTML. See
+    `CommandInputHandler.preview()`.
+    """
+
     __slots__ = ['data']
 
     def __init__(self, data):
-        self.data = data
+        self.data: str = data
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'Html({self.data})'
 
 
 class CompletionList:
-    def __init__(self, completions=None, flags=0):
+    """
+    Represents a list of completions, some of which may be in the process of
+    being asynchronously fetched.
+
+    .. since:: 4050
+    """
+
+    def __init__(self, completions: Optional[list[CompletionValue]] = None, flags=AutoCompleteFlags.NONE):
+        """
+        :param completions:
+            If ``None`` is passed, the method `set_completions()` must be called
+            before the completions will be displayed to the user.
+        :param flags: Flags controlling auto-complete behavior. See `AutoCompleteFlags`.
+        """
         self.target = None
         self.completions = completions
         self.flags = flags
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'CompletionList(completions={self.completions!r}, flags={self.flags!r})'
 
     def _set_target(self, target):
@@ -2004,7 +3877,11 @@ class CompletionList:
         else:
             self.target = target
 
-    def set_completions(self, completions, flags=0):
+    def set_completions(self, completions: list[CompletionValue], flags=AutoCompleteFlags.NONE):
+        """
+        Sets the list of completions, allowing the list to be displayed to the
+        user.
+        """
         assert(self.completions is None)
         assert(flags is not None)
 
@@ -2016,6 +3893,12 @@ class CompletionList:
 
 
 class CompletionItem:
+    """
+    Represents an available auto-completion item.
+
+    .. since:: 4050
+    """
+
     __slots__ = [
         'trigger',
         'annotation',
@@ -2031,19 +3914,36 @@ class CompletionItem:
             trigger,
             annotation="",
             completion="",
-            completion_format=COMPLETION_FORMAT_TEXT,
+            completion_format=CompletionFormat.TEXT,
             kind=KIND_AMBIGUOUS,
-            details=""):
+            details="",
+            flags=CompletionItemFlags.NONE):
 
-        self.trigger = trigger
-        self.annotation = annotation
-        self.completion = completion
-        self.completion_format = completion_format
-        self.kind = kind
-        self.details = details
-        self.flags = 0
+        self.trigger: str = trigger
+        """ Text to match against the user's input. """
+        self.annotation: str = annotation
+        """ A hint to draw to the right-hand side of the trigger. """
+        self.completion: str = completion
+        """
+        Text to insert if the completion is specified. If empty the `trigger`
+        will be inserted instead.
+        """
+        self.completion_format: CompletionFormat = completion_format
+        """ The format of the completion. See `CompletionFormat`. """
+        self.kind: Kind = kind
+        """ The kind of the completion. See `Kind`. """
+        self.details: str = details
+        """
+        An optional `minihtml` description of the completion, shown in the
+        detail pane at the bottom of the auto complete window.
 
-    def __eq__(self, rhs):
+        .. since:: 4073
+        """
+        self.flags = flags
+
+    def __eq__(self, rhs: object) -> bool:
+        if not isinstance(rhs, CompletionItem):
+            return False
         if self.trigger != rhs.trigger:
             return False
         if self.annotation != rhs.annotation:
@@ -2060,22 +3960,26 @@ class CompletionItem:
             return False
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'CompletionItem({self.trigger!r}, '
                 f'annotation={self.annotation!r}, '
                 f'completion={self.completion!r}, '
                 f'completion_format={self.completion_format!r}, '
-                f'kind={self.kind!r}, details={self.details!r})')
+                f'kind={self.kind!r}, details={self.details!r}, '
+                f'flags={self.flags!r})')
 
     @classmethod
     def snippet_completion(
             cls,
-            trigger,
-            snippet,
+            trigger: str,
+            snippet: str,
             annotation="",
             kind=KIND_SNIPPET,
-            details=""):
-
+            details="") -> 'CompletionItem':
+        """
+        Specialized constructor for snippet completions. The `completion_format`
+        is always `CompletionFormat.SNIPPET`.
+        """
         return CompletionItem(
             trigger,
             annotation,
@@ -2087,13 +3991,16 @@ class CompletionItem:
     @classmethod
     def command_completion(
             cls,
-            trigger,
-            command,
-            args={},
+            trigger: str,
+            command: str,
+            args: CommandArgs = None,
             annotation="",
             kind=KIND_AMBIGUOUS,
-            details=""):
-
+            details="") -> 'CompletionItem':
+        """
+        Specialized constructor for command completions. The `completion_format`
+        is always `CompletionFormat.COMMAND`.
+        """
         return CompletionItem(
             trigger,
             annotation,
@@ -2103,15 +4010,15 @@ class CompletionItem:
             details)
 
 
-def list_syntaxes():
-    """ List all known syntaxes.
+def list_syntaxes() -> list[Syntax]:
+    """ list all known syntaxes.
 
     Returns a list of Syntax.
     """
     return sublime_api.list_syntaxes()
 
 
-def syntax_from_path(path):
+def syntax_from_path(path: str) -> Optional[Syntax]:
     """ Get the syntax for a specific path.
 
     Returns a Syntax or None.
@@ -2119,7 +4026,7 @@ def syntax_from_path(path):
     return sublime_api.get_syntax(path)
 
 
-def find_syntax_by_name(name):
+def find_syntax_by_name(name: str) -> list[Syntax]:
     """ Find syntaxes with the specified name.
 
     Name must match exactly. Return a list of Syntax.
@@ -2127,7 +4034,7 @@ def find_syntax_by_name(name):
     return [syntax for syntax in list_syntaxes() if syntax.name == name]
 
 
-def find_syntax_by_scope(scope):
+def find_syntax_by_scope(scope: str) -> list[Syntax]:
     """ Find syntaxes with the specified scope.
 
     Scope must match exactly. Return a list of Syntax.
@@ -2135,7 +4042,7 @@ def find_syntax_by_scope(scope):
     return [syntax for syntax in list_syntaxes() if syntax.scope == scope]
 
 
-def find_syntax_for_file(path, first_line=''):
+def find_syntax_for_file(path, first_line="") -> Optional[Syntax]:
     """ Find the syntax to use for a path.
 
     Uses the file extension, various application settings and optionally the
@@ -2153,35 +4060,57 @@ def find_syntax_for_file(path, first_line=''):
 
 
 class Syntax:
+    """
+    Contains information about a syntax.
+
+    .. since:: 4081
+    """
+
     __slots__ = ['path', 'name', 'hidden', 'scope']
 
     def __init__(self, path, name, hidden, scope):
-        self.path = path
-        self.name = name
-        self.hidden = hidden
-        self.scope = scope
+        self.path: str = path
+        """ The packages path to the syntax file. """
+        self.name: str = name
+        """ The name of the syntax. """
+        self.hidden: bool = hidden
+        """ If the syntax is hidden from the user. """
+        self.scope: str = scope
+        """ The base scope name of the syntax. """
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Syntax) and self.path == other.path
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.path)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'Syntax({self.path!r}, {self.name!r}, {self.hidden!r}, '
                 f'{self.scope!r})')
 
 
 class QuickPanelItem:
+    """
+    Represents a row in the quick panel, shown via `Window.show_quick_panel()`.
+
+    .. since:: 4083
+    """
+
     __slots__ = ['trigger', 'details', 'annotation', 'kind']
 
     def __init__(self, trigger, details="", annotation="", kind=KIND_AMBIGUOUS):
-        self.trigger = trigger
-        self.details = details
-        self.annotation = annotation
-        self.kind = kind
+        self.trigger: str = trigger
+        """ Text to match against user's input. """
+        self.details: str | list[str] | tuple[str] = details
+        """
+        A `minihtml` string or list of strings displayed below the trigger.
+        """
+        self.annotation: str = annotation
+        """ Hint to draw to the right-hand side of the row. """
+        self.kind: Kind = kind
+        """ The kind of the item. See `Kind`. """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'QuickPanelItem({self.trigger!r}, '
                 f'details={self.details!r}, '
                 f'annotation={self.annotation!r}, '
@@ -2189,16 +4118,29 @@ class QuickPanelItem:
 
 
 class ListInputItem:
+    """
+    Represents a row shown via `ListInputHandler`.
+
+    .. since:: 4095
+    """
+
     __slots__ = ['text', 'value', 'details', 'annotation', 'kind']
 
     def __init__(self, text, value, details="", annotation="", kind=KIND_AMBIGUOUS):
-        self.text = text
-        self.value = value
-        self.details = details
-        self.annotation = annotation
-        self.kind = kind
+        self.text: str = text
+        """ Text to match against the user's input. """
+        self.value: Any = value
+        """ A `Value` passed to the command if the row is selected. """
+        self.details: str | list[str] | tuple[str] = details
+        """
+        A `minihtml` string or list of strings displayed below the trigger.
+        """
+        self.annotation: str = annotation
+        """ Hint to draw to the right-hand side of the row. """
+        self.kind: Kind = kind
+        """ The kind of the item. See `Kind`. """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'ListInputItem({self.text!r}, '
                 f'value={self.value!r}, '
                 f'details={self.details!r}, '
@@ -2207,44 +4149,61 @@ class ListInputItem:
 
 
 class SymbolRegion:
+    """
+    Contains information about a `Region` of a `View` that contains a symbol.
+
+    .. since:: 4085
+    """
+
     __slots__ = ['name', 'region', 'syntax', 'type', 'kind']
 
     def __init__(self, name, region, syntax, type, kind):
-        self.name = name
-        self.region = region
-        self.syntax = syntax
-        self.type = type
-        self.kind = kind
+        self.name: str = name
+        """ The name of the symbol. """
+        self.region: Region = region
+        """ The location of the symbol within the `View`. """
+        self.syntax: str = syntax
+        """ The name of the syntax for the symbol. """
+        self.type: SymbolType = type
+        """ The type of the symbol. See `SymbolType`. """
+        self.kind: Kind = kind
+        """ The kind of the symbol. See `Kind`. """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'SymbolRegion({self.name!r}, {self.region!r}, '
                 f'syntax={self.syntax!r}, type={self.type!r}, '
                 f'kind={self.kind!r})')
 
 
 class SymbolLocation:
+    """
+    Contains information about a file that contains a symbol.
+
+    .. since:: 4085
+    """
+
     __slots__ = ['path', 'display_name', 'row', 'col', 'syntax', 'type', 'kind']
 
     def __init__(self, path, display_name, row, col, syntax, type, kind):
-        self.path = path
-        self.display_name = display_name
-        self.row = row
-        self.col = col
-        self.syntax = syntax
-        self.type = type
-        self.kind = kind
+        self.path: str = path
+        """ The filesystem path to the file containing the symbol. """
+        self.display_name: str = display_name
+        """ The project-relative path to the file containing the symbol. """
+        self.row: int = row
+        """ The row of the file the symbol is contained on. """
+        self.col: int = col
+        """ The column of the row that the symbol is contained on. """
+        self.syntax: str = syntax
+        """ The name of the syntax for the symbol. """
+        self.type: SymbolType = type
+        """ The type of the symbol. See `SymbolType`. """
+        self.kind: Kind = kind
+        """ The kind of the symbol. See `Kind`. """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'SymbolLocation({self.path!r}, {self.display_name!r}, '
                 f'row={self.row!r}, col={self.col!r}, syntax={self.syntax!r}, '
                 f'type={self.type!r}, kind={self.kind!r})')
 
-    def path_encoded_position(self):
-        """
-        :return:
-            A unicode string of the file path, with the row and col appended
-            using :row:col, which works with window.open_file() using the
-            sublime.ENCODED_POSITION flag.
-        """
-
+    def path_encoded_position(self) -> str:
         return "%s:%d:%d" % (self.path, self.row, self.col)

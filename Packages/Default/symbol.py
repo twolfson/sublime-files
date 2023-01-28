@@ -90,6 +90,14 @@ def filter_current_symbol(view, point, symbol, locations):
     return new_locations
 
 
+def scroll_to(row, col, view):
+    pt = view.text_point(row - 1, col - 1)
+    view.sel().clear()
+    view.sel().add(sublime.Region(pt))
+    view.show(pt, True)
+    view.run_command('add_jump_record', {'selection': pt})
+
+
 def navigate_to_symbol(
         view,
         symbol,
@@ -174,16 +182,25 @@ def navigate_to_symbol(
         else:
             for view_id in open_file_states:
                 restore_selections(sublime.View(view_id))
-            if view.is_valid():
-                window.focus_view(view)
-                view.show(view.sel()[0])
-            # When in side-by-side mode close the current highlighted
-            # sheet upon canceling if the sheet is semi-transient otherwise
-            # deselect
-            if side_by_side:
-                if highlighted_view.sheet().is_semi_transient():
-                    highlighted_view.close()
-            window.select_sheets(prev_selected)
+
+            if event and event.get("key", None) and event["key"] == "escape":
+                if view.is_valid():
+                    window.focus_view(view)
+                    view.show(view.sel()[0])
+                # When in side-by-side mode close the current highlighted
+                # sheet upon canceling if the sheet is semi-transient otherwise
+                # deselect
+                if side_by_side:
+                    if highlighted_view.sheet().is_semi_transient():
+                        highlighted_view.close()
+                window.select_sheets(prev_selected)
+            else:
+                highlighted_sheet = highlighted_view.sheet()
+                if highlighted_sheet.group() != window.active_group():
+                    window.select_sheets(prev_selected)
+
+                elif highlighted_sheet.is_transient():
+                    window.promote_sheet(highlighted_sheet)
 
     def highlight_entry(window, locations, idx):
         nonlocal highlighted_view
@@ -201,9 +218,12 @@ def navigate_to_symbol(
 
             else:
                 if highlighted_view.is_valid():
-                    # Replacing the MRU is done relative to the current highlighted sheet
-                    window.focus_view(highlighted_view)
-                    flags |= sublime.REPLACE_MRU | sublime.SEMI_TRANSIENT
+                    if locations[idx].path == highlighted_view.file_name():
+                        scroll_to(locations[idx].row, locations[idx].col, highlighted_view)
+                    else:
+                        # Replacing the MRU is done relative to the current highlighted sheet
+                        window.focus_view(highlighted_view)
+                        flags |= sublime.REPLACE_MRU | sublime.SEMI_TRANSIENT
                 else:
                     # highlighted_view is no longer valid
                     flags |= sublime.ADD_TO_SELECTION | sublime.SEMI_TRANSIENT
@@ -336,13 +356,9 @@ class OpenSymbolDefinition(sublime_plugin.WindowCommand):
             view.preserve_auto_complete_on_focus_lost()
 
         # Make sure we use the current view if possible
-        if not new_tab and path[:path.find(':')] == view.file_name():
+        if not new_tab and path[:path.find(':')] == view.file_name() and event and 'alt' not in event['modifier_keys']:
             row, col = map(int, path[path.find(':') + 1:].split(':'))
-            pt = view.text_point(row - 1, col - 1)
-            view.sel().clear()
-            view.sel().add(sublime.Region(pt))
-            view.show(pt, True)
-            view.run_command('add_jump_record', {'selection': pt})
+            scroll_to(row, col, view)
         else:
             if event and 'alt' not in event['modifier_keys'] \
                     and len(selected_sheets) > 1 \
@@ -350,6 +366,8 @@ class OpenSymbolDefinition(sublime_plugin.WindowCommand):
                 if focus_view is not None and active_view.id() == focus_view:
                     prefocus = None
                 flags |= sublime.REPLACE_MRU | sublime.SEMI_TRANSIENT
+            elif event and 'alt' in event['modifier_keys'] and not new_tab:
+                flags |= sublime.FORCE_CLONE
 
             if prefocus:
                 self.window.focus_view(prefocus)
@@ -359,7 +377,7 @@ class OpenSymbolDefinition(sublime_plugin.WindowCommand):
                 if clear_to_right:
                     flags |= sublime.CLEAR_TO_RIGHT
 
-            self.window.open_file(path, flags)
+            self.window.open_file(path, flags, prefocus_group)
 
         if hide_popup:
             view.hide_popup()
@@ -621,18 +639,25 @@ class ShowDefinitions(sublime_plugin.EventListener):
 
         sheet = view.sheet()
         group = sheet.group()
-        selected_sheets = view.window().selected_sheets_in_group(group)
+        if group is not None:
+            selected_sheets = view.window().selected_sheets_in_group(group)
+        else:
+            selected_sheets = []
+
+        relative_to_focused = view.settings().get("open_popup_definitions_relative_to_focused_view")
+        open_tab = "Open Tab to Right" + (" of View" if not relative_to_focused else " of Focused View")
 
         primary = 'Cmd' if sys.platform == 'darwin' else 'Ctrl'
-        title = primary + "+Click to Open Tab to Right"
+        title = primary + "+Click to " + open_tab
         if len(selected_sheets) > 1:
             if sheet != selected_sheets[-1]:
-                title += "\nShift+Click to Append Tab"
-            title += "\nAlt+Click to Replace All Tabs"
+                title += "\nShift+Click to Append Tab to Current Selection"
+            title += "\nAlt+Click to Replace All Tabs in Current Selection"
 
         link_markup = ('<span class="{class_name}" title="{name}">{letter}</span>'
                        '<a href="{href}" title="{title}">{location}</a>&nbsp;'
-                       '<a class="icon" href="{new_tab_href}" title="Open Tab to Right">◨</a>&nbsp;'
+                       '<a class="icon" href="{new_tab_href}" '
+                       'title="Open Tab to Right of Current Selection">◨</a>&nbsp;'
                        '<span class="syntax">{syntax}</span>')
 
         links = '<br>'.join(

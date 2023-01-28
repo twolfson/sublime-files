@@ -120,6 +120,20 @@ import foo;
 //                       ^^^^ keyword.control.import-export
 //                            ^^^^^^^^^^^ meta.string string.quoted.single
 
+    import { type W } from 'somewhere';
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.import
+//  ^^^^^^ keyword.control.import-export
+//         ^^^^^^^^^^ meta.block
+//         ^ punctuation.section.block.begin
+//           ^^^^ keyword.control.import-export.ts
+//                ^ variable.other.readwrite
+//                  ^ punctuation.section.block.end
+//                    ^^^^ keyword.control.import-export
+//                         ^^^^^^^^^^^ meta.string string.quoted.single
+//                         ^ punctuation.definition.string.begin
+//                                   ^ punctuation.definition.string.end
+//                                    ^ punctuation.terminator.statement
+
     export type T = any;
 //  ^^^^^^^^^^^^^^^^^^^ meta.export
 //  ^^^^^^ keyword.control.import-export
@@ -168,6 +182,18 @@ import foo;
 //                 ^^^^^^^^^ keyword.declaration
 //                           ^^^  entity.name.interface
 
+    export { type T as U };
+//  ^^^^^^^^^^^^^^^^^^^^^^^ meta.export
+//  ^^^^^^ keyword.control.import-export
+//         ^^^^^^^^^^^^^^^ meta.block
+//         ^ punctuation.section.block.begin
+//           ^^^^ keyword.control.import-export.ts
+//                ^ variable.other.readwrite
+//                  ^^ keyword.control.import-export
+//                     ^ variable.other.readwrite
+//                       ^ punctuation.section.block.end
+//                        ^ punctuation.terminator.statement
+
 /* Declarations */
 
     interface Foo {
@@ -200,6 +226,14 @@ import foo;
 //           ^ punctuation.separator.type
 //             ^^^ meta.type support.type.any
 //                ^ punctuation.separator
+
+        1: any,
+//      ^ meta.number.integer.decimal
+//      ^ constant.numeric.value
+//       ^ punctuation.separator.type
+//        ^^^^ meta.type
+//         ^^^ support.type.any
+//            ^ punctuation.separator
     }
 //  ^ meta.block punctuation.section.block.end
 
@@ -754,7 +788,7 @@ let x: any [
 let x: any
 //     ^^^ meta.type support.type.any
     [];
-//  ^^ meta.sequence punctuation.section.brackets - meta.type
+//  ^^ meta.sequence punctuation.section.sequence - meta.type
 
 let x: Foo<any, any>;
 //     ^^^^^^^^^^^^^ meta.type
@@ -775,7 +809,7 @@ function f<T extends Foo>() {}
 
 let x: [ any , any ? , ... any [] ];
 //     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.type meta.sequence
-//     ^ punctuation.section.brackets.begin
+//     ^ punctuation.section.sequence.begin
 //       ^^^ support.type.any
 //           ^ punctuation.separator.comma
 //             ^^^ support.type.any
@@ -784,7 +818,7 @@ let x: [ any , any ? , ... any [] ];
 //                     ^^^ keyword.operator.spread
 //                         ^^^ support.type.any
 //                             ^^ storage.modifier.array
-//                                ^ punctuation.section.brackets.end
+//                                ^ punctuation.section.sequence.end
 
 let x: any & any;
 //     ^^^^^^^^^ meta.type
@@ -1037,6 +1071,15 @@ let x: ( ... foo : any ) => any;
 //               ^ punctuation.separator.type
 //                 ^^^ support.type.any
 
+let x: < T > ( ... foo : any ) => any;
+//     ^^^^^ meta.generic
+//       ^ variable.parameter.generic
+//           ^^^^^^^^^^^^^^^^^ meta.group
+//             ^^^ keyword.operator.spread
+//                 ^^^ variable.parameter
+//                     ^ punctuation.separator.type
+//                       ^^^ support.type.any
+
 let x: () => T
     U
 //  ^ variable.other.constant - meta.type
@@ -1192,4 +1235,73 @@ const x = {
     readonly get,
 //  ^^^^^^^^ storage.modifier
 //           ^^^ variable.other.readwrite
-}
+
+    f<T>() {},
+//  ^^^^^^^^^ meta.function
+//  ^ entity.name.function
+//   ^^^ meta.generic
+};
+
+    true ? (a) : <T,foo="a">() => {} => {} : null; // </T>;
+//  ^^^^ constant.language.boolean.true
+//       ^ keyword.operator.ternary
+//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function
+//         ^^^ meta.function.parameters
+//          ^ meta.binding.name variable.parameter.function
+//             ^ punctuation.separator.type
+//              ^^^^^^^^^^^^^^^^^^^^^ meta.type
+//               ^^^^^^^^^^^ meta.generic
+//                ^ variable.parameter.generic
+//                 ^ punctuation.separator.comma
+//                  ^^^ variable.parameter.generic
+//                     ^ keyword.operator.assignment
+//                      ^^^ meta.string string.quoted.double
+//                          ^^ meta.group
+//                             ^^ keyword.declaration.function
+//                                ^^ meta.mapping
+//                                   ^^ keyword.declaration.function.arrow
+//                                      ^^ meta.block
+//                                         ^ keyword.operator.ternary
+//                                           ^^^^ constant.language.null
+//                                               ^ punctuation.terminator.statement
+//                                                 ^^^^^^^^ comment.line.double-slash
+
+const f = (x): ((y) => any) => 42;
+//        ^^^^^^^^^^^^^^^^^^^^^^^ meta.function
+//        ^^^ meta.function.parameters
+//         ^ meta.binding.name variable.parameter.function
+//           ^ punctuation.separator.type
+//            ^^^^^^^^^^^^^^ meta.type
+//             ^^^^^^^^^^^^ meta.group
+//             ^ punctuation.section.group.begin
+//              ^^^ meta.group
+//              ^ punctuation.section.group.begin
+//               ^ variable.parameter
+//                ^ punctuation.section.group.end
+//                  ^^ keyword.declaration.function
+//                     ^^^ support.type.any
+//                        ^ punctuation.section.group.end
+//                          ^^ keyword.declaration.function.arrow
+//                             ^^ meta.block meta.number.integer.decimal
+//                             ^^ constant.numeric.value
+//                               ^ punctuation.terminator.statement
+
+const f = (x): (y) => 42 => z;
+//    ^ meta.binding.name entity.name.function
+//    ^ variable.other.readwrite
+//      ^ keyword.operator.assignment
+//        ^^^^^^^^^^^^^^^^^^^ meta.function
+//        ^ punctuation.section.group.begin
+//         ^ meta.binding.name variable.parameter.function
+//          ^ punctuation.section.group.end
+//           ^ punctuation.separator.type
+//            ^^^^^^^^^^^ meta.type
+//             ^^^ meta.group
+//             ^ punctuation.section.group.begin
+//              ^ variable.parameter
+//               ^ punctuation.section.group.end
+//                 ^^ keyword.declaration.function
+//                    ^^ meta.number.integer.decimal constant.numeric.value
+//                       ^^ keyword.declaration.function.arrow
+//                          ^ meta.block variable.other.readwrite
+//                           ^ punctuation.terminator.statement

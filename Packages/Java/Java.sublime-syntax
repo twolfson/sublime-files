@@ -40,7 +40,7 @@ variables:
     (?x: class | enum | @?interface | record | var | void | extends | implements | import | package )
   control_keywords: |-
     (?x: assert | break | case | catch | continue | do | else | finally | for
-    | if | return | switch | throw | throws | try | while )
+    | if | return | switch | throw | throws | try | while | yield )
   operator_keywords: |-
     (?x: new | instanceof )
   illegal_keywords: |-
@@ -131,8 +131,8 @@ contexts:
     - include: import
     - include: module
     - include: package
-    - include: statements
     - include: declarations
+    - include: statements
     - include: else-expressions
 
   statements:
@@ -274,7 +274,7 @@ contexts:
 
   annotation-qualified-identifier-path:
     - match: '{{identifier}}'
-      scope: variable.annotation.namespace.java
+      scope: variable.namespace.java
       set: annotation-qualified-identifier-accessor
     - include: else-pop2
 
@@ -546,105 +546,40 @@ contexts:
 ###[ IMPORT DECLARATIONS ]#####################################################
 
   import:
+    # https://docs.oracle.com/javase/specs/jls/se13/html/jls-7.html#jls-7.5
     - match: import{{break}}
       scope: keyword.declaration.import.java
-      push: import-modifier
+      push:
+        - import-meta
+        - import-modifier
+
+  import-meta:
+    - meta_include_prototype: false
+    - meta_scope: meta.import.java
+    - include: immediately-pop
 
   import-modifier:
-    - meta_scope: meta.import.java
     - match: static{{break}}
       scope: storage.modifier.java
-      set:
-        - meta_content_scope: meta.import.java
-        - match: (?=\S)
-          set: import-static-namespace
+      set: import-static
     - match: (?=\S)
-      set: import-normal-namespace
+      set: type-import
 
-  import-normal-namespace:
-    - meta_content_scope: meta.import.java meta.path.java
-    - include: import-terminator
-    - include: import-package-name
+  import-static:
     - match: (?=\S)
-      set: import-normal-class
-
-  import-normal-class:
-    - meta_content_scope: meta.import.java meta.path.java
-    - include: import-terminator
-    - include: import-class-name
-    - include: import-wildcard
-    - include: else-pop
-
-  import-static-namespace:
-    - meta_content_scope: meta.import.java meta.path.java
-    - include: import-terminator
-    - include: import-package-name
-    - match: (?=\S)
-      set: import-static-class
-
-  import-static-class:
-    - meta_content_scope: meta.import.java meta.path.java
-    - include: import-terminator
-    - include: import-constant-name
-    - include: import-class-path
-    - include: import-function-name
-    - include: import-wildcard
-    - include: else-pop
-
-  import-constant-name:
-    - match: '{{uppercase_id}}(?!\s*\.)'
-      scope:
-        meta.import.java meta.path.java
-        entity.name.constant.java
-      set: import-expect-terminator
-
-  import-package-name:
-    - match: '{{lowercase_id}}'
-      scope: variable.namespace.java
-      push: import-acessor-or-termintor
-    - include: punctuation-accessor-dot
-
-  import-class-path:
-    - match: '{{classcase_id}}'
-      scope: storage.type.class.java
-      push: import-acessor-or-termintor
-    - include: punctuation-accessor-dot
-
-  import-class-name:
-    - match: '{{classcase_id}}'
-      scope: entity.name.class.java
-      push: import-acessor-or-termintor
-    - include: punctuation-accessor-dot
-
-  import-function-name:
-    - match: '{{identifier}}'
-      scope:
-        meta.import.java meta.path.java
-        entity.name.function.java
-      set: import-expect-terminator
+      set: static-import
 
   import-wildcard:
     - match: \*
-      scope:
-        meta.import.java meta.path.java
-        variable.language.wildcard.asterisk.java
+      scope: variable.language.wildcard.asterisk.java
+      pop: 2
       set: import-expect-terminator
 
-  import-acessor-or-termintor:
-    # continue with the import context
-    - include: punctuation-accessor-dot-pop
-    # pop the import context
-    - match: (?=\s*;|\S)
-      pop: 2
-
   import-expect-terminator:
-    - include: import-terminator
-    - match: \S
-      scope: invalid.illegal.expect-semicolon.java
-
-  import-terminator:
     - match: (?=\s*;|{{reserved_words}}{{break}})
       pop: 1
+    - match: \S
+      scope: invalid.illegal.expect-semicolon.java
 
 ###[ CLASS DECLARATIONS ]######################################################
 
@@ -718,8 +653,8 @@ contexts:
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html#jls-8.1.6
     - meta_scope: meta.class.java meta.block.java
     - include: block-end
-    - include: member-statements
     - include: member-declarations
+    - include: member-statements
     - include: else-expressions
 
 ###[ ENUM DECLARATIONS ]#######################################################
@@ -1200,14 +1135,14 @@ contexts:
   method-attributes:
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html#jls-8.4.6
     - match: throws{{break}}
-      scope: keyword.declaration.throws.java
+      scope: storage.modifier.throws.java
       set:
         - method-throws-body
         - maybe-illegal-array-modifiers
         - expect-object-type
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-9.html#jls-9.6.2
     - match: default{{break}}
-      scope: keyword.declaration.default.java
+      scope: storage.modifier.default.java
       set: method-default-body
     - include: else-pop
 
@@ -1829,8 +1764,8 @@ contexts:
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-14.html#jls-14.2
     - meta_scope: meta.block.java
     - include: block-end
-    - include: statements
     - include: declarations
+    - include: statements
     - include: else-expressions
 
 ###[ GROUPS ]##################################################################
@@ -2570,7 +2505,6 @@ contexts:
         - qualified-constant-name
 
   qualified-constant-class:
-    - meta_include_prototype: false
     - match: '{{identifier}}'
       scope: storage.type.class.java
       set:
@@ -2584,11 +2518,123 @@ contexts:
       fail: qualified-constant-class-or-name
 
   qualified-constant-name:
-    - meta_include_prototype: false
     - match: '{{identifier}}'
       scope: constant.other.java
       pop: 3
     - include: annotation-else-pop3
+
+###[ STATIC IMPORT ]###########################################################
+
+  static-import:
+    # https://docs.oracle.com/javase/specs/jls/se13/html/jls-7.html#jls-7.5.3
+    # https://docs.oracle.com/javase/specs/jls/se13/html/jls-7.html#jls-7.5.4
+    - meta_include_prototype: false
+    - meta_content_scope: meta.path.java
+    - match: ''
+      branch_point: static-import
+      branch:
+        - static-import-package
+        - static-import-class-or-name
+
+  static-import-package:
+    - match: '{{lowercase_id}}'
+      scope: variable.namespace.java
+      set: static-import-package-accessor
+    - include: annotations
+    - match: (?=\S)
+      fail: static-import
+
+  static-import-package-accessor:
+    - include: punctuation-accessor-dot-pop
+    - match: (?=\S)
+      fail: static-import
+
+  static-import-class-or-name:
+    - meta_include_prototype: false
+    - match: ''
+      pop: 1
+      branch_point: static-import-class-or-name
+      branch:
+        - static-import-class
+        - static-import-name
+
+  static-import-class:
+    - match: '{{identifier}}'
+      scope: storage.type.class.java
+      set:
+        - static-import-class-accessor
+        - maybe-type-argument
+    - include: import-wildcard
+    - include: annotation-else-pop2
+
+  static-import-class-accessor:
+    - include: punctuation-accessor-dot-pop
+    - match: (?=\S)
+      fail: static-import-class-or-name
+
+  static-import-name:
+    - match: '{{uppercase_id}}'
+      scope: entity.name.constant.java
+      pop: 2
+    - match: '{{identifier}}'
+      scope: entity.name.import.java
+      pop: 2
+    - include: annotation-else-pop2
+
+###[ TYPE IMPORT ]#############################################################
+
+  type-import:
+    # https://docs.oracle.com/javase/specs/jls/se13/html/jls-7.html#jls-7.5.1
+    # https://docs.oracle.com/javase/specs/jls/se13/html/jls-7.html#jls-7.5.2
+    - meta_include_prototype: false
+    - meta_content_scope: meta.path.java
+    - match: ''
+      branch_point: type-import
+      branch:
+        - type-import-package
+        - type-import-class-or-name
+
+  type-import-package:
+    - match: '{{lowercase_id}}'
+      scope: variable.namespace.java
+      set: type-import-package-accessor
+    - include: annotations
+    - match: (?=\S)
+      fail: type-import
+
+  type-import-package-accessor:
+    - include: punctuation-accessor-dot-pop
+    - match: (?=\S)
+      fail: type-import
+
+  type-import-class-or-name:
+    - meta_include_prototype: false
+    - match: ''
+      pop: 1
+      branch_point: type-import-class-or-name
+      branch:
+        - type-import-class
+        - type-import-name
+
+  type-import-class:
+    - match: '{{identifier}}'
+      scope: storage.type.class.java
+      set:
+        - type-import-class-accessor
+        - maybe-type-argument
+    - include: import-wildcard
+    - include: annotation-else-pop2
+
+  type-import-class-accessor:
+    - include: punctuation-accessor-dot-pop
+    - match: (?=\S)
+      fail: type-import-class-or-name
+
+  type-import-name:
+    - match: '{{identifier}}'
+      scope: entity.name.class.java
+      pop: 2
+    - include: annotation-else-pop2
 
 ###[ ENTITY CLASS ]############################################################
 
@@ -2975,10 +3021,10 @@ contexts:
     - match: <>
       scope:
         meta.generic.java
-        punctuation.section.generic.diamond.java
+        punctuation.definition.generic.diamond.java
       pop: 1
     - match: <
-      scope: punctuation.section.generic.begin.java
+      scope: punctuation.definition.generic.begin.java
       set:
         - type-argument-body
         - type-argument-reference
@@ -3016,7 +3062,7 @@ contexts:
   type-parameters:
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html#jls-8.1.2
     - match: <
-      scope: punctuation.section.generic.begin.java
+      scope: punctuation.definition.generic.begin.java
       push:
         - type-parameter-body
         - type-parameter-bounds
@@ -3025,7 +3071,7 @@ contexts:
   type-parameter:
     # https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html#jls-8.1.2
     - match: <
-      scope: punctuation.section.generic.begin.java
+      scope: punctuation.definition.generic.begin.java
       set:
         - type-parameter-body
         - type-parameter-bounds
@@ -3063,7 +3109,7 @@ contexts:
 
   type-parameter-end:
     - match: '>'
-      scope: punctuation.section.generic.end.java
+      scope: punctuation.definition.generic.end.java
       pop: 1
     - match: extends{{break}}
       scope: invalid.illegal.unexpected-keyword.java

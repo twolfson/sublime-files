@@ -77,6 +77,7 @@
 					{ "caption": "Hebrew (ISO 8859-8)", "command": "reopen", "args": { "encoding": "Hebrew (ISO 8859-8)" } },
 					{ "caption": "Hebrew (Windows 1255)", "command": "reopen", "args": { "encoding": "Hebrew (Windows 1255)" } },
 					{ "caption": "Nordic (ISO 8859-10)", "command": "reopen", "args": { "encoding": "Nordic (ISO 8859-10)" } },
+					{ "caption": "Nordic (Windows 865)", "command": "reopen", "args": { "encoding": "Nordic (Windows 865)" } },
 					{ "caption": "Romanian (ISO 8859-16)", "command": "reopen", "args": { "encoding": "Romanian (ISO 8859-16)" } },
 					{ "caption": "Turkish (ISO 8859-9)", "command": "reopen", "args": { "encoding": "Turkish (ISO 8859-9)" } },
 					{ "caption": "Turkish (Windows 1254)", "command": "reopen", "args": { "encoding": "Turkish (Windows 1254)" } },
@@ -126,6 +127,7 @@
 					{ "caption": "Hebrew (ISO 8859-8)", "command": "save", "args": { "async": true, "encoding": "Hebrew (ISO 8859-8)" } },
 					{ "caption": "Hebrew (Windows 1255)", "command": "save", "args": { "async": true, "encoding": "Hebrew (Windows 1255)" } },
 					{ "caption": "Nordic (ISO 8859-10)", "command": "save", "args": { "async": true, "encoding": "Nordic (ISO 8859-10)" } },
+					{ "caption": "Nordic (Windows 865)", "command": "save", "args": { "async": true, "encoding": "Nordic (Windows 865)" } },
 					{ "caption": "Romanian (ISO 8859-16)", "command": "save", "args": { "async": true, "encoding": "Romanian (ISO 8859-16)" } },
 					{ "caption": "Turkish (ISO 8859-9)", "command": "save", "args": { "async": true, "encoding": "Turkish (ISO 8859-9)" } },
 					{ "caption": "Turkish (Windows 1254)", "command": "save", "args": { "async": true, "encoding": "Turkish (Windows 1254)" } },
@@ -277,7 +279,11 @@
 					{ "command": "title_case", "caption": "Title Case" },
 					{ "command": "upper_case", "caption": "Upper Case" },
 					{ "command": "lower_case", "caption": "Lower Case" },
-					{ "command": "swap_case", "caption": "Swap Case" }
+					{ "command": "swap_case", "caption": "Swap Case" },
+					{ "command": "convert_ident_case", "caption": "lowerCamelCase", "args": {"case": "title", "first_case": "lower"} },
+					{ "command": "convert_ident_case", "caption": "UpperCamelCase", "args": {"case": "title"} },
+					{ "command": "convert_ident_case", "caption": "snake_case", "args": {"separator": "_", "case": "lower"} },
+					{ "command": "convert_ident_case", "caption": "kebab-case", "args": {"separator": "-", "case": "lower"} },
 				]
 			},
 			{

@@ -16,6 +16,33 @@ public class HelloWorld {
         System.out.println("Hello World"); // ; "comment" ()
     }
 
+    public void testIndentBrackets()
+    {
+        var foo = [
+            [
+                [
+                    0, 1,
+                    2, 3
+                ],
+                [0, 1, 2, 3],
+                [
+                    0, 1,
+                    2, 3
+                ]
+            ]
+        ];
+
+        var foo = {
+            {
+                "key": "value"
+            },
+            { "key": "value" },
+            {
+                "key": "value"
+            }
+        }
+    }
+
     public boolean testIfElseIndentationNoBraces(String[] v)
     {
         /**
@@ -703,6 +730,32 @@ public class HelloWorld {
                 System.out.println("Row " + i + " Col " + j);
             }
         }
+
+        for (
+            int i = 0;
+            i < 10;
+            i++) {
+            int j = 0;
+            int k = 0;
+        }
+
+        for (
+            int i = 0;
+            i < 10;
+            i++)
+        {
+            int j = 0;
+            int k = 0;
+        }
+
+        for (
+            int i = 0;
+            i < 10;
+            i++
+        ) {
+            int j = 0;
+            int k = 0;
+        }
     }
 
     public boolean testWhileIndentationNoBraces(int v) {
@@ -897,6 +950,24 @@ public class HelloWorld {
         {
             v++
         }
+        while (
+            v == foo( bar("") + "" )
+        )
+        {
+            v++
+            v++
+        }
+        while (
+            v == foo( bar("") + "" ) ) {
+            v++
+            v++
+        }
+        while (
+            v == foo( bar("") + "" )
+        ) {
+            v++
+            v++
+        }
     }
 
     public boolean testWhileIndentationWithBracesAndComments(int v) {
@@ -974,6 +1045,24 @@ public class HelloWorld {
         }                                   // ;  "comments" ()
         while (v == foo( bar("") + "" ))    // ;  "comments" ()
         {                                   // ;  "comments" ()
+            v++                             // ;  "comments" ()
+        }                                   // ;  "comments" ()
+        while (                             // ;  "comments" ()
+            v == foo( bar("") + "" )        // ;  "comments" ()
+            )                               // ;  "comments" ()
+        {                                   // ;  "comments" ()
+            v++                             // ;  "comments" ()
+            v++                             // ;  "comments" ()
+        }                                   // ;  "comments" ()
+        while (                             // ;  "comments" ()
+            v == foo( bar("") + "" ) ) {    // ;  "comments" ()
+            v++                             // ;  "comments" ()
+            v++                             // ;  "comments" ()
+        }                                   // ;  "comments" ()
+        while (                             // ;  "comments" ()
+            v == foo( bar("") + "" )        // ;  "comments" ()
+            ) {                             // ;  "comments" ()
+            v++                             // ;  "comments" ()
             v++                             // ;  "comments" ()
         }                                   // ;  "comments" ()
     }

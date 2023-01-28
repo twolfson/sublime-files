@@ -78,7 +78,9 @@ class NewPaneCommand(sublime_plugin.WindowCommand):
 
         # Move all the sheets so the new pane is created in the correct location
         for i in reversed(range(0, num_panes - cur_index - 1)):
-            window.move_sheets_to_group(window.sheets_in_group(cur_index + i + 1), cur_index + i + 2)
+            current_selection = window.selected_sheets_in_group(cur_index + i + 1)
+            window.move_sheets_to_group(window.sheets_in_group(cur_index + i + 1), cur_index + i + 2, select=False)
+            window.select_sheets(current_selection)
 
         if move_sheet:
             transient = window.transient_sheet_in_group(cur_index)
@@ -107,7 +109,9 @@ class ClosePaneCommand(sublime_plugin.WindowCommand):
             return
 
         for i in range(idx, window.num_groups()):
+            current_selection = window.selected_sheets_in_group(i)
             window.move_sheets_to_group(window.sheets_in_group(i), i - 1)
+            window.select_sheets(current_selection)
 
         rows = layout["rows"]
         cols = layout["cols"]
