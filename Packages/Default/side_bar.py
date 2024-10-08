@@ -109,3 +109,13 @@ class FindInFolderCommand(sublime_plugin.WindowCommand):
 
     def is_visible(self, dirs):
         return len(dirs) > 0
+
+
+class CopyPathSidebarCommand(sublime_plugin.WindowCommand):
+    def run(self, paths):
+        if len(paths[0]) > 0:
+            sublime.set_clipboard(paths[0])
+            sublime.status_message("Copied path")
+
+    def is_visible(self, paths):
+        return len(paths) == 1 and len(paths[0]) > 0

@@ -55,6 +55,12 @@
 				</dict>
 			</dict>
 		</dict>
+		<dict>
+			<key>match</key>
+			<string>(... )?&lt;skipped [0-9]+ characters?&gt;( ...)?</string>
+			<key>name</key>
+			<string>comment.other.skipped.find-in-files</string>
+		</dict>
 	</array>
 	<key>scopeName</key>
 	<string>text.find-in-files</string>

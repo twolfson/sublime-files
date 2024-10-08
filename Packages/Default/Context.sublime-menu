@@ -20,5 +20,6 @@
 	{ "command": "open_dir", "args": {"dir": "$file_path", "file": "$file_name"}, "caption": "Open Containing Folder…" },
 	{ "command": "copy_path", "caption": "Copy File Path" },
 	{ "command": "reveal_in_side_bar", "caption": "Reveal in Side Bar" },
+	{ "command": "force_reopen_as", "args": {"type": "image"}, "caption": "Reopen File as Image" },
 	{ "caption": "-", "id": "end" }
 ]

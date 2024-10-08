@@ -1034,13 +1034,21 @@ class ViSelectBookmark(sublime_plugin.TextCommand):
 g_macro_target = None
 
 class ViBeginRecordMacro(sublime_plugin.TextCommand):
-    def run(self, edit, character):
+    # Custom version of run_, so an edit object isn't created.
+    def run_(self, edit_token, args):
+        return self.run(**args)
+
+    def run(self, character):
         global g_macro_target
         g_macro_target = character
         self.view.run_command('start_record_macro')
 
 class ViEndRecordMacro(sublime_plugin.TextCommand):
-    def run(self, edit):
+    # Custom version of run_, so an edit object isn't created.
+    def run_(self, edit_token, args):
+        return self.run()
+
+    def run(self):
         self.view.run_command('stop_record_macro')
         if not g_macro_target:
             return

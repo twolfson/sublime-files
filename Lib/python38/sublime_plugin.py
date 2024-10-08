@@ -17,7 +17,7 @@ import sublime_api
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from sublime_types import DIP, Vector, Point, Value, CommandArgs, Kind, Event, CompletionValue
+    from sublime_types import Value
 
 
 api_ready = False
@@ -652,9 +652,9 @@ def check_all_view_event_listeners():
             check_view_event_listeners(v)
 
 
-def detach_view(view):
-    if view.view_id in view_event_listeners:
-        del view_event_listeners[view.view_id]
+def detach_view(view_id):
+    if view_id in view_event_listeners:
+        del view_event_listeners[view_id]
 
     # A view has closed, which implies 'is_primary' may have changed, so see if
     # any of the ViewEventListener classes need to be created.
@@ -919,12 +919,7 @@ def on_pre_close(view_id):
 
 
 def on_close(view_id):
-    v = sublime.View(view_id)
-    for callback in vel_callbacks(v, 'on_close'):
-        callback()
-    detach_view(v)
-    for callback in el_callbacks('on_close'):
-        callback(v)
+    run_view_callbacks('on_close', view_id)
 
 
 def on_pre_save(view_id):
@@ -1000,46 +995,39 @@ def on_query_context(view_id, key, operator, operand, match_all):
     return False
 
 
+def split_trigger(trigger):
+    idx = trigger.find("\t")
+    if idx < 0:
+        return (trigger, "")
+    else:
+        return (trigger[0:idx], trigger[idx + 1:])
+
+
 def normalise_completion(c):
-    def split_trigger(trigger):
-        idx = trigger.find("\t")
-        if idx < 0:
-            return (trigger, "")
-        else:
-            return (trigger[0:idx], trigger[idx + 1:])
-
-    if not isinstance(c, sublime.CompletionItem):
-        if isinstance(c, str):
-            trigger, annotation = split_trigger(c)
-            c = sublime.CompletionItem(trigger, annotation)
-        elif len(c) == 1:
-            trigger, annotation = split_trigger(c[0])
-            c = sublime.CompletionItem(trigger, annotation)
-        elif len(c) == 2:
-            trigger, annotation = split_trigger(c[0])
-            c = sublime.CompletionItem.snippet_completion(
-                trigger,
-                c[1],
-                annotation,
-                kind=sublime.KIND_AMBIGUOUS
-            )
-        elif len(c) == 3:
-            trigger, annotation = split_trigger(c[0])
-            c = sublime.CompletionItem.snippet_completion(
-                trigger,
-                c[2],
-                annotation,
-                kind=sublime.KIND_AMBIGUOUS
-            )
-        else:
-            c = sublime.CompletionItem("")
-
-    kind, kind_letter, kind_name = c.kind
-
-    letter = 0
-    if isinstance(kind_letter, str) and kind_letter != '':
-        letter = ord(kind_letter)
-    return (c.trigger, c.annotation, c.details, c.completion, kind_name, letter, c.completion_format, c.flags, kind)
+    if isinstance(c, str):
+        trigger, annotation = split_trigger(c)
+        return sublime.CompletionItem(trigger, annotation)
+    elif len(c) == 1:
+        trigger, annotation = split_trigger(c[0])
+        return sublime.CompletionItem(trigger, annotation)
+    elif len(c) == 2:
+        trigger, annotation = split_trigger(c[0])
+        return sublime.CompletionItem.snippet_completion(
+            trigger,
+            c[1],
+            annotation,
+            kind=sublime.KIND_AMBIGUOUS
+        )
+    elif len(c) == 3:
+        trigger, annotation = split_trigger(c[0])
+        return sublime.CompletionItem.snippet_completion(
+            trigger,
+            c[2],
+            annotation,
+            kind=sublime.KIND_AMBIGUOUS
+        )
+    else:
+        return sublime.CompletionItem("")
 
 
 class MultiCompletionList:
@@ -1051,7 +1039,8 @@ class MultiCompletionList:
         self.flags = 0
 
     def completions_ready(self, completions, flags):
-        self.completions += [normalise_completion(c) for c in completions]
+        self.completions += [c if isinstance(c, sublime.CompletionItem) else normalise_completion(c)
+                             for c in completions]
         self.flags |= flags
         self.remaining_calls -= 1
 
@@ -1432,6 +1421,7 @@ class ListInputHandler(CommandInputHandler):
 
         props = {
             "initial_text": self.initial_text(),
+            "initial_selection": self.initial_selection(),
             "placeholder_text": self.placeholder(),
             "selected": selected_item_index,
             "type": "list",
@@ -1647,7 +1637,7 @@ class WindowCommand(Command):
     def __init__(self, window):
         """ :meta private: """
 
-        self.window: Window = window
+        self.window: sublime.Window = window
         """ The `Window` this command is attached to. """
 
     def run_(self, edit_token, args):
@@ -1685,7 +1675,7 @@ class TextCommand(Command):
     def __init__(self, view):
         """ :meta private: """
 
-        self.view: View = view
+        self.view: sublime.View = view
         """ The `View` this command is attached to. """
 
     def run_(self, edit_token, args):
@@ -1905,7 +1895,8 @@ class EventListener:
         :param hover_zone:
             Which element in Sublime Text the mouse has hovered over.
 
-    .. method:: on_query_context(view: View, key: str, operator: QueryOperator, operand: str, match_all: bool) -> Optional[bool]
+    .. method:: on_query_context(\
+            view: View, key: str, operator: QueryOperator, operand: str, match_all: bool) -> Optional[bool]
 
         Called when determining to trigger a key binding with the given context
         key. If the plugin knows how to respond to the context, it should
@@ -1928,7 +1919,8 @@ class EventListener:
             either does or doesn't match. If the context is unknown return
             ``None``.
 
-    .. method:: on_query_completions(view: View, prefix: str, locations: List[Point]) -> Union[None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
+    .. method:: on_query_completions(view: View, prefix: str, locations: List[Point]) -> Union[\
+            None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
 
         Called whenever completions are to be presented to the user.
 
@@ -1942,14 +1934,23 @@ class EventListener:
 
     .. method:: on_text_command(view: View, command_name: str, args: CommandArgs) -> (str, CommandArgs)
 
-        Called when a text command is issued. The listener may return a (command, arguments) tuple to rewrite the command, or None to run the command unmodified.
+        Called when a text command is issued. The listener may return a
+        (command, arguments) tuple to rewrite the command, or ``None`` to run
+        the command unmodified.
 
     .. method:: on_window_command(window: Window, command_name: str, args: CommandArgs) -> (str, CommandArgs)
 
-        Called when a window command is issued. The listener may return a (command, arguments) tuple to rewrite the command, or None to run the command unmodified.
+        Called when a window command is issued. The listener may return a
+        (command, arguments) tuple to rewrite the command, or ``None`` to run
+        the command unmodified.
 
-    .. method:: on_post_text_command(view: View, command_name: str, args: CommandArgs)    Called after a text command has been executed.
-    .. method:: on_post_window_command(window: Window, command_name: str, args: CommandArgs)      Called after a window command has been executed.
+    .. method:: on_post_text_command(view: View, command_name: str, args: CommandArgs)
+
+        Called after a text command has been executed.
+
+    .. method:: on_post_window_command(window: Window, command_name: str, args: CommandArgs)
+
+        Called after a window command has been executed.
 
     .. method:: on_new_window(window: Window)
 
@@ -1959,7 +1960,8 @@ class EventListener:
 
     .. method:: on_new_window_async(window: Window)
 
-        Called when a window is created, passed the Window object. Runs in a separate thread, and does not block the application.
+        Called when a window is created, passed the Window object. Runs in a
+        separate thread, and does not block the application.
 
         .. since:: 4050
 
@@ -1977,7 +1979,8 @@ class EventListener:
 
     .. method:: on_new_project_async(window: Window)
 
-        Called right after a new project is created, passed the Window object. Runs in a separate thread, and does not block the application.
+        Called right after a new project is created, passed the Window object.
+        Runs in a separate thread, and does not block the application.
 
         .. since:: 4050
 
@@ -1989,7 +1992,8 @@ class EventListener:
 
     .. method:: on_load_project_async(window: Window)
 
-        Called right after a project is loaded, passed the Window object. Runs in a separate thread, and does not block the application.
+        Called right after a project is loaded, passed the Window object. Runs
+        in a separate thread, and does not block the application.
 
         .. since:: 4050
 
@@ -2007,7 +2011,8 @@ class EventListener:
 
     .. method:: on_post_save_project_async(window: Window)
 
-        Called right after a project is saved, passed the Window object. Runs in a separate thread, and does not block the application.
+        Called right after a project is saved, passed the Window object. Runs in
+        a separate thread, and does not block the application.
 
         .. since:: 4050
 
@@ -2136,7 +2141,8 @@ class ViewEventListener:
 
     .. method:: on_selection_modified_async()
 
-        Called after the selection has been modified in the view. Runs in a separate thread, and does not block the application.
+        Called after the selection has been modified in the view. Runs in a
+        separate thread, and does not block the application.
 
     .. method:: on_activated()
 
@@ -2144,7 +2150,8 @@ class ViewEventListener:
 
     .. method:: on_activated_async()
 
-        Called when the view gains input focus. Runs in a separate thread, and does not block the application.
+        Called when the view gains input focus. Runs in a separate thread, and
+        does not block the application.
 
     .. method:: on_deactivated()
 
@@ -2152,7 +2159,8 @@ class ViewEventListener:
 
     .. method:: on_deactivated_async()
 
-        Called when the view loses input focus. Runs in a separate thread, and does not block the application.
+        Called when the view loses input focus. Runs in a separate thread, and
+        does not block the application.
 
     .. method:: on_hover(point: Point, hover_zone: HoverZone)
 
@@ -2185,7 +2193,8 @@ class ViewEventListener:
                   and it either does or doesn't match. If the context is unknown
                   return ``None``.
 
-    .. method:: on_query_completions(prefix: str, locations: List[Point]) -> Union[None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
+    .. method:: on_query_completions(prefix: str, locations: List[Point]) -> Union[\
+            None, List[CompletionValue], Tuple[List[CompletionValue], AutoCompleteFlags], CompletionList]
 
         Called whenever completions are to be presented to the user.
 
@@ -2199,7 +2208,9 @@ class ViewEventListener:
 
     .. method:: on_text_command(command_name: str, args: CommandArgs) -> Tuple[str, CommandArgs]
 
-        Called when a text command is issued. The listener may return a ``(command, arguments)`` tuple to rewrite the command, or ``None`` to run the command unmodified.
+        Called when a text command is issued. The listener may return a
+        `` (command, arguments)`` tuple to rewrite the command, or ``None`` to
+        run the command unmodified.
 
         .. since:: 3155
 

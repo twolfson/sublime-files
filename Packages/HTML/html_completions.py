@@ -132,7 +132,7 @@ def get_tag_completions(inside_tag=True):
         ('script', 'script${2: type=\"${1:text/javascript}\"}>$0</script>'),
         ('slot', 'slot name=\"$1\">$0</slot>'),
         ('source', 'source src=\"$1\" type=\"$2\">'),
-        ('style', 'style type=\"${1:text/css}\">$0</style>'),
+        ('style', 'style${2: type=\"${1:text/css}\"}>$0</style>'),
         ('track', 'track kind=\"$1\" src=\"$2\">'),
         ('wbr', 'wbr>'),
         ('video', 'video src=\"$1\">$0</video>')
@@ -382,7 +382,7 @@ def get_tag_attributes():
     # Assume that global attributes are common to all HTML elements
     global_attributes = (
         'accesskey', 'class', 'contenteditable', 'contextmenu', 'dir',
-        'hidden', 'id', 'lang', 'style', 'tabindex', 'title', 'translate'
+        'hidden', 'id', 'lang', 'style', 'tabindex', 'title', 'translate',
 
         # event handler attributes
         'onabort', 'onautocomplete', 'onautocompleteerror', 'onauxclick', 'onblur',

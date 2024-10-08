@@ -1,6 +1,4 @@
 [
-	{ "caption": "Rename File", "command": "rename_file" },
-
 	{ "caption": "Arithmetic", "command": "arithmetic" },
 
 	{ "caption": "Wrap at Ruler", "command": "wrap_lines" },
@@ -19,7 +17,7 @@
 	{ "caption": "Toggle Comment", "command": "toggle_comment", "args": {"block": false} },
 	{ "caption": "Toggle Block Comment", "command": "toggle_comment", "args": {"block": true} },
 
-	{ "caption": "Bookmarks: Toggle", "command": "toggle_bookmark" },
+	{ "caption": "Bookmarks: Toggle", "command": "toggle_bookmark", "args": {"toggle_line": true } },
 	{ "caption": "Bookmarks: Select Next", "command": "next_bookmark" },
 	{ "caption": "Bookmarks: Select Previous", "command": "prev_bookmark" },
 	{ "caption": "Bookmarks: Clear All", "command": "clear_bookmarks" },
@@ -75,6 +73,14 @@
 			"default": "[\n\t$0\n]\n"
 		}
 	},
+	{
+		"caption": "Preferences: Mouse Bindings",
+		"command": "edit_settings", "args":
+		{
+			"base_file": "${packages}/Default/Default ($platform).sublime-mousemap",
+			"default": "[\n\t$0\n]\n"
+		}
+	},
 
 	{ "caption": "Install Package Control", "command": "install_package_control" },
 
@@ -85,9 +91,12 @@
 
 	{ "caption": "File: Save All", "command": "save_all" },
 	{ "caption": "File: Revert", "command": "revert" },
+	{ "caption": "File: Reopen File as Image", "command": "force_reopen_as", "args": {"type": "image"},  },
+	{ "caption": "File: Reopen File as Text", "command": "force_reopen_as", "args": {"type": "text"},  },
 	{ "caption": "File: New View into File", "command": "clone_file" },
-	{ "caption": "File: Split View", "command": "clone_file", "args": {"add_to_selection": true} },
+	{ "caption": "File: Split View", "command": "clone_file", "args": {"add_to_selection": true, "retain_viewport_position": true} },
 	{ "caption": "File: Close All", "command": "close_all" },
+	{ "caption": "File: Rename File", "command": "rename_file" },
 	{ "caption": "File: Print", "command": "html_print" },
 
 	{ "caption": "Sublime Merge: Open Repository", "command": "sublime_merge_open_repo" },
@@ -107,6 +116,7 @@
 	{ "caption": "Selection: Select All", "command": "select_all" },
 	{ "caption": "Selection: Expand", "command": "expand_selection", "args": {"to": "smart"} },
 	{ "caption": "Selection: Expand to Line", "command": "expand_selection", "args": {"to": "line"} },
+	{ "caption": "Selection: Expand to Line Upward", "command": "expand_selection", "args": {"to": "line_prev"} },
 	{ "caption": "Selection: Expand to Word", "command": "find_under_expand" },
 	{ "caption": "Selection: Expand to Block", "command": "expand_selection_to_paragraph" },
 	{ "caption": "Selection: Expand to Paragraph", "command": "expand_selection_to_paragraph", "args": {"markup_aware": true} },

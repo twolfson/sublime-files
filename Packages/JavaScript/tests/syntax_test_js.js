@@ -28,6 +28,12 @@
 //^^^ comment.block.js
 //   ^ - comment
 
+    /*
+     * comment
+//   ^ comment.block.js punctuation.definition.comment.js
+//    ^^^^^^^^^ comment.block.js - punctuation
+     */
+
     /**/ /***/
 // ^ - comment
 //  ^^^^ comment.block.empty.js punctuation.definition.comment.js
@@ -439,6 +445,7 @@ var obj = {
     ...bar(baz),
 //  ^^^ keyword.operator.spread
 //     ^^^^^^^^ meta.function-call
+//        ^^^^^ meta.function-call.arguments
 //     ^^^ variable.function
 //             ^ punctuation.separator.comma
 
@@ -738,8 +745,67 @@ class MyClass extends TheirClass {
 //   ^^^ variable.annotation
 //      ^^^^^^^^^^^^ meta.function - meta.annotation
 
-    ['foo']() {}
+    @foo
+//  ^^^^ meta.annotation
+//      ^ - meta.annotation
+    bar() {}
+//  ^^^^^^^^ meta.function
+
+    @foo
+//  ^^^^ meta.annotation
+//      ^ - meta.annotation
+    ['bar']() {}
 //  ^^^^^^^^^^^^ meta.function
+
+    @foo()
+//  ^^^^^^ meta.annotation
+//        ^ - meta.annotation
+    bar() {}
+
+    @(foo)
+//  ^^^^^^ meta.annotation
+//        ^ - meta.annotation
+    bar() {}
+
+    @foo // comment
+//  ^^^^ meta.annotation - comment
+//      ^ - comment - meta.annotation.js
+//       ^^^^^^^^^^^ comment.line - meta.annotation
+    bar() {}
+//^^ - meta.annotation
+//  ^^^^^^^^ meta.function - meta.annotation
+
+    @foo /* comment
+//  ^^^^ meta.annotation - comment
+//      ^ - comment - meta.annotation.js
+//       ^^^^^^^^^^^ comment.block.js - meta.annotation
+    */bar() {}
+//^^^^ comment.block.js - meta.annotation
+//    ^^^^^^^^ meta.function - meta.annotation
+
+    @foo /* block */ /* comment
+//  ^^^^ meta.annotation - comment
+//      ^ - comment - meta.annotation.js
+//       ^^^^^^^^^^^^^^^^^^^^^^^  - meta.annotation
+//       ^^^^^^^^^^^ comment.block.js
+//                   ^^^^^^^^^^^ comment.block.js
+    bar() {}
+//  ^^^^^^^^^ comment.block.js
+    */bar() {}
+//^^^^ comment.block.js - meta.annotation
+//    ^^^^^^^^ meta.function - meta.annotation
+
+    @foo /* block */ /* comment
+//  ^^^^^ meta.annotation.js - comment
+//       ^^^^^^^^^^^ meta.annotation.js comment.block.js
+//                  ^ meta.annotation.js - comment
+//                   ^^^^^^^^^^^ meta.annotation.js comment.block.js
+    bar() {}
+//  ^^^^^^^^^meta.annotation.js comment.block.js
+    */ . bar baz() {}
+//^^^^ meta.annotation.js comment.block.js
+//    ^^^^^^ meta.annotation.js - comment
+//           ^^^^^^^^ meta.function - meta.annotation
 
     static ['foo']() {}
 //         ^^^^^^^^^^^^ meta.function
@@ -969,10 +1035,12 @@ sources.DOM.status()
 sources.DOM
 // <- variable.other.readwrite
     .status()
-    // ^ meta.function-call.method variable.function
+    // ^ meta.function-call variable.function
+    //       ^ - meta.function-call
 
     foo.#bar();
-//  ^^^^^^^^^^ meta.function-call.method.js
+//      ^^^^^^ meta.function-call
+//          ^^ meta.function-call.arguments
 //      ^^^^ variable.function.js
 //      ^ punctuation.definition.js
 //          ^^ meta.group.js
@@ -1024,7 +1092,7 @@ baz(foo(x => x('bar')));
 //                   ^ meta.function-call meta.function-call punctuation.section.group.end
 //                    ^ meta.function-call punctuation.section.group.end
 
-func(a, b);
+func(a, b) ;
 //^^^^^^^^ meta.function-call
 // ^ variable.function
 //  ^^^^^^ meta.group
@@ -1033,6 +1101,7 @@ func(a, b);
 //    ^ punctuation.separator.comma
 //      ^ variable.other.readwrite
 //       ^ punctuation.section.group.end
+//        ^ - meta.function-call
 
 var instance = new Constructor(param1, param2)
 //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.function-call.constructor
@@ -1147,7 +1216,7 @@ foo.bar().baz
 width/2 + lineStart * Math.sin(i * 30 * π/180)
 //   ^ keyword.operator.arithmetic
 //                  ^ keyword.operator.arithmetic
-//                         ^^^^^^^^^^^^^^^^^^^ meta.function-call.method
+//                         ^^^^^^^^^^^^^^^^^^^ meta.function-call
 
 var reg = /a+/gimy.exec('aabb')
 //        ^^^^^^^^ meta.string string.regexp
@@ -1639,14 +1708,14 @@ debugger
 //   ^^ punctuation.accessor
 //     ^ punctuation.section.brackets.begin
 
-    a?.();
-//  ^^^^^ meta.function-call
+    a ?. ();
+//  ^^^^^^^ meta.function-call
 //  ^ variable.function
-//   ^^^^ meta.group
-//   ^^ punctuation.accessor
-//     ^ punctuation.section.group.begin
+//    ^^ punctuation.accessor - meta.function-call.arguments
+//       ^^ meta.function-call.arguments meta.group
+//       ^ punctuation.section.group.begin
 
     a.b?.();
-//  ^^^^^^^ meta.function-call.method
+//    ^^^^^ meta.function-call
 //    ^ variable.function
 //

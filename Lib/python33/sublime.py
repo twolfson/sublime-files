@@ -43,8 +43,11 @@ REPLACE_MRU = 64
 CLEAR_TO_RIGHT = 128
 FORCE_CLONE = 256
 
-IGNORECASE = 2
 LITERAL = 1
+IGNORECASE = 2
+WHOLEWORD = 4
+REVERSE = 8
+WRAP = 16
 
 MONOSPACE_FONT = 1
 KEEP_OPEN_ON_FOCUS_LOST = 2
@@ -253,9 +256,11 @@ def open_dialog(callback, file_types=[], directory=None, multi_select=False, all
     if allow_folders:
         flags |= 2
 
-    cb = callback
     if not multi_select:
-        cb = lambda files: callback(files[0] if files else None)
+        def cb(files):
+            return callback(files[0] if files else None)
+    else:
+        cb = callback
 
     sublime_api.open_dialog(file_types, directory or '', flags, cb)
 
@@ -285,11 +290,26 @@ def select_folder_dialog(callback, directory=None, multi_select=False):
     multi_select: bool - Whether to allow selecting multiple folders. Function
                          will call callback with a list if this is True.
     """
-    cb = callback
     if not multi_select:
-        cb = lambda folders: callback(folders[0] if folders else None)
+        def cb(folders):
+            return callback(folders[0] if folders else None)
+    else:
+        cb = callback
 
     sublime_api.select_folder_dialog(directory or '', multi_select, cb)
+
+
+def choose_font_dialog(callback, default=None):
+    font_face = ''
+    font_size = None
+    if default is not None:
+        font_face = default.get("font_face") or ""
+        try:
+            font_size = int(default.get("font_size"))
+        except ValueError:
+            font_size = None
+
+    sublime_api.choose_font_dialog(callback, font_face, font_size)
 
 
 def run_command(cmd, args=None):
@@ -448,8 +468,8 @@ def find_resources(pattern):
     return sublime_api.find_resources(pattern)
 
 
-def encode_value(val, pretty=False):
-    return sublime_api.encode_value(val, pretty)
+def encode_value(val, pretty=False, update_text=None):
+    return sublime_api.encode_value(val, pretty, update_text)
 
 
 def decode_value(data):
@@ -501,6 +521,14 @@ def windows():
 
 def get_macro():
     return sublime_api.get_macro()
+
+
+def project_history():
+    return sublime_api.project_history()
+
+
+def folder_history():
+    return sublime_api.folder_history()
 
 
 class Window():
@@ -581,7 +609,7 @@ class Window():
         else:
             return View(view_id)
 
-    def open_file_history(self):
+    def file_history(self):
         return sublime_api.window_file_history(self.window_id)
 
     def num_groups(self):
@@ -687,6 +715,12 @@ class Window():
         view_ids = sublime_api.window_views_in_group(self.window_id, group)
         return [View(x) for x in view_ids]
 
+    def num_sheets_in_group(self, group):
+        return sublime_api.window_num_sheets_in_group(self.window_id, group)
+
+    def num_views_in_group(self, group):
+        return sublime_api.window_num_views_in_group(self.window_id, group)
+
     def transient_sheet_in_group(self, group):
         sheet_id = sublime_api.window_transient_sheet_in_group(self.window_id, group)
         if sheet_id != 0:
@@ -788,32 +822,32 @@ class Window():
     def is_sidebar_visible(self):
         return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR)
 
-    def set_sidebar_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR, flag)
+    def set_sidebar_visible(self, flag, animate=True):
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_SIDE_BAR, flag, animate)
 
     def is_minimap_visible(self):
         return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP)
 
     def set_minimap_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MINIMAP, flag, False)
 
     def is_status_bar_visible(self):
         return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR)
 
     def set_status_bar_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_STATUS_BAR, flag, False)
 
     def get_tabs_visible(self):
         return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_TABS)
 
     def set_tabs_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_TABS, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_TABS, flag, False)
 
     def is_menu_visible(self):
         return sublime_api.window_is_ui_element_visible(self.window_id, UI_ELEMENT_MENU)
 
     def set_menu_visible(self, flag):
-        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MENU, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UI_ELEMENT_MENU, flag, False)
 
     def folders(self):
         return sublime_api.window_folders(self.window_id)
@@ -1507,6 +1541,16 @@ class View():
     def text_point_utf16(self, row, col_utf16, *, clamp_column=False):
         return sublime_api.view_text_point_utf16(self.view_id, row, col_utf16, clamp_column)
 
+    def utf8_code_units(self, tp=None):
+        if tp is not None:
+            return sublime_api.view_code_units_at(self.view_id, tp)[0]
+        return sublime_api.view_total_code_units(self.view_id)[0]
+
+    def utf16_code_units(self, tp=None):
+        if tp is not None:
+            return sublime_api.view_code_units_at(self.view_id, tp)[1]
+        return sublime_api.view_total_code_units(self.view_id)[1]
+
     def visible_region(self):
         """ Returns the approximate visible region """
         return sublime_api.view_visible_region(self.view_id)
@@ -1942,8 +1986,8 @@ class CompletionList:
             self.target = target
 
     def set_completions(self, completions, flags=0):
-        assert(self.completions is None)
-        assert(flags is not None)
+        assert self.completions is None
+        assert flags is not None
 
         self.completions = completions
         self.flags = flags

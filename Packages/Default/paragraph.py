@@ -52,7 +52,7 @@ def expand_to_paragraph(view, tp):
     (line_comments, block_comments) = Default.comment.build_comment_data(view, tp)
     dataStart = Default.comment.advance_to_first_non_white_space_on_line(view, sr.begin())
     for c in line_comments:
-        (start, disable_indent) = c
+        (start, disable_indent, *_) = c
         comment_region = sublime.Region(dataStart, dataStart + len(start))
         if view.substr(comment_region) == start:
             required_prefix = view.substr(sublime.Region(sr.begin(), comment_region.end()))

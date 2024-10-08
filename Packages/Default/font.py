@@ -2,6 +2,18 @@ import sublime
 import sublime_plugin
 
 
+class ChooseFontCommand(sublime_plugin.ApplicationCommand):
+    def run(self):
+        s = sublime.load_settings("Preferences.sublime-settings")
+        sublime.choose_font_dialog(self.on_choose, s)
+
+    def on_choose(self, font):
+        if font:
+            s = sublime.load_settings("Preferences.sublime-settings")
+            s.update(font)
+            sublime.save_settings("Preferences.sublime-settings")
+
+
 class IncreaseFontSizeCommand(sublime_plugin.ApplicationCommand):
     def run(self):
         s = sublime.load_settings("Preferences.sublime-settings")

@@ -3,11 +3,32 @@
 		"button": "button1",
 		"press_command": "scroll_step",
 		"press_args": { "follow_mouse": true, "delay": 500, "interval": 50 },
+		"context": [
+			{ "key": "scroll_by_pages", "operand": true }
+		]
 	},
 	{
 		"button": "button1", "modifiers": ["alt"],
 		"press_command": "scroll_drag",
 		"press_args": { "scale": 0.3 },
+		"context": [
+			{ "key": "scroll_by_pages", "operand": true }
+		]
+	},
+	{
+		"button": "button1",
+		"press_command": "scroll_drag",
+		"context": [
+			{ "key": "scroll_by_pages", "operand": false }
+		]
+	},
+	{
+		"button": "button1", "modifiers": ["alt"],
+		"press_command": "scroll_step",
+		"press_args": { "follow_mouse": true, "delay": 500, "interval": 50 },
+		"context": [
+			{ "key": "scroll_by_pages", "operand": false }
+		]
 	},
 	{
 		"button": "button2",

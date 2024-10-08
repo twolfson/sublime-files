@@ -15,7 +15,7 @@
 				"mnemonic": "R",
 				"children":
 				[
-					{ "command": "reopen_last_file", "caption": "Reopen Closed File" },
+					{ "command": "reopen_last_file", "args": {"source": "window"}, "caption": "Reopen Closed File" },
 					{ "caption": "-" },
 					{ "command": "open_recent_file", "args": {"index": 0 } },
 					{ "command": "open_recent_file", "args": {"index": 1 } },
@@ -91,7 +91,9 @@
 					{ "caption": "Hexadecimal", "command": "reopen", "args": { "encoding": "Hexadecimal" } }
 				]
 			},
-			{ "command": "clone_file", "args": {"add_to_selection": true}, "caption": "Split View", "mnemonic": "e" },
+			{ "command": "force_reopen_as", "args": {"type": "image"}, "caption": "Reopen File as Image" },
+			{ "command": "force_reopen_as", "args": {"type": "text"}, "caption": "Reopen File as Text" },
+			{ "command": "clone_file", "args": {"add_to_selection": true, "retain_viewport_position": true}, "caption": "Split View", "mnemonic": "e" },
 			{ "command": "save", "args": {"async": true}, "caption": "Save", "mnemonic": "S" },
 			{
 				"caption": "Save with Encoding",
@@ -258,15 +260,15 @@
 					{ "command": "unfold" },
 					{ "command": "unfold_all", "caption": "Unfold All" },
 					{ "caption": "-" },
-					{ "caption": "Fold All", "command": "fold_by_level", "args": {"level": 1} },
-					{ "caption": "Fold Level 2", "command": "fold_by_level", "args": {"level": 2} },
-					{ "caption": "Fold Level 3", "command": "fold_by_level", "args": {"level": 3} },
-					{ "caption": "Fold Level 4", "command": "fold_by_level", "args": {"level": 4} },
-					{ "caption": "Fold Level 5", "command": "fold_by_level", "args": {"level": 5} },
-					{ "caption": "Fold Level 6", "command": "fold_by_level", "args": {"level": 6} },
-					{ "caption": "Fold Level 7", "command": "fold_by_level", "args": {"level": 7} },
-					{ "caption": "Fold Level 8", "command": "fold_by_level", "args": {"level": 8} },
-					{ "caption": "Fold Level 9", "command": "fold_by_level", "args": {"level": 9} },
+					{ "caption": "Fold All", "command": "fold_by_level", "mnemonic": "A", "args": {"level": 1} },
+					{ "caption": "Fold Level 2", "command": "fold_by_level", "mnemonic": "2", "args": {"level": 2} },
+					{ "caption": "Fold Level 3", "command": "fold_by_level", "mnemonic": "3", "args": {"level": 3} },
+					{ "caption": "Fold Level 4", "command": "fold_by_level", "mnemonic": "4", "args": {"level": 4} },
+					{ "caption": "Fold Level 5", "command": "fold_by_level", "mnemonic": "5", "args": {"level": 5} },
+					{ "caption": "Fold Level 6", "command": "fold_by_level", "mnemonic": "6", "args": {"level": 6} },
+					{ "caption": "Fold Level 7", "command": "fold_by_level", "mnemonic": "7", "args": {"level": 7} },
+					{ "caption": "Fold Level 8", "command": "fold_by_level", "mnemonic": "8", "args": {"level": 8} },
+					{ "caption": "Fold Level 9", "command": "fold_by_level", "mnemonic": "9", "args": {"level": 9} },
 					{ "caption": "-" },
 					{ "command": "fold_tag_attributes", "caption": "Fold Tag Attributes" }
 				]
@@ -340,6 +342,7 @@
 			{ "command": "select_all" },
 			{ "command": "expand_selection", "args": {"to": "smart"}, "caption": "Expand Selection" },
 			{ "command": "expand_selection", "args": {"to": "line"}, "caption": "Expand Selection to Line" },
+			{ "command": "expand_selection", "args": {"to": "line_prev"}, "caption": "Expand Selection to Line Upward" },
 			{ "command": "find_under_expand", "caption": "Expand Selection to Word" },
 			{ "command": "expand_selection_to_paragraph", "caption": "Expand Selection to Block" },
 			{ "command": "expand_selection_to_paragraph", "args": {"markup_aware": true}, "caption": "Expand Selection to Paragraph" },
@@ -364,15 +367,15 @@
 					{ "command": "focus_to_left", "caption": "Focus to Left" },
 					{ "command": "focus_to_right", "caption": "Focus to Right" },
 					{ "caption": "-" },
-					{ "command": "focus_by_index", "args": {"index": 0}, "caption": "Focus Selected Tab 1" },
-					{ "command": "focus_by_index", "args": {"index": 1}, "caption": "Focus Selected Tab 2" },
-					{ "command": "focus_by_index", "args": {"index": 2}, "caption": "Focus Selected Tab 3" },
-					{ "command": "focus_by_index", "args": {"index": 3}, "caption": "Focus Selected Tab 4" },
-					{ "command": "focus_by_index", "args": {"index": 4}, "caption": "Focus Selected Tab 5" },
-					{ "command": "focus_by_index", "args": {"index": 5}, "caption": "Focus Selected Tab 6" },
-					{ "command": "focus_by_index", "args": {"index": 6}, "caption": "Focus Selected Tab 7" },
-					{ "command": "focus_by_index", "args": {"index": 7}, "caption": "Focus Selected Tab 8" },
-					{ "command": "focus_by_index", "args": {"index": 8}, "caption": "Focus Selected Tab 9" },
+					{ "command": "focus_by_index", "args": {"index": 0}, "caption": "Focus Selected Tab 1", "mnemonic": "1" },
+					{ "command": "focus_by_index", "args": {"index": 1}, "caption": "Focus Selected Tab 2", "mnemonic": "2" },
+					{ "command": "focus_by_index", "args": {"index": 2}, "caption": "Focus Selected Tab 3", "mnemonic": "3" },
+					{ "command": "focus_by_index", "args": {"index": 3}, "caption": "Focus Selected Tab 4", "mnemonic": "4" },
+					{ "command": "focus_by_index", "args": {"index": 4}, "caption": "Focus Selected Tab 5", "mnemonic": "5" },
+					{ "command": "focus_by_index", "args": {"index": 5}, "caption": "Focus Selected Tab 6", "mnemonic": "6" },
+					{ "command": "focus_by_index", "args": {"index": 6}, "caption": "Focus Selected Tab 7", "mnemonic": "7" },
+					{ "command": "focus_by_index", "args": {"index": 7}, "caption": "Focus Selected Tab 8", "mnemonic": "8" },
+					{ "command": "focus_by_index", "args": {"index": 8}, "caption": "Focus Selected Tab 9", "mnemonic": "9" },
 					{ "command": "focus_by_index", "args": {"index": 9}, "caption": "Focus Selected Tab 10" },
 				]
 			},
@@ -406,7 +409,7 @@
 				"mnemonic": "R",
 				"children":
 				[
-					{ "command": "show_panel", "args": {"panel": "output.find_results"}, "caption": "Show Results Panel" },
+					{ "command": "show_panel", "args": {"panel": "output.find_results", "panel_name" : "Results Panel", "toggle" : true, "toggle_when_not_focused": true} },
 					{ "command": "next_result" },
 					{ "command": "prev_result", "caption": "Previous Result" }
 				]
@@ -535,31 +538,36 @@
 						"caption": "Max Columns: 1",
 						"command": "set_max_columns",
 						"checkbox": true,
-						"args": { "columns": 1 }
+						"args": { "columns": 1 },
+						"mnemonic": "1",
 					},
 					{
 						"caption": "Max Columns: 2",
 						"command": "set_max_columns",
 						"checkbox": true,
-						"args": { "columns": 2 }
+						"args": { "columns": 2 },
+						"mnemonic": "2",
 					},
 					{
 						"caption": "Max Columns: 3",
 						"command": "set_max_columns",
 						"checkbox": true,
-						"args": { "columns": 3 }
+						"args": { "columns": 3 },
+						"mnemonic": "3",
 					},
 					{
 						"caption": "Max Columns: 4",
 						"command": "set_max_columns",
 						"checkbox": true,
-						"args": { "columns": 4 }
+						"args": { "columns": 4 },
+						"mnemonic": "4",
 					},
 					{
 						"caption": "Max Columns: 5",
 						"command": "set_max_columns",
 						"checkbox": true,
-						"args": { "columns": 5 }
+						"args": { "columns": 5 },
+						"mnemonic": "5",
 					},
 				]
 			},
@@ -572,10 +580,10 @@
 					{ "command": "focus_neighboring_group", "caption": "Next" },
 					{ "command": "focus_neighboring_group", "args": {"forward": false}, "caption": "Previous" },
 					{ "caption": "-" },
-					{ "command": "focus_group", "args": {"group": 0}, "caption": "Group 1" },
-					{ "command": "focus_group", "args": {"group": 1}, "caption": "Group 2" },
-					{ "command": "focus_group", "args": {"group": 2}, "caption": "Group 3" },
-					{ "command": "focus_group", "args": {"group": 3}, "caption": "Group 4" }
+					{ "command": "focus_group", "args": {"group": 0}, "caption": "Group 1", "mnemonic": "1" },
+					{ "command": "focus_group", "args": {"group": 1}, "caption": "Group 2", "mnemonic": "2" },
+					{ "command": "focus_group", "args": {"group": 2}, "caption": "Group 3", "mnemonic": "3" },
+					{ "command": "focus_group", "args": {"group": 3}, "caption": "Group 4", "mnemonic": "4" }
 				]
 			},
 			{
@@ -586,10 +594,10 @@
 					{ "command": "move_to_neighboring_group", "caption": "Next" },
 					{ "command": "move_to_neighboring_group", "args": {"forward": false}, "caption": "Previous" },
 					{ "caption": "-" },
-					{ "command": "move_to_group", "args": {"group": 0}, "caption": "Group 1" },
-					{ "command": "move_to_group", "args": {"group": 1}, "caption": "Group 2" },
-					{ "command": "move_to_group", "args": {"group": 2}, "caption": "Group 3" },
-					{ "command": "move_to_group", "args": {"group": 3}, "caption": "Group 4" }
+					{ "command": "move_to_group", "args": {"group": 0}, "caption": "Group 1", "mnemonic": "1" },
+					{ "command": "move_to_group", "args": {"group": 1}, "caption": "Group 2", "mnemonic": "2" },
+					{ "command": "move_to_group", "args": {"group": 2}, "caption": "Group 3", "mnemonic": "3" },
+					{ "command": "move_to_group", "args": {"group": 3}, "caption": "Group 4", "mnemonic": "4" }
 				]
 			},
 			{ "caption": "-" },
@@ -607,14 +615,14 @@
 				[
 					{ "command": "toggle_setting", "args": {"setting": "translate_tabs_to_spaces"}, "caption": "Indent Using Spaces", "checkbox": true },
 					{ "caption": "-" },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 1}, "caption": "Tab Width: 1", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 2}, "caption": "Tab Width: 2", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 3}, "caption": "Tab Width: 3", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 4}, "caption": "Tab Width: 4", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 5}, "caption": "Tab Width: 5", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 6}, "caption": "Tab Width: 6", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 7}, "caption": "Tab Width: 7", "checkbox": true },
-					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 8}, "caption": "Tab Width: 8", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 1}, "caption": "Tab Width: 1", "mnemonic": "1", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 2}, "caption": "Tab Width: 2", "mnemonic": "2", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 3}, "caption": "Tab Width: 3", "mnemonic": "3", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 4}, "caption": "Tab Width: 4", "mnemonic": "4", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 5}, "caption": "Tab Width: 5", "mnemonic": "5", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 6}, "caption": "Tab Width: 6", "mnemonic": "6", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 7}, "caption": "Tab Width: 7", "mnemonic": "7", "checkbox": true },
+					{ "command": "set_setting", "args": {"setting": "tab_size", "value": 8}, "caption": "Tab Width: 8", "mnemonic": "8", "checkbox": true },
 					{ "caption": "-" },
 					{ "command": "detect_indentation", "caption": "Guess Settings From Buffer" },
 					{ "caption": "-" },
@@ -738,7 +746,7 @@
 				"id": "bookmarks",
 				"children":
 				[
-					{ "command": "toggle_bookmark" },
+					{ "command": "toggle_bookmark", "args": {"toggle_line": true } },
 					{ "command": "next_bookmark" },
 					{ "command": "prev_bookmark" },
 					{ "command": "clear_bookmarks" },
@@ -916,6 +924,14 @@
 				},
 				"caption": "Key Bindings"
 			},
+			{
+				"command": "edit_settings", "args":
+				{
+					"base_file": "${packages}/Default/Default ($platform).sublime-mousemap",
+					"default": "[\n\t$0\n]\n"
+				},
+				"caption": "Mouse Bindings"
+			},
 			{ "caption": "-" },
 			{
 				"caption": "Select Color Scheme…",
@@ -939,10 +955,11 @@
 				"caption": "Font",
 				"children":
 				[
+					{ "command": "choose_font", "caption": "Choose…" },
 					{ "command": "increase_font_size", "caption": "Larger" },
 					{ "command": "decrease_font_size", "caption": "Smaller" },
 					{ "caption": "-" },
-					{ "command": "reset_font_size", "caption": "Reset" }
+					{ "command": "reset_font_size", "caption": "Reset Size" }
 				]
 			},
 		]
@@ -966,6 +983,7 @@
 			{ "caption": "-" },
 			{ "command": "update_check", "caption": "Check for Updates…" },
 			{ "command": "show_changelog", "caption": "Changelog…" },
+			{ "command": "show_attribution", "caption": "Licenses and Attribution…" },
 			{ "command": "show_about_window", "caption": "About Sublime Text", "mnemonic": "A" }
 		]
 	}

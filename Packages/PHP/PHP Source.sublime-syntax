@@ -15,18 +15,18 @@ variables:
   sql_indicator: |-
     (?x: \s* (?:
     # dml statements
-      SELECT | INSERT | REPLACE | DELETE | TRUNCATE | UPDATE
+      SELECT | INSERT | REPLACE | DELETE | TRUNCATE | UPDATE | MERGE\s+INTO
     # ddl statements
     | ADD | ALTER | CREATE | DROP
     # conditional
     | IF \s+ (?: NOT \s+ )? EXISTS
     # declaration
-    | DECLARE | WITH
+    | DECLARE | WITH | BEGIN
     ) \s )
 
   # A pattern which terminates an incomplete expression at any point.
   # `\?>` is for fixing one-liner ( https://github.com/sublimehq/Packages/issues/1545 )
-  expression_end: (?=[;{}]|\?>|{{keywords}})
+  expression_end: (?=[;{}]|\?>|:(?!:)|{{keywords}})
 
   heredoc_quoted_end: (?=^\s*\4\b)
   heredoc_unquoted_end: (?=^\s*\2\b)
@@ -53,6 +53,7 @@ variables:
     | {{builtin_variables}}
     | function\b
     | as\b
+    | yield\b
     )
 
   keywords: |-
@@ -71,7 +72,7 @@ variables:
     (?xi: case | catch | default | do | (?: end )? (?: for(?:each)? | if | switch | while )
     | else | elseif | finally | switch | try )\b
   flow_keywords: |-
-    (?xi: break | continue | die | exit | finally | goto | return | throw | yield )\b
+    (?xi: break | continue | die | exit | finally | goto | return | throw )\b
 
   # Expression Level Keywords
   builtin_functions: |-
@@ -133,9 +134,9 @@ variables:
     | MongoGridFSFile | MongoGridfsFile | MongoId | MongoInt32 | MongoInt64 | MongoRegex
     | MongoTimestamp | MultipleIterator | NoRewindIterator | Normalizer | NumberFormatter
     | OCI-Collection | OCI-Lob | OutOfBoundsException | OutOfRangeException | OuterIterator
-    | OverflowException | PDO | PDOStatement | ParentIterator | ParseError | Phar | PharData
-    | PharFileInfo  | PhpCompilerAttribute | PhpToken | RRDCreator | RRDGraph | RRDUpdater
-    | RangeException | RecursiveArrayIterator | RecursiveCachingIterator
+    | OverflowException | Override | PDO | PDOStatement | ParentIterator | ParseError | Phar
+    | PharData | PharFileInfo  | PhpCompilerAttribute | PhpToken | RRDCreator | RRDGraph
+    | RRDUpdater | RangeException | RecursiveArrayIterator | RecursiveCachingIterator
     | RecursiveDirectoryIterator | RecursiveFilterIterator | RecursiveIterator
     | RecursiveIteratorIterator | RecursiveRegexIterator | RecursiveTreeIterator | Reflection
     | ReflectionClass | ReflectionEnum | ReflectionEnumBackedCase | ReflectionEnumUnitCase
@@ -623,8 +624,6 @@ contexts:
     - match: \*/
       scope: punctuation.definition.comment.end.php
       pop: 1
-    - match: (?=\?>)
-      pop: 1
 
   phpdoc-block-tag:
     - meta_include_prototype: false
@@ -922,12 +921,44 @@ contexts:
   constant-declarations:
     - match: (?i:const)\b
       scope: keyword.declaration.constant.php
-      push: constant-declaration-name
+      push: constant-declaration-body
+
+  constant-declaration-body:
+    - include: attributes
+    - include: comments
+    - match: (?=\S)
+      branch_point: constant-declaration
+      branch:
+        - untyped-constant-declaration
+        - typed-constant-declaration
+      pop: 1
+
+  untyped-constant-declaration:
+    - match: '{{guarded_identifier}}'
+      scope: entity.name.constant.php
+      set: untyped-constant-declaration-check
+    - match: (?=\S)
+      fail: constant-declaration
+
+  untyped-constant-declaration-check:
+    - include: comments
+    - match: (?=[=;}]|{{access_modifier}}|{{property_modifier}}|{{static_modifier}})
+      pop: 1
+    - match: (?=\S)
+      fail: constant-declaration
+
+  typed-constant-declaration:
+    - meta_include_prototype: false
+    - match: ''
+      set:
+        - constant-declaration-name
+        - type-hint-body
+        - type-hint-simple-type
 
   constant-declaration-name:
     - match: '{{guarded_identifier}}'
       scope: entity.name.constant.php
-      set: nested-expressions
+      pop: 1
     - include: attributes
     - include: comments
     - include: else-pop
@@ -1279,21 +1310,10 @@ contexts:
       scope: keyword.control.flow.return.php
     - match: (?i:throw)\b
       scope: keyword.control.flow.throw.php
-    # yield from ( http://php.net/manual/en/language.generators.syntax.php#control-structures.yield.from )
-    - match: (?i:yield)\b
-      scope: keyword.control.flow.yield.php
-      push: yield-from
 
   goto-label:
     - match: '{{guarded_identifier}}'
       scope: variable.label.php
-    - include: comments
-    - include: else-pop
-
-  yield-from:
-    - match: (?i:from)\b
-      scope: keyword.control.flow.yield.php
-      pop: 1
     - include: comments
     - include: else-pop
 
@@ -1606,7 +1626,7 @@ contexts:
         - function-call-identifier
         - unqualified-function-name
     # Function invocation with function name as variable
-    - match: ((\$+){{identifier}})\s*(?=\()
+    - match: ((\$+){{identifier}})\s*(?=(?:\[.*?\]\s*)?\()
       scope: meta.function-call.identifier.php
       captures:
         1: variable.other.php
@@ -1614,6 +1634,7 @@ contexts:
       push:
         - maybe-item-access
         - function-call-arguments
+        - maybe-item-access
 
   qualified-path-meta:
     - meta_include_prototype: false
@@ -1645,6 +1666,7 @@ contexts:
 
   function-call-arguments:
     - meta_include_prototype: false
+    - meta_content_scope: meta.function-call.identifier.php
     - match: (\()\s*(\.\.\.)\s*(\))
       scope: meta.function-call.arguments.php meta.group.php
       captures:
@@ -1738,6 +1760,9 @@ contexts:
   instantiation-body:
     - include: attributes
     - include: comments
+    # such as "readonly" anonymous class
+    - match: '{{storage_modifiers}}'
+      scope: storage.modifier.php
     # anonymous class ( http://php.net/manual/en/language.oop5.anonymous.php )
     - match: (?i:class)\b
       scope: meta.class.php keyword.declaration.class.php
@@ -2082,8 +2107,10 @@ contexts:
 ###[ CONSTANTS ]##############################################################
 
   constants:
-    - match: (?i:true|false)\b
-      scope: constant.language.boolean.php
+    - match: (?i:false)\b
+      scope: constant.language.boolean.false.php
+    - match: (?i:true)\b
+      scope: constant.language.boolean.true.php
     - match: (?i:null)\b
       scope: constant.language.null.php
     - match: (?i:__CLASS__|__DIR__|__FILE__|__FUNCTION__|__LINE__|__METHOD__|__NAMESPACE__)\b
@@ -2164,6 +2191,17 @@ contexts:
       scope: keyword.other.clone.php
     - match: (?i:insteadof)\b
       scope: keyword.other.insteadof.php
+    # yield from ( http://php.net/manual/en/language.generators.syntax.php#control-structures.yield.from )
+    - match: (?i:yield)\b
+      scope: keyword.control.flow.yield.php
+      push: yield-from
+
+  yield-from:
+    - match: (?i:from)\b
+      scope: keyword.control.flow.yield.php
+      pop: 1
+    - include: comments
+    - include: else-pop
 
   # Trailing underscores are allowed to prevent numbers from flickering while typing
   # The underscore is for PHP 7.4: https://wiki.php.net/rfc/numeric_literal_separator
@@ -2542,17 +2580,17 @@ contexts:
         2: meta.regex.modifier.php
         3: punctuation.definition.string.end.php
       pop: 1
-    - match: \"
+    - match: /|"
       fail: branch-point-double-quoted
     - match: ''
       push: scope:source.regexp.php
       with_prototype:
-        - match: (?=/{{regex_modifier}}"|")
+        - match: (?=/|")
           pop: 1
-        - match: \s((#)[^"]*$\n?)
+        - match: (#)[^/"]*
+          scope: comment.regexp.php
           captures:
-            1: comment.regexp.php
-            2: punctuation.definition.comment.regexp.php
+            1: punctuation.definition.comment.regexp.php
         - include: string-escapes
         - include: regexp-interpolations
 
@@ -2623,17 +2661,17 @@ contexts:
         2: meta.regex.modifier.php
         3: punctuation.definition.string.end.php
       pop: 1
-    - match: \'
+    - match: /|'
       fail: branch-point-single-quoted
     - match: ''
       push: scope:source.regexp.php
       with_prototype:
-        - match: (?=/{{regex_modifier}}'|')
+        - match: (?=/|')
           pop: 1
-        - match: \s((#)[^']*$\n?)
+        - match: (#)[^/']*
+          scope: comment.regexp.php
           captures:
-            1: comment.regexp.php
-            2: punctuation.definition.comment.regexp.php
+            1: punctuation.definition.comment.regexp.php
         - match: \\'
           scope: constant.character.escape.php
 
@@ -2647,7 +2685,7 @@ contexts:
     - meta_scope: meta.string.php
     - meta_content_scope: string.quoted.single.php
     - include: string-single-quoted-end
-    - include: string-placeholders
+    - include: string-single-quoted-placeholders
     - match: \\[\\'']
       scope: constant.character.escape.php
 
@@ -2689,6 +2727,7 @@ contexts:
 
   string-placeholders:
     # https://www.php.net/manual/en/function.printf.php
+    # https://www.php.net/manual/en/function.strftime
     - match: '%%'
       scope: constant.character.escape.php
     # %[argnum$][flags][width][.precision]specifier
@@ -2699,7 +2738,26 @@ contexts:
         [-+]? (?: [ 0] | '. )?      # flags
         \d*                         # width
         (?: (\.) \d* )?             # precision
-        [bcdeEfFgGhHosuxX]          # specifier
+        [ABCDEFGHIMPRSTUVWXYZabcdefghjklmnoprstuwxyz] # specifier
+      scope: constant.other.placeholder.php
+      captures:
+        1: punctuation.definition.placeholder.php
+        2: punctuation.separator.decimal.php
+
+  string-single-quoted-placeholders:
+    # https://www.php.net/manual/en/function.printf.php
+    # https://www.php.net/manual/en/function.strftime
+    - match: '%%'
+      scope: constant.character.escape.php
+    # %[argnum$][flags][width][.precision]specifier
+    - match: |-
+        (?x)
+        (%)                         # punctuation
+        (?: \d+\$ )?                # argnum
+        [-+]? (?: [ 0] | \\'. )?    # flags
+        \d*                         # width
+        (?: (\.) \d* )?             # precision
+        [ABCDEFGHIMPRSTUVWXYZabcdefghjklmnoprstuwxyz] # specifier
       scope: constant.other.placeholder.php
       captures:
         1: punctuation.definition.placeholder.php
@@ -2923,14 +2981,13 @@ contexts:
         (?xi:
           array | array_change_key_case | array_chunk | array_column | array_combine | array_count_values | array_diff | array_diff_assoc |
           array_diff_key | array_diff_uassoc | array_diff_ukey | array_fill | array_fill_keys | array_filter | array_flip | array_intersect |
-          array_intersect_assoc | array_intersect_key | array_intersect_uassoc | array_intersect_ukey | array_key_exists | array_keys | array_map | array_merge |
-          array_merge_recursive | array_multisort | array_pad | array_pop | array_product | array_push | array_rand | array_reduce |
-          array_replace | array_replace_recursive | array_reverse | array_search | array_shift | array_slice | array_splice | array_sum |
-          array_udiff | array_udiff_assoc | array_udiff_uassoc | array_uintersect | array_uintersect_assoc | array_uintersect_uassoc | array_unique | array_unshift |
-          array_values | array_walk | array_walk_recursive | arsort | asort | compact | count | current |
-          each | end | extract | in_array | key | krsort | ksort | list |
-          natcasesort | natsort | next | pos | prev | range | reset | rsort |
-          shuffle | sizeof | sort | uasort | uksort | usort
+          array_intersect_assoc | array_intersect_key | array_intersect_uassoc | array_intersect_ukey | array_is_list | array_key_exists |
+          array_key_first | array_key_last | array_keys | array_map | array_merge | array_merge_recursive | array_multisort | array_pad |
+          array_pop | array_product | array_push | array_rand | array_reduce | array_replace | array_replace_recursive | array_reverse |
+          array_search | array_shift | array_slice | array_splice | array_sum | array_udiff | array_udiff_assoc | array_udiff_uassoc |
+          array_uintersect | array_uintersect_assoc | array_uintersect_uassoc | array_unique | array_unshift | array_values | array_walk |
+          array_walk_recursive | arsort | asort | compact | count | current | each | end | extract | in_array | key | krsort | ksort | list |
+          natcasesort | natsort | next | pos | prev | range | reset | rsort | shuffle | sizeof | sort | uasort | uksort | usort
         )\b
       scope: support.function.array.php
     - match: |-
@@ -3158,13 +3215,15 @@ contexts:
       scope: support.function.image.php
     - match: |-
         (?xi:
-          assert | assert_options | dl | extension_loaded | gc_collect_cycles | gc_disable | gc_enable | gc_enabled |
-          get_cfg_var | get_current_user | get_defined_constants | get_extension_funcs | get_include_path | get_included_files | get_loaded_extensions | get_magic_quotes_gpc |
-          get_magic_quotes_runtime | get_required_files | getenv | getlastmod | getmygid | getmyinode | getmypid | getmyuid |
-          getopt | getrusage | ini_alter | ini_get | ini_get_all | ini_restore | ini_set | magic_quotes_runtime |
-          main | memory_get_peak_usage | memory_get_usage | php_ini_loaded_file | php_ini_scanned_files | php_logo_guid | php_sapi_name | php_uname |
-          phpcredits | phpinfo | phpversion | putenv | restore_include_path | set_include_path | set_magic_quotes_runtime | set_time_limit |
-          sys_get_temp_dir | version_compare | zend_logo_guid | zend_thread_id | zend_version
+          assert | assert_options | cli_get_process_title | cli_set_process_title | dl | extension_loaded |
+          gc_collect_cycles | gc_disable | gc_enable | gc_enabled | gc_mem_caches | gc_status | get_cfg_var |
+          get_current_user | get_defined_constants | get_extension_funcs | get_include_path | get_included_files |
+          get_loaded_extensions | get_magic_quotes_gpc | get_magic_quotes_runtime | get_required_files | getenv |
+          getlastmod | getmygid | getmyinode | getmypid | getmyuid | getopt | getrusage | ini_alter | ini_get |
+          ini_get_all | ini_restore | ini_set | magic_quotes_runtime | main | memory_get_peak_usage | memory_get_usage |
+          php_ini_loaded_file | php_ini_scanned_files | php_logo_guid | php_sapi_name | php_uname | phpcredits |
+          phpinfo | phpversion | putenv | restore_include_path | set_include_path | set_magic_quotes_runtime |
+          set_time_limit | sys_get_temp_dir | version_compare | zend_logo_guid | zend_thread_id | zend_version
         )\b
       scope: support.function.info.php
     - match: |-

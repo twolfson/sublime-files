@@ -1,5 +1,4 @@
 import codecs
-import string
 
 import sublime_plugin
 
@@ -36,7 +35,7 @@ class LowerCaseCommand(Transformer):
 class TitleCaseCommand(Transformer):
     @staticmethod
     def transformer(s):
-        return string.capwords(s, " ")
+        return s.title()
 
 
 class Rot13Command(Transformer):
@@ -75,31 +74,40 @@ def split_identifier(s):
         yield s[part_start:]
 
 
-def convert_case_function(option):
+def convert_case_function(option, preserve_abbreviations=True):
     return {
         'lower': str.lower,
         'upper': str.upper,
         # Title-case preserving abbreviations
-        'title': lambda s: s if s.isupper() else s.capitalize(),
+        'title': lambda s: s if s.isupper() and preserve_abbreviations else s.capitalize(),
     }.get(option, lambda s: s)
 
 
 class ConvertIdentCaseCommand(sublime_plugin.TextCommand):
     def run(self, edit, case, first_case=None, separator=''):
-        case = convert_case_function(case)
+        case_f1 = convert_case_function(case)
+        case_f2 = convert_case_function(case, False)
 
         if first_case is not None:
-            first_case = convert_case_function(first_case)
+            first_case_f1 = convert_case_function(first_case)
+            first_case_f2 = convert_case_function(first_case, False)
         else:
-            first_case = case
+            first_case_f1 = case_f1
+            first_case_f2 = case_f2
 
         view = self.view
-        for s in view.sel():
-            if s.empty():
-                s = view.word(s)
+        for sel in view.sel():
+            if sel.empty():
+                sel = view.word(sel)
 
-            txt = self._convert_case(view.substr(s), separator, case, first_case)
-            view.replace(edit, s, txt)
+            s = view.substr(sel).lstrip(' \t')
+            # Don't preserve abbreviations if whole string is upper-case
+            if s.isupper():
+                txt = self._convert_case(s, separator, case_f2, first_case_f2)
+            else:
+                txt = self._convert_case(s, separator, case_f1, first_case_f1)
+
+            view.replace(edit, sel, txt)
 
     def _convert_case(self, s, separator, case, first_case):
         return separator.join(

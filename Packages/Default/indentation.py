@@ -73,7 +73,7 @@ def pt_from_line_and_normed_pt(view, p):
             pos += 1
 
         i += 1
-        if pos == pt:
+        if pos >= pt:
             break
 
     return i
@@ -143,12 +143,8 @@ class TabCommand(sublime_plugin.TextCommand):
             self.operation_regions = view.sel()
 
         sels = save_selections(view)
-        visible, = save_selections(view, [view.visible_region()])
         self.do(edit, **kw)
         restore_selections(view, sels)
-        visible = region_from_stored_selection(view, visible)
-        view.show(visible, False)
-        view.run_command("scroll_lines", {"amount": 1.0})
 
     def is_enabled(self):
         return not self.view.settings().get('is_widget')

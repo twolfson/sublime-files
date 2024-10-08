@@ -70,7 +70,7 @@ create table IF NOT EXISTS `testing123` (
     `col` bool DEFAULT FALSE,
 --        ^^^^ storage.type.sql
 --             ^^^^^^^ storage.modifier.sql
---                     ^^^^^ constant.language.boolean.sql
+--                     ^^^^^ constant.language.boolean.false.sql
 --                          ^ punctuation.separator.sequence
     `fkey` INT UNSIGNED NULL REFERENCES test2(id),
 --                           ^^^^^^^^^^ storage.modifier.sql
@@ -180,7 +180,7 @@ select
 
 SELECT  *,
 -- ^^^ keyword.other.DML.sql
---      ^ variable.language.wildcard.asterisk.sql
+--      ^ constant.other.wildcard.asterisk.sql
         f.id AS database_id
 --           ^^ keyword.operator.assignment.alias.sql
 FROM    foo

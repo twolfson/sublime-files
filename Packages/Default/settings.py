@@ -105,7 +105,7 @@ class EditSettingsCommand(sublime_plugin.ApplicationCommand):
             new_window.run_command('open_file', {'file': user_file, 'contents': default})
 
             new_window.set_tabs_visible(True)
-            new_window.set_sidebar_visible(False)
+            new_window.set_sidebar_visible(False, animate=False)
 
             base_view = new_window.active_view_in_group(0)
             user_view = new_window.active_view_in_group(1)
@@ -207,7 +207,7 @@ class EditSettingsListener(sublime_plugin.ViewEventListener):
             # this is not delayed, the close_window command will be run on any
             # other window that is open.
             def close_window():
-                if window.id() == sublime.active_window().id():
+                if window.id() == sublime.active_window().id() and window.project_data() is None:
                     window.run_command("close_window")
             sublime.set_timeout(close_window, 50)
         else:
