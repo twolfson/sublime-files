@@ -8,7 +8,7 @@ from sublime import KindId, CompletionItem
 DIP: TypeAlias = 'float'
 Vector: TypeAlias = 'Tuple[DIP, DIP]'
 Point: TypeAlias = 'int'
-Value: TypeAlias = 'Union[bool, str, int, float, List[Any], Dict[str, Any]]'
+Value: TypeAlias = 'Union[bool, str, int, float, List[Any], Dict[str, Any], None]'
 CommandArgs: TypeAlias = 'Optional[Dict[str, Value]]'
 Kind: TypeAlias = 'Tuple[KindId, str, str]'
 Event: TypeAlias = 'dict'

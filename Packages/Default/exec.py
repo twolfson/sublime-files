@@ -45,55 +45,59 @@ class AsyncProcess:
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        # Set temporary PATH to locate executable in cmd
-        if path:
-            old_path = os.environ["PATH"]
-            # The user decides in the build system whether he wants to append
-            # $PATH or tuck it at the front: "$PATH;C:\\new\\path",
-            # "C:\\new\\path;$PATH"
-            os.environ["PATH"] = os.path.expandvars(path)
+        try:
+            # Set temporary PATH to locate executable in cmd
+            if path:
+                old_path = os.environ["PATH"]
+                # The user decides in the build system whether he wants to append
+                # $PATH or tuck it at the front: "$PATH;C:\\new\\path",
+                # "C:\\new\\path;$PATH"
+                os.environ["PATH"] = os.path.expandvars(path)
 
-        proc_env = os.environ.copy()
-        proc_env.update(env)
-        for k, v in proc_env.items():
-            proc_env[k] = os.path.expandvars(v)
+            proc_env = os.environ.copy()
+            proc_env.update(env)
+            for k, v in proc_env.items():
+                proc_env[k] = os.path.expandvars(v)
 
-        if sys.platform == "win32":
-            preexec_fn = None
-        else:
-            preexec_fn = os.setsid
-
-        if shell_cmd:
             if sys.platform == "win32":
-                # Use shell=True on Windows, so shell_cmd is passed through
-                # with the correct escaping
-                cmd = shell_cmd
-                shell = True
-            elif sys.platform == "darwin":
-                # Use a login shell on OSX, otherwise the users expected env
-                # vars won't be setup
-                cmd = ["/usr/bin/env", "bash", "-l", "-c", shell_cmd]
-                shell = False
-            elif sys.platform == "linux":
-                # Explicitly use /bin/bash on Linux, to keep Linux and OSX as
-                # similar as possible. A login shell is explicitly not used for
-                # linux, as it's not required
-                cmd = ["/usr/bin/env", "bash", "-c", shell_cmd]
-                shell = False
+                preexec_fn = None
+            else:
+                preexec_fn = os.setsid
 
-        self.proc = subprocess.Popen(
-            cmd,
-            bufsize=0,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=subprocess.PIPE,
-            startupinfo=startupinfo,
-            env=proc_env,
-            preexec_fn=preexec_fn,
-            shell=shell)
+            if shell_cmd:
+                if sys.platform == "win32":
+                    # Use shell=True on Windows, so shell_cmd is passed through
+                    # with the correct escaping
+                    cmd = shell_cmd
+                    shell = True
+                elif sys.platform == "darwin":
+                    # Use a login shell on OSX, otherwise the users expected env
+                    # vars won't be setup
+                    cmd = ["/usr/bin/env", "bash", "-l", "-c", shell_cmd]
+                    shell = False
+                elif sys.platform == "linux":
+                    # Explicitly use /bin/bash on Linux, to keep Linux and OSX as
+                    # similar as possible. A login shell is explicitly not used for
+                    # linux, as it's not required
+                    cmd = ["/usr/bin/env", "bash", "-c", shell_cmd]
+                    shell = False
 
-        if path:
-            os.environ["PATH"] = old_path
+            self.proc = subprocess.Popen(
+                cmd,
+                bufsize=0,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=subprocess.PIPE,
+                startupinfo=startupinfo,
+                env=proc_env,
+                preexec_fn=preexec_fn,
+                shell=shell)
+
+        finally:
+            # Make sure this is always run, otherwise we're leaving the PATH set
+            # permanently
+            if path:
+                os.environ["PATH"] = old_path
 
         self.stdout_thread = threading.Thread(
             target=self.read_fileno,
@@ -184,6 +188,7 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
         if kill_previous and self.proc and self.proc.poll():
             self.proc.kill()
 
+        self.output_view = self.window.find_output_panel("exec")
         if self.output_view is None:
             # Try not to call get_output_panel until the regexes are assigned
             self.output_view = self.window.create_output_panel("exec")
@@ -251,7 +256,7 @@ class ExecCommand(sublime_plugin.WindowCommand, ProcessListener):
             self.debug_text += "[cmd: " + str(cmd) + "]\n"
         self.debug_text += "[dir: " + str(os.getcwd()) + "]\n"
         if "PATH" in merged_env:
-            self.debug_text += "[path: " + str(merged_env["PATH"]) + "]"
+            self.debug_text += "[path: " + str(os.path.expandvars(merged_env["PATH"])) + "]"
         else:
             self.debug_text += "[path: " + str(os.environ["PATH"]) + "]"
 

@@ -10,12 +10,12 @@ import json
 import sys
 import io
 import enum
-from typing import Callable, Optional, Any, Iterator, Literal, TYPE_CHECKING
+from typing import Callable, Optional, Any, Iterator, Iterable, Literal, TYPE_CHECKING
 
 import sublime_api
 
 if TYPE_CHECKING:
-    from sublime_types import DIP, Vector, Point, Value, CommandArgs, Kind, Event, CompletionValue
+    from sublime_types import DIP, Vector, Point, Value, CommandArgs, Kind, CompletionValue
 
 
 class _LogWriter(io.TextIOBase):
@@ -129,7 +129,7 @@ class NewFileFlags(enum.IntFlag):
     Don't select the file if it is open. Instead make a new clone of that file in the desired
     group.
 
-    .. :since:: next
+    .. :since:: 4135
     """
 
 
@@ -156,14 +156,35 @@ class FindFlags(enum.IntFlag):
     """
     NONE = 0
     """ """
-    IGNORECASE = 2
-    """ Whether case should be considered when matching the find pattern. """
     LITERAL = 1
     """ Whether the find pattern should be matched literally or as a regex. """
+    IGNORECASE = 2
+    """ Whether case should be considered when matching the find pattern. """
+    WHOLEWORD = 4
+    """
+    Whether to only match whole words.
+
+    .. since:: 4149
+    """
+    REVERSE = 8
+    """
+    Whether to search backwards.
+
+    .. since:: 4149
+    """
+    WRAP = 16
+    """
+    Whether to wrap around once the end is reached.
+
+    .. since:: 4149
+    """
 
 
-IGNORECASE = FindFlags.IGNORECASE
 LITERAL = FindFlags.LITERAL
+IGNORECASE = FindFlags.IGNORECASE
+WHOLEWORD = FindFlags.WHOLEWORD
+REVERSE = FindFlags.REVERSE
+WRAP = FindFlags.WRAP
 
 
 class QuickPanelFlags(enum.IntFlag):
@@ -846,9 +867,11 @@ def open_dialog(
     if allow_folders:
         flags |= 2
 
-    cb = callback
     if not multi_select:
-        cb = lambda files: callback(files[0] if files else None)
+        def cb(files):
+            return callback(files[0] if files else None)
+    else:
+        cb = callback
 
     sublime_api.open_dialog(file_types, directory or '', flags, cb)
 
@@ -890,11 +913,38 @@ def select_folder_dialog(
     :param multi_select: Whether to allow selecting multiple files. When ``True``
                          the callback will be called with a list.
     """
-    cb = callback
     if not multi_select:
-        cb = lambda folders: callback(folders[0] if folders else None)
+        def cb(folders):
+            return callback(folders[0] if folders else None)
+    else:
+        cb = callback
 
     sublime_api.select_folder_dialog(directory or '', multi_select, cb)
+
+
+def choose_font_dialog(callback: Callable[[Value], None], default: dict[str, Value] = None):
+    """
+    Show a dialog for selecting a font.
+
+    .. since:: 4157
+
+    :param callback: Called with the font options, matching the format used in
+                     settings (eg. ``{ "font_face": "monospace" }``). May be
+                     called more than once, or will be called with ``None`` if
+                     the dialog is cancelled.
+    :param default: The default values to select/return. Same format as the
+                    argument passed to `callback`.
+    """
+    font_face: Value = ''
+    font_size: Value = None
+    if default is not None:
+        font_face = default.get("font_face") or ""
+        try:
+            font_size = int(default.get("font_size"))  # type: ignore
+        except ValueError:
+            font_size = None
+
+    sublime_api.choose_font_dialog(callback, font_face, font_size)
 
 
 def run_command(cmd: str, args: CommandArgs = None):
@@ -1169,13 +1219,20 @@ def find_resources(pattern: str) -> list[str]:
     return sublime_api.find_resources(pattern)
 
 
-def encode_value(value: Value, pretty=False) -> str:
+def encode_value(value: Value, pretty=False, update_text: str = None) -> str:
     """
     Encode a JSON compatible `Value` into a string representation.
 
     :param pretty: Whether the result should include newlines and be indented.
+    :param update_text:
+        Incrementally update the value encoded in this text. Best effort is made
+        to preserve the contents of ``update_text`` - comments, indentation,
+        etc. This is the same algorithm used to change settings values.
+        Providing this makes ``pretty`` have no effect.
+
+        .. since:: 4156
     """
-    return sublime_api.encode_value(value, pretty)
+    return sublime_api.encode_value(value, pretty, update_text)
 
 
 def decode_value(data: str) -> Value:
@@ -1261,6 +1318,26 @@ def get_macro() -> list[dict]:
               and ``"args"``.
     """
     return sublime_api.get_macro()
+
+
+def project_history() -> list[str]:
+    """
+    :returns: A list of most recently opened workspaces.
+              Sublime-project files with the same name are
+              listed in place of sublime-workspace files.
+
+    .. since:: 4144
+    """
+    return sublime_api.project_history()
+
+
+def folder_history() -> list[str]:
+    """
+    :returns: A list of recent folders added to sublime projects
+
+    .. since:: 4144
+    """
+    return sublime_api.folder_history()
 
 
 class Window:
@@ -1511,7 +1588,7 @@ class Window:
         """
         .. since:: 4083
 
-        :returns: All selected sheets in the window.
+        :returns: All selected sheets in the window's currently selected group.
         """
         sheet_ids = sublime_api.window_selected_sheets(self.window_id)
         return [make_sheet(s) for s in sheet_ids]
@@ -1559,6 +1636,18 @@ class Window:
         view_ids = sublime_api.window_views_in_group(self.window_id, group)
         return [View(x) for x in view_ids]
 
+    def num_sheets_in_group(self, group: int) -> int:
+        """
+        :returns: The number of sheets in the specified group.
+        """
+        return sublime_api.window_num_sheets_in_group(self.window_id, group)
+
+    def num_views_in_group(self, group: int) -> int:
+        """
+        :returns: The number of views in the specified group.
+        """
+        return sublime_api.window_num_views_in_group(self.window_id, group)
+
     def transient_sheet_in_group(self, group: int) -> Optional[Sheet]:
         """
         :returns: The transient sheet in the specified group.
@@ -1583,7 +1672,7 @@ class Window:
         """
         Promote the 'Sheet' parameter if semi-transient or transient.
 
-        :since: next
+        :since: 4135
         """
         sublime_api.window_promote_sheet(self.window_id, sheet.id())
 
@@ -1739,9 +1828,9 @@ class Window:
         """ :returns: Whether the sidebar is visible. """
         return sublime_api.window_is_ui_element_visible(self.window_id, UIElement.SIDE_BAR)
 
-    def set_sidebar_visible(self, flag: bool):
+    def set_sidebar_visible(self, flag: bool, animate=True):
         """ Hides or shows the sidebar. """
-        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.SIDE_BAR, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.SIDE_BAR, flag, animate)
 
     def is_minimap_visible(self) -> bool:
         """ :returns: Whether the minimap is visible. """
@@ -1749,7 +1838,7 @@ class Window:
 
     def set_minimap_visible(self, flag: bool):
         """ Hides or shows the minimap. """
-        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MINIMAP, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MINIMAP, flag, False)
 
     def is_status_bar_visible(self) -> bool:
         """ :returns: Whether the status bar is visible. """
@@ -1757,7 +1846,7 @@ class Window:
 
     def set_status_bar_visible(self, flag: bool):
         """ Hides or shows the status bar. """
-        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.STATUS_BAR, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.STATUS_BAR, flag, False)
 
     def get_tabs_visible(self) -> bool:
         """ :returns: Whether the tabs are visible. """
@@ -1765,7 +1854,7 @@ class Window:
 
     def set_tabs_visible(self, flag: bool):
         """ Hides or shows the tabs. """
-        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.TABS, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.TABS, flag, False)
 
     def is_menu_visible(self) -> bool:
         """ :returns: Whether the menu is visible. """
@@ -1773,7 +1862,7 @@ class Window:
 
     def set_menu_visible(self, flag: bool):
         """ Hides or shows the menu. """
-        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MENU, flag)
+        sublime_api.window_set_ui_element_visible(self.window_id, UIElement.MENU, flag, False)
 
     def folders(self) -> list[str]:
         """ :returns: A list of the currently open folders in this `Window`. """
@@ -1929,7 +2018,7 @@ class Edit:
     `View`, will cause the functions that require them to fail.
     """
 
-    def __init__(self, token):
+    def __init__(self, token: int):
         self.edit_token: int = token
 
     def __repr__(self) -> str:
@@ -2102,7 +2191,7 @@ class HistoricPosition:
 
     __slots__ = ['pt', 'row', 'col', 'col_utf16', 'col_utf8']
 
-    def __init__(self, pt, row, col, col_utf16, col_utf8):
+    def __init__(self, pt: Point, row: int, col: int, col_utf16: int, col_utf8: int):
         self.pt: Point = pt
         """ The offset from the beginning of the `View`. """
         self.row: int = row
@@ -2138,7 +2227,7 @@ class TextChange:
 
     __slots__ = ['a', 'b', 'len_utf16', 'len_utf8', 'str']
 
-    def __init__(self, pa, pb, len_utf16, len_utf8, str):
+    def __init__(self, pa: HistoricPosition, pb: HistoricPosition, len_utf16: int, len_utf8: int, s: str):
         self.a: HistoricPosition = pa
         """ The beginning `HistoricPosition` of the region that was modified. """
         self.b: HistoricPosition = pb
@@ -2155,7 +2244,7 @@ class TextChange:
 
         .. since:: 4075
         """
-        self.str: str = str
+        self.str: str = s
         """
         A string of the *new* contents of the region specified by ``.a`` and ``.b``.
 
@@ -2242,7 +2331,7 @@ class Selection:
         else:
             sublime_api.view_selection_add_point(self.view_id, x)
 
-    def add_all(self, regions: Iterator[Region]):
+    def add_all(self, regions: Iterable[Region | Point]):
         """ Add all the regions from the given iterable. """
         for r in regions:
             self.add(r)
@@ -2336,7 +2425,11 @@ class Sheet:
 
     def is_transient(self) -> bool:
         """
-        :returns: Whether this sheet is transient.
+        :returns:
+            Whether this sheet is exclusively transient.
+
+            Note that a sheet may be both open as a regular file and be
+            transient. In this case `is_transient` will still return ``False``.
 
         .. since:: 4080
         """
@@ -2346,7 +2439,7 @@ class Sheet:
         """
         :returns: Whether this sheet is currently selected.
 
-        :since: next
+        :since: 4135
         """
         return sublime_api.sheet_is_selected(self.sheet_id)
 
@@ -2427,7 +2520,7 @@ class ContextStackFrame:
 
     __slots__ = ['context_name', 'source_file', 'source_location']
 
-    def __init__(self, context_name, source_file, source_location):
+    def __init__(self, context_name: str, source_file: str, source_location: tuple[int, int]):
         self.context_name: str = context_name
         """ The name of the context. """
         self.source_file: str = source_file
@@ -2821,7 +2914,10 @@ class View:
         return sublime_api.view_extract_tokens_with_scopes(self.view_id, region.begin(), region.end())
 
     def extract_scope(self, pt: Point) -> Region:
-        """ :returns: The extent of the syntax scope name assigned to the character at the given `Point`, narrower syntax scope names included. """
+        """
+        :returns: The extent of the syntax scope name assigned to the character
+                  at the given `Point`, narrower syntax scope names included.
+        """
         return sublime_api.view_extract_scope(self.view_id, pt)
 
     def expand_to_scope(self, pt: Point, selector: str) -> Optional[Region]:
@@ -2888,26 +2984,27 @@ class View:
         """
         return sublime_api.view_style(self.view_id)
 
-    def style_for_scope(self, scope: str) -> dict[str, str]:
+    def style_for_scope(self, scope: str) -> dict[str, Value]:
         """
         Accepts a string scope name and returns a ``dict`` of style information
         including the keys:
 
-        * ``"foreground"``
-        * ``"background"`` (only if set)
-        * ``"bold"``
-        * ``"italic"``
+        * ``"foreground": str``
+        * ``"selection_foreground": str`` (only if set)
+        * ``"background": str`` (only if set)
+        * ``"bold": bool``
+        * ``"italic": bool``
         * .. since:: 4063
-            ``"glow"``
+            ``"glow": bool`` (only if set)
         * .. since:: 4075
-            ``"underline"``
+            ``"underline": bool`` (only if set)
         * .. since:: 4075
-            ``"stippled_underline"``
+            ``"stippled_underline": bool`` (only if set)
         * .. since:: 4075
-            ``"squiggly_underline"``
-        * ``"source_line"``
-        * ``"source_column"``
-        * ``"source_file"``
+            ``"squiggly_underline": bool`` (only if set)
+        * ``"source_line": str``
+        * ``"source_column": int``
+        * ``"source_file": int``
 
         The foreground and background colors are normalized to the six character
         hex form with a leading hash, e.g. ``#ff0000``.
@@ -3065,6 +3162,34 @@ class View:
             ``row``. :since:`4075`
         """
         return sublime_api.view_text_point_utf16(self.view_id, row, col, clamp_column)
+
+    def utf8_code_units(self, tp: Point = None) -> int:
+        """
+        Calculates the utf8 code unit offset at the given text point.
+
+        .. since:: 4173
+
+        :param tp:
+            The text point up to which code units should be counted. If not
+            provided the total is returned.
+        """
+        if tp is not None:
+            return sublime_api.view_code_units_at(self.view_id, tp)[0]
+        return sublime_api.view_total_code_units(self.view_id)[0]
+
+    def utf16_code_units(self, tp: Point = None) -> int:
+        """
+        Calculates the utf16 code unit offset at the given text point.
+
+        .. since:: 4173
+
+        :param tp:
+            The text point up to which code units should be counted. If not
+            provided the total is returned.
+        """
+        if tp is not None:
+            return sublime_api.view_code_units_at(self.view_id, tp)[1]
+        return sublime_api.view_total_code_units(self.view_id)[1]
 
     def visible_region(self) -> Region:
         """ :returns: The currently visible area of the view. """
@@ -3735,7 +3860,7 @@ class Phantom:
     the `View`, changes to the attributes will have no effect.
     """
 
-    def __init__(self, region, content, layout, on_navigate=None):
+    def __init__(self, region: Region, content: str, layout: PhantomLayout, on_navigate: Callable[[str], None] = None):
         self.region: Region = region
         """
         The `Region` associated with the phantom. The phantom is displayed at
@@ -3750,7 +3875,7 @@ class Phantom:
         Called when a link in the HTML is clicked. The value of the ``href``
         attribute is passed.
         """
-        self.id = None
+        self.id: int | None = None
 
     def __eq__(self, rhs: object) -> bool:
         # Note that self.id is not considered
@@ -3779,7 +3904,7 @@ class PhantomSet:
     updating them and removing them from a `View`.
     """
 
-    def __init__(self, view, key=""):
+    def __init__(self, view: View, key=""):
         """
         """
         self.view: View = view
@@ -3790,7 +3915,7 @@ class PhantomSet:
         """
         A string used to group the phantoms together.
         """
-        self.phantoms: [Phantom] = []
+        self.phantoms: list[Phantom] = []
 
     def __del__(self):
         for p in self.phantoms:
@@ -3799,7 +3924,7 @@ class PhantomSet:
     def __repr__(self) -> str:
         return f'PhantomSet({self.view!r}, key={self.key!r})'
 
-    def update(self, phantoms: Iterator[Phantom]):
+    def update(self, phantoms: Iterable[Phantom]):
         """
         Update the set of phantoms. If the `Phantom.region` of existing phantoms
         have changed they will be moved; new phantoms are added and ones not
@@ -3809,7 +3934,7 @@ class PhantomSet:
 
         # Update the list of phantoms that exist in the text buffer with their
         # current location
-        regions = self.view.query_phantoms([p.id for p in self.phantoms])
+        regions = self.view.query_phantoms([p.id for p in self.phantoms])  # type: ignore
         for phantom, region in zip(self.phantoms, regions):
             phantom.region = region
 
@@ -3829,7 +3954,7 @@ class PhantomSet:
             # if the region is -1, then it's already been deleted, no need to
             # call erase
             if p.id not in new_phantom_ids and p.region != Region(-1):
-                self.view.erase_phantom_by_id(p.id)
+                self.view.erase_phantom_by_id(p.id)  # type: ignore
 
         self.phantoms = [p for p in new_phantoms.values()]
 
@@ -3842,7 +3967,7 @@ class Html:
 
     __slots__ = ['data']
 
-    def __init__(self, data):
+    def __init__(self, data: str):
         self.data: str = data
 
     def __repr__(self) -> str:
@@ -3882,8 +4007,8 @@ class CompletionList:
         Sets the list of completions, allowing the list to be displayed to the
         user.
         """
-        assert(self.completions is None)
-        assert(flags is not None)
+        assert self.completions is None
+        assert flags is not None
 
         self.completions = completions
         self.flags = flags
@@ -3911,7 +4036,7 @@ class CompletionItem:
 
     def __init__(
             self,
-            trigger,
+            trigger: str,
             annotation="",
             completion="",
             completion_format=CompletionFormat.TEXT,
@@ -4068,7 +4193,7 @@ class Syntax:
 
     __slots__ = ['path', 'name', 'hidden', 'scope']
 
-    def __init__(self, path, name, hidden, scope):
+    def __init__(self, path: str, name: str, hidden: bool, scope: str):
         self.path: str = path
         """ The packages path to the syntax file. """
         self.name: str = name
@@ -4098,7 +4223,7 @@ class QuickPanelItem:
 
     __slots__ = ['trigger', 'details', 'annotation', 'kind']
 
-    def __init__(self, trigger, details="", annotation="", kind=KIND_AMBIGUOUS):
+    def __init__(self, trigger: str, details="", annotation="", kind=KIND_AMBIGUOUS):
         self.trigger: str = trigger
         """ Text to match against user's input. """
         self.details: str | list[str] | tuple[str] = details
@@ -4126,7 +4251,7 @@ class ListInputItem:
 
     __slots__ = ['text', 'value', 'details', 'annotation', 'kind']
 
-    def __init__(self, text, value, details="", annotation="", kind=KIND_AMBIGUOUS):
+    def __init__(self, text: str, value: Any, details="", annotation="", kind=KIND_AMBIGUOUS):
         self.text: str = text
         """ Text to match against the user's input. """
         self.value: Any = value
@@ -4157,7 +4282,7 @@ class SymbolRegion:
 
     __slots__ = ['name', 'region', 'syntax', 'type', 'kind']
 
-    def __init__(self, name, region, syntax, type, kind):
+    def __init__(self, name: str, region: Region, syntax: str, type: SymbolType, kind: Kind):
         self.name: str = name
         """ The name of the symbol. """
         self.region: Region = region
@@ -4184,7 +4309,7 @@ class SymbolLocation:
 
     __slots__ = ['path', 'display_name', 'row', 'col', 'syntax', 'type', 'kind']
 
-    def __init__(self, path, display_name, row, col, syntax, type, kind):
+    def __init__(self, path: str, display_name: str, row: int, col: int, syntax: str, type: SymbolType, kind: Kind):
         self.path: str = path
         """ The filesystem path to the file containing the symbol. """
         self.display_name: str = display_name

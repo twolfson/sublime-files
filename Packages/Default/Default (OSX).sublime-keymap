@@ -9,7 +9,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["ctrl+alt+tab"], "command": "next_os_tab" },
 	{ "keys": ["ctrl+alt+shift+tab"], "command": "prev_os_tab" },
 	{ "keys": ["super+o"], "command": "prompt_open" },
-	{ "keys": ["super+shift+t"], "command": "reopen_last_file" },
+	{ "keys": ["super+shift+t"], "command": "reopen_last_file", "args": {"source": "window"}  },
 	{ "keys": ["super+alt+up"], "command": "switch_file", "args": {"extensions": ["cpp", "cxx", "cc", "c", "hpp", "hxx", "hh", "h", "ipp", "inl", "m", "mm"]} },
 	{ "keys": ["super+alt+shift+up"], "command": "switch_file", "args": {"extensions": ["cpp", "cxx", "cc", "c", "hpp", "hxx", "hh", "h", "ipp", "inl", "m", "mm"], "side_by_side": true} },
 	{ "keys": ["super+n"], "command": "new_file" },
@@ -111,6 +111,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	},
 
 	{ "keys": ["super+]"], "command": "indent" },
+	{ "keys": ["super+k", "super+]"], "command": "reindent", "args": {"single_line": true} },
 	{ "keys": ["super+["], "command": "unindent" },
 
 
@@ -125,7 +126,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 		]
 	},
 
-	{ "keys": ["tab"], "command": "auto_complete", "args": {"snippets_only": true, "default": "\t", "commit_single": true},
+	{ "keys": ["tab"], "command": "auto_complete", "args": {"snippets_only": true, "default": "\t"},
 		"context":
 		[
 			{ "key": "auto_complete_visible", "operand": false },
@@ -134,7 +135,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 			{ "key": "preceding_text", "operator": "regex_match", "operand": ".*\\w", "match_all": true },
 		]
 	},
-	
+
 	{ "keys": ["tab"], "command": "expand_snippet", "context":
 		[{ "key": "has_snippet" }, ]
 	},
@@ -179,6 +180,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	},
 
 	{ "keys": ["super+l"], "command": "expand_selection", "args": {"to": "line"} },
+	{ "keys": ["super+alt+l"], "command": "expand_selection", "args": {"to": "line_prev"} },
 	{ "keys": ["super+d"], "command": "find_under_expand" },
 	{ "keys": ["super+k", "super+d"], "command": "find_under_expand_skip" },
 	{ "keys": ["super+shift+space"], "command": "expand_selection", "args": {"to": "scope"} },
@@ -293,10 +295,10 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 
 	{ "keys": ["ctrl+backquote"], "command": "show_panel", "args": {"panel": "console", "toggle": true} },
 
-	{ "keys": ["ctrl+space"], "command": "auto_complete", "arg": { "commit_single": false } },
-	{ "keys": ["ctrl+space"], "command": "move", "args": { "by": "lines", "forward": true }, "context":
+	{ "keys": ["ctrl+space"], "command": "auto_complete" },
+	{ "keys": ["ctrl+space"], "command": "move", "args": {"by": "lines", "forward": true}, "context":
 		[
-			{ "key": "auto_complete_visible", "operator": "equal", "operand": true }
+			{ "key": "auto_complete_primed", "operator": "equal", "operand": true }
 		]
 	},
 
@@ -651,8 +653,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["super+6"], "command": "select_by_index", "args": { "index": 5 } },
 	{ "keys": ["super+7"], "command": "select_by_index", "args": { "index": 6 } },
 	{ "keys": ["super+8"], "command": "select_by_index", "args": { "index": 7 } },
-	{ "keys": ["super+9"], "command": "select_by_index", "args": { "index": 8 } },
-	{ "keys": ["super+0"], "command": "select_by_index", "args": { "index": 9 } },
+	{ "keys": ["super+9"], "command": "select_last_tab" },
 
 	{ "keys": ["super+j", "super+up"], "command": "unselect_others" },
 	{ "keys": ["super+j", "super+left"], "command": "unselect_to_left" },
@@ -695,7 +696,7 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 
 	{ "keys": ["f2"], "command": "next_bookmark" },
 	{ "keys": ["shift+f2"], "command": "prev_bookmark" },
-	{ "keys": ["super+f2"], "command": "toggle_bookmark" },
+	{ "keys": ["super+f2"], "command": "toggle_bookmark", "args": {"toggle_line": true } },
 	{ "keys": ["super+shift+f2"], "command": "clear_bookmarks" },
 	{ "keys": ["alt+f2"], "command": "select_all_bookmarks" },
 
@@ -804,8 +805,9 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["keypad_enter"], "command": "hide_panel", "context":
 		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
-	{ "keys": ["shift+keypad_enter"], "command": "find_prev", "context":
-		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	{ "keys": ["shift+keypad_enter"], "command": "chain", "args": {
+		"commands": [{"command": "find_prev"}, {"command": "hide_panel"}]},
+		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
 	{ "keys": ["alt+keypad_enter"], "command": "find_all", "args": {"close_panel": true},
 		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
@@ -813,8 +815,9 @@ and don't need to be repeated here. Anything listed here will take precedence, h
 	{ "keys": ["enter"], "command": "hide_panel", "context":
 		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
-	{ "keys": ["shift+enter"], "command": "find_prev", "context":
-		[{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
+	{ "keys": ["shift+enter"], "command": "chain", "args": {
+		"commands": [{"command": "find_prev"}, {"command": "hide_panel"}]},
+		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]
 	},
 	{ "keys": ["alt+enter"], "command": "find_all", "args": {"close_panel": true},
 		"context": [{"key": "panel", "operand": "incremental_find"}, {"key": "panel_has_focus"}]

@@ -42,14 +42,15 @@ def build_comment_data(view, pt):
     for suffix in suffixes:
         start = all_vars.get("TM_COMMENT_START" + suffix)
         end = all_vars.get("TM_COMMENT_END" + suffix)
-        disable_indent = all_vars.get("TM_COMMENT_DISABLE_INDENT" + suffix)
+        disable_indent = all_vars.get("TM_COMMENT_DISABLE_INDENT" + suffix) == 'yes'
+        ignore_case = all_vars.get("TM_COMMENT_CASE_INSENSITIVE" + suffix) == 'yes'
 
         if start and end:
-            block_comments.append((start, end, disable_indent == 'yes'))
-            block_comments.append((start.strip(), end.strip(), disable_indent == 'yes'))
+            block_comments.append((start, end, disable_indent, ignore_case))
+            block_comments.append((start.strip(), end.strip(), disable_indent, ignore_case))
         elif start:
-            line_comments.append((start, disable_indent == 'yes'))
-            line_comments.append((start.strip(), disable_indent == 'yes'))
+            line_comments.append((start, disable_indent, ignore_case))
+            line_comments.append((start.strip(), disable_indent, ignore_case))
 
     return (line_comments, block_comments)
 
@@ -116,17 +117,25 @@ class ToggleCommentCommand(sublime_plugin.TextCommand):
 
         whole_region = view.expand_to_scope(region.begin(), selector)
 
-        if whole_region.end() < region.end():
+        if not whole_region:
+            whole_region = region
+        elif whole_region.end() < region.end():
             return False
 
         block_comments = build_comment_data(view, whole_region.begin())[1]
 
         for c in block_comments:
-            (start, end, disable_indent) = c
+            (start, end, disable_indent, ignore_case) = c
             start_region = sublime.Region(whole_region.begin(), whole_region.begin() + len(start))
             end_region = sublime.Region(whole_region.end() - len(end), whole_region.end())
 
-            if view.substr(start_region) == start and view.substr(end_region) == end:
+            should_remove = (view.substr(start_region) == start and
+                             view.substr(end_region) == end) or \
+                            (ignore_case and
+                             view.substr(start_region).lower() == start.lower() and
+                             view.substr(end_region).lower() == end.lower())
+
+            if should_remove:
                 # It's faster to erase the start region first
                 view.erase(edit, start_region)
 
@@ -152,9 +161,14 @@ class ToggleCommentCommand(sublime_plugin.TextCommand):
         regions = []
         for pos in start_positions:
             found = False
-            for (start, _) in line_comments:
+            for (start, _, ignore_case) in line_comments:
                 comment_region = sublime.Region(pos, pos + len(start))
-                if view.substr(comment_region) == start:
+
+                should_remove = (view.substr(comment_region) == start or
+                                 (ignore_case and
+                                  view.substr(comment_region).lower() == start.lower()))
+
+                if should_remove:
                     found = True
                     regions.append(comment_region)
                     break
@@ -176,7 +190,7 @@ class ToggleCommentCommand(sublime_plugin.TextCommand):
         if len(comment_data[1]) <= variant:
             return False
 
-        (start, end, disable_indent) = comment_data[1][variant]
+        (start, end, disable_indent, _) = comment_data[1][variant]
 
         if enable_indent and not disable_indent:
             min_indent_lines(view, [region])
@@ -223,7 +237,7 @@ class ToggleCommentCommand(sublime_plugin.TextCommand):
 
             return False
 
-        (start, disable_indent) = comment_data[0][variant]
+        (start, disable_indent, *_) = comment_data[0][variant]
 
         if not disable_indent:
             min_indent_lines(view, lines)
