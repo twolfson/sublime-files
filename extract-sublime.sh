@@ -10,6 +10,16 @@ if test -z "$url"; then
   exit 1
 fi
 
+# Check for the presence of 'cut' or 'gcut' utility
+if [[ "$OSTYPE" == "darwin"* ]] && $(which gcut &> /dev/null); then
+  CUT="gcut"
+elif $(which cut &> /dev/null); then
+  CUT="cut"
+else
+  echo "Missing \`cut\` utility. Please install \`cut\` or \`gcut\`" 1>&2
+  exit 1
+fi
+
 # Create a temporary folder to work in
 if test -d "tmp/"; then
   rm -r tmp/
@@ -34,7 +44,7 @@ for file in *; do
   if test -f "$file"; then
     # Get its size
     #  `du $file | cut --fields 1`: `4172 plugin_host` -> `4172` (kb)
-    filesize="$(du "$file" | cut --fields 1)"
+    filesize="$(du "$file" | "$CUT" --fields 1)"
 
     # If it's over 1MB, then remove it
     if test "$filesize" -ge 1024; then
@@ -64,7 +74,7 @@ for file in **/*; do
   if test -f "$file"; then
     # Get its size
     #  `du $file | cut --fields 1`: `4172 plugin_host` -> `4172` (kb)
-    filesize="$(du "$file" | cut --fields 1)"
+    filesize="$(du "$file" | "$CUT" --fields 1)"
 
     # If it's over 1MB, then complain about it
     if test "$filesize" -ge 1024; then
@@ -77,7 +87,7 @@ shopt -u globstar
 # Transfer our files
 #   `ls` -> `sublime_text_3 sublime_text_3_build_3083_x64.tar.bz2`
 cd ../
-cp "$subl_dir"/* ../ -R
+cp -R "$subl_dir"/* ../
 
 # Navigate out of our temporary directory and notify the user that we are done
 echo "Extraction complete. Please run \`git status\` to see what has changed." 1>&2
